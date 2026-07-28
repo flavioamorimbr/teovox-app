@@ -2,45 +2,2121 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=https://claude.ai/code/artifact/32ef6d35-06a1-44c3-8cc5-de918d5a26a2">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teovox — Painel de Clientes</title>
-<link rel="canonical" href="https://claude.ai/code/artifact/32ef6d35-06a1-44c3-8cc5-de918d5a26a2">
+<link rel="icon" href="../Logotipo-teovox2.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-900: #0B1F3A;
+    --blue-800: #112D52;
+    --blue-700: #174070;
+    --blue-600: #1E5490;
+    --blue-500: #2169B8;
+    --blue-400: #3A82D0;
+    --blue-300: #6AAAE4;
+    --blue-200: #A3C8F0;
+    --blue-100: #D6E8F9;
+    --blue-50: #EEF5FD;
+    --lead-900: #141414;
+    --lead-800: #1E1E1E;
+    --lead-700: #2A2A2A;
+    --lead-600: #373737;
+    --lead-500: #4A4A4A;
+    --lead-400: #606060;
+    --lead-300: #888888;
+    --lead-200: #B0B0B0;
+    --lead-100: #D8D8D8;
+    --lead-50: #F2F2F2;
+    --white: #FFFFFF;
+    --font-display: 'Syne', -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-body: 'DM Sans', -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  html, body { height: 100%; }
+
   body {
-    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #0B1F3A;
-    color: #fff;
+    font-family: var(--font-body);
+    background: var(--lead-50);
+    color: var(--lead-900);
+    display: flex;
     min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--blue-900);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem 1.25rem;
+  }
+
+  .sidebar .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0 0.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-decoration: none;
+    opacity: 1;
+    transition: opacity 0.15s;
+  }
+  .sidebar .brand:hover { opacity: 0.82; }
+  .sidebar .brand img { height: 32px; width: auto; }
+  .sidebar .brand span {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+  }
+
+  .sidebar nav { display: flex; flex-direction: column; gap: 0.25rem; }
+
+  .sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    color: var(--lead-100);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar nav a svg { flex-shrink: 0; }
+  .sidebar nav a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+  .sidebar nav a.active {
+    background: var(--blue-500);
+    color: var(--white);
+  }
+
+  .sidebar-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    padding: 1.25rem 0.85rem 0.5rem;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    min-width: 0;
+    padding: 2.5rem 3rem;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .topbar h1 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--blue-900);
+  }
+  .topbar p { color: var(--lead-400); font-size: 0.9rem; margin-top: 0.2rem; }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--blue-500);
+    color: var(--white);
+    border: none;
+    padding: 0.7rem 1.3rem;
+    border-radius: 10px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--blue-400); }
+
+  .card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(11,31,58,0.08);
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--lead-400);
+    background: var(--lead-50);
+    padding: 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--lead-100);
+  }
+
+  tbody td {
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--lead-50);
+    color: var(--lead-700);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--blue-50); }
+
+  .client-name {
+    font-weight: 700;
+    color: var(--blue-900);
+  }
+  a.client-name { text-decoration: none; }
+  a.client-name:hover { color: var(--blue-500); text-decoration: underline; }
+
+  .count-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--blue-700);
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    padding: 0.15rem 0.55rem;
+    border-radius: 100px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .actions-col { text-align: right; }
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--lead-300);
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .icon-btn:hover { background: var(--lead-50); color: var(--blue-500); }
+  .icon-btn.danger:hover { color: #C0392B; }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    color: var(--lead-300);
+  }
+  .empty-state svg { margin-bottom: 1rem; }
+  .empty-state p { font-size: 0.95rem; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(11,31,58,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    padding: 1.75rem;
+    box-shadow: 0 20px 60px rgba(11,31,58,0.3);
+  }
+
+  .modal h2 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--blue-900);
+    margin-bottom: 1.25rem;
+  }
+
+  .field { margin-bottom: 1rem; }
+  .field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--lead-500);
+    margin-bottom: 0.4rem;
+  }
+  .field input {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--lead-100);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--lead-900);
+    transition: border-color 0.15s;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--blue-400);
+  }
+  .field .error { color: #C0392B; font-size: 0.75rem; margin-top: 0.3rem; display: none; }
+  .field.invalid input { border-color: #C0392B; }
+  .field.invalid .error { display: block; }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-secondary {
+    background: none;
+    border: 1px solid var(--lead-100);
+    color: var(--lead-500);
+    padding: 0.65rem 1.2rem;
+    border-radius: 10px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: var(--lead-50); }
+
+  /* ── BOARD ── */
+  .breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--lead-400);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+  }
+  .breadcrumb-link:hover { color: var(--blue-500); }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    grid-auto-rows: calc((100vh - 260px) / 2);
+    gap: 1rem;
+  }
+
+  .board-col {
+    background: var(--lead-50);
+    border: 1px solid var(--lead-100);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .board-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 0.9rem 0.6rem;
+  }
+  .board-col-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--blue-900);
+  }
+  .board-col-count {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--lead-400);
+    background: var(--white);
+    border: 1px solid var(--lead-100);
+    padding: 0.05rem 0.45rem;
+    border-radius: 100px;
+  }
+
+  .board-col-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.15rem 0.6rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 40px;
+    transition: background 0.12s;
+  }
+  .board-col-body.drag-over { background: var(--blue-50); border-radius: 8px; }
+
+  .board-card {
+    background: var(--white);
+    border: 1px solid var(--lead-100);
+    border-radius: 10px;
+    padding: 0.65rem 1.7rem 0.65rem 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--lead-700);
+    cursor: grab;
+    box-shadow: 0 1px 2px rgba(11,31,58,0.06);
+    position: relative;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .board-card:active { cursor: grabbing; }
+  .board-card.dragging { opacity: 0.4; }
+
+  .board-card-delete {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--lead-300);
+    padding: 0.25rem;
+    border-radius: 6px;
+    line-height: 0;
+  }
+  .board-card:hover .board-card-delete,
+  .board-card-delete:focus-visible { opacity: 1; }
+  .board-card-delete:hover { background: #FBEAE7; color: #C0392B; }
+
+  .board-card-text { white-space: pre-wrap; word-break: break-word; }
+  .board-card-meta { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
+  .board-card-valor {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: #1D7A4C;
+    background: #E4F5EB;
+    padding: 0.1rem 0.45rem;
+    border-radius: 100px;
+  }
+  .board-card-mensalista {
+    font-weight: 700;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--blue-700);
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    padding: 0.1rem 0.45rem;
+    border-radius: 100px;
+  }
+  .board-card-date { font-size: 0.68rem; color: var(--lead-400); padding: 0.1rem 0; }
+
+  .card-form-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .card-form-label {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--lead-400);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .card-form-label input {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--lead-900);
+    border: 1px solid var(--lead-100);
+    border-radius: 7px;
+    padding: 0.4rem 0.5rem;
+    background: var(--white);
+  }
+  .card-form-label input:focus { outline: none; border-color: var(--blue-400); }
+  .card-form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--lead-700);
+  }
+  .card-form-checkbox input { width: 15px; height: 15px; accent-color: var(--blue-500); }
+
+  .mensalistas-topbar { margin-top: 2rem; margin-bottom: 1.25rem; }
+  .mensalistas-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--lead-900); }
+  .mensalistas-topbar p { color: var(--lead-400); font-size: 0.85rem; margin-top: 0.2rem; }
+
+  .board-card-edit {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--lead-900);
+    resize: none;
+    line-height: 1.4;
+  }
+  .board-card-edit:focus { outline: none; }
+
+  .add-task-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0.6rem 0.7rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--lead-400);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+  }
+  .add-task-btn:hover { background: var(--white); color: var(--blue-500); }
+
+  .add-task-form {
+    margin: 0 0.6rem 0.7rem;
+    background: var(--white);
+    border: 1px solid var(--blue-400);
+    border-radius: 10px;
+    padding: 0.55rem 0.65rem;
+    box-shadow: 0 1px 2px rgba(11,31,58,0.06);
+  }
+  .add-task-form textarea {
+    width: 100%;
+    border: none;
+    resize: none;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--lead-900);
+    background: transparent;
+    min-height: 2.2em;
+  }
+  .add-task-form textarea:focus { outline: none; }
+  .add-task-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+  }
+  .btn-sm {
+    padding: 0.4rem 0.8rem;
+    border-radius: 7px;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 720px) {
+    body { flex-direction: column; }
+    .sidebar { width: 100%; flex-direction: row; align-items: center; padding: 1rem 1.25rem; }
+    .sidebar .brand { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .sidebar nav { flex-direction: row; margin-left: auto; }
+    .main { padding: 1.5rem; }
+    .card { overflow-x: auto; }
+    .board { grid-template-columns: 1fr; grid-auto-rows: auto; }
+    .board-col { max-height: 60vh; }
+    .calendar-grid, .calendar-weekdays { grid-template-columns: repeat(7, minmax(38px, 1fr)); }
+    .calendar-cell { min-height: 58px; padding: 0.35rem; }
+    .calendar-event-label { display: none; }
+    .urgency-header { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── INÍCIO ── */
+  .reminders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .reminder-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .reminder-card:hover { background: var(--blue-100); }
+
+  .reminder-icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--blue-500);
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 2rem;
   }
-  .box { max-width: 420px; }
-  h1 { font-size: 1.3rem; margin-bottom: 0.75rem; }
-  p { color: #A3C8F0; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5; }
-  a.btn {
-    display: inline-block;
-    background: #2169B8;
-    color: #fff;
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
+
+  .reminder-body { flex: 1; min-width: 0; }
+  .reminder-title { font-family: var(--font-display); font-weight: 700; font-size: 0.92rem; color: var(--lead-500); }
+  .reminder-title strong { color: var(--lead-900); font-weight: 800; }
+  .reminder-cta { color: var(--blue-700); font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }
+
+  .reminder-countdown {
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.78rem;
+    color: var(--blue-700);
+    background: var(--white);
+    border: 1px solid var(--blue-100);
+    padding: 0.3rem 0.65rem;
     border-radius: 100px;
-    font-weight: 600;
-    font-size: 0.95rem;
+    white-space: nowrap;
   }
+
+  .urgency-card { padding: 1.25rem 1.5rem 1.5rem; }
+  .urgency-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .urgency-header h2 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--lead-900); }
+  .urgency-header p { font-size: 0.82rem; color: var(--lead-400); margin-top: 0.2rem; }
+
+  .urgency-total { text-align: right; flex-shrink: 0; }
+  .urgency-total-num {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--blue-500);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .urgency-total-label { font-size: 0.72rem; color: var(--lead-400); font-weight: 600; }
+
+  .urgency-chart { display: flex; flex-direction: column; gap: 0.9rem; }
+  .urgency-row { display: grid; grid-template-columns: 120px 1fr 40px; align-items: center; gap: 0.75rem; text-decoration: none; padding: 0.15rem; border-radius: 8px; transition: background 0.15s; }
+  .urgency-row:hover { background: var(--lead-50); }
+  .urgency-row-label { font-size: 0.85rem; font-weight: 700; color: var(--lead-900); display: flex; align-items: center; gap: 0.4rem; }
+  .urgency-track { background: var(--lead-50); border-radius: 100px; height: 14px; overflow: hidden; }
+  .urgency-bar { height: 100%; border-radius: 100px; background: var(--blue-500); transition: width 0.4s ease; }
+  .urgency-row-value { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.85rem; color: var(--lead-500); text-align: right; }
+
+  .urgency-critical-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #C0392B;
+    background: #FBEAE7;
+    padding: 0.05rem 0.4rem;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .urgency-empty { font-size: 0.85rem; color: var(--lead-400); padding: 1rem 0; }
+
+  .total-receivable { text-align: right; flex-shrink: 0; }
+  .total-receivable-label { font-size: 0.72rem; font-weight: 700; color: var(--lead-400); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+  .total-receivable-row { display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
+  .total-receivable-num {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--lead-900);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .eye-toggle {
+    background: var(--lead-50);
+    border: 1px solid var(--lead-100);
+    color: var(--lead-400);
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .eye-toggle:hover { background: var(--blue-50); color: var(--blue-500); }
+  .eye-toggle.visible { color: var(--blue-500); }
+
+  .upcoming-card { padding: 1.1rem 1.5rem; margin-bottom: 1.5rem; }
+  .upcoming-card h2 { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--lead-900); margin-bottom: 0.85rem; }
+  .upcoming-list { display: flex; flex-direction: column; gap: 0.55rem; }
+  .upcoming-row { display: flex; align-items: center; gap: 0.75rem; }
+  .upcoming-row-badge {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--blue-700);
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .upcoming-row-body { flex: 1; min-width: 0; font-size: 0.85rem; color: var(--lead-500); }
+  .upcoming-row-body strong { color: var(--lead-900); }
+  .upcoming-row-body a { color: inherit; text-decoration: none; }
+  .upcoming-row-body a:hover { color: var(--blue-500); text-decoration: underline; }
+  .upcoming-row-value {
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1D7A4C;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── CALENDÁRIO ── */
+  .calendar-card { padding: 1.25rem; }
+
+  .calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .calendar-weekdays span {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lead-400);
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+  }
+
+  .calendar-cell {
+    min-height: 92px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    padding: 0.5rem 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .calendar-cell.empty { visibility: hidden; }
+  .calendar-cell.plain { background: var(--lead-50); }
+  .calendar-cell.today .calendar-day-num { color: var(--blue-500); }
+
+  .calendar-day-num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--lead-900);
+  }
+
+  a.calendar-cell.has-event {
+    background: var(--blue-50);
+    border-color: var(--blue-100);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  a.calendar-cell.has-event:hover { background: var(--blue-100); transform: translateY(-1px); }
+  a.calendar-cell.has-event .calendar-day-num { color: var(--blue-700); }
+
+  .calendar-event-label {
+    font-size: 0.7rem;
+    line-height: 1.3;
+    font-weight: 600;
+    color: var(--blue-700);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .calendar-nav { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+  .calendar-nav-btn {
+    border: 1px solid var(--lead-100);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    text-decoration: none;
+  }
+
+  /* ── IDEIAS ── */
+  .ideas-context {
+    font-size: 0.85rem;
+    color: var(--lead-700);
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .ideas-context strong { color: var(--blue-700); }
+
+  .ideas-num-col { width: 44px; font-variant-numeric: tabular-nums; }
+  #ideas-tbody td:first-child { font-variant-numeric: tabular-nums; color: var(--lead-400); font-weight: 700; vertical-align: top; padding-top: 1rem; }
+  #ideas-tbody td { vertical-align: top; }
+  .idea-title { font-family: var(--font-display); font-weight: 700; color: var(--lead-900); margin-bottom: 0.25rem; }
+  .idea-desc { color: var(--lead-500); font-size: 0.85rem; line-height: 1.5; max-width: 34ch; }
+  .idea-no-client { color: var(--lead-300); font-style: italic; font-size: 0.82rem; }
+
+  .channel-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .channel-tag.online { background: var(--blue-50); color: var(--blue-700); border: 1px solid var(--blue-100); }
+  .channel-tag.offline { background: var(--lead-50); color: var(--lead-500); border: 1px solid var(--lead-100); }
+  .channel-tag.hybrid { background: #FBEAE7; color: #C0392B; border: 1px solid #FBEAE7; }
+
+  /* ── LOGIN ── */
+  .login-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--blue-900);
+    padding: 1.5rem;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--white);
+    border-radius: 18px;
+    padding: 2.25rem 2rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+  }
+  .login-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.75rem;
+  }
+  .login-brand img { height: 30px; width: auto; }
+  .login-brand span {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--blue-900);
+  }
+  .login-card h1 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--blue-900);
+    margin-bottom: 0.3rem;
+  }
+  .login-card p.login-sub {
+    font-size: 0.85rem;
+    color: var(--lead-400);
+    margin-bottom: 1.5rem;
+  }
+  .login-error {
+    display: none;
+    background: #FBEAE7;
+    border: 1px solid #F4C7C0;
+    color: #C0392B;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  .login-error.show { display: block; }
+  .login-card .btn-primary { width: 100%; justify-content: center; margin-top: 0.5rem; }
+  #app-root { display: none; }
 </style>
-<script>
-  location.replace("https://claude.ai/code/artifact/32ef6d35-06a1-44c3-8cc5-de918d5a26a2");
-</script>
 </head>
 <body>
-  <div class="box">
-    <h1>Redirecionando para o painel Teovox…</h1>
-    <p>Se a página não abrir automaticamente em alguns segundos, clique no botão abaixo.</p>
-    <a class="btn" href="https://claude.ai/code/artifact/32ef6d35-06a1-44c3-8cc5-de918d5a26a2">Abrir painel</a>
+
+  <div class="login-screen" id="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <img src="../Logotipo-teovox2.png" alt="Teovox">
+        <span>Teovox</span>
+      </div>
+      <h1>Acesso ao painel</h1>
+      <p class="login-sub">Entre com seu usuário e senha para continuar.</p>
+      <div class="login-error" id="login-error">Usuário ou senha incorretos.</div>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="login-user">Usuário</label>
+          <input type="text" id="login-user" autocomplete="username" placeholder="usuário">
+        </div>
+        <div class="field">
+          <label for="login-pass">Senha</label>
+          <input type="password" id="login-pass" autocomplete="current-password" placeholder="senha">
+        </div>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+    </div>
   </div>
+
+  <div id="app-root">
+  <aside class="sidebar">
+    <a href="#/inicio" class="brand" aria-label="Início">
+      <img src="../Logotipo-teovox2.png" alt="Teovox">
+      <span>Teovox</span>
+    </a>
+    <nav>
+      <a href="#/clientes" class="active" data-tab="clientes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Clientes
+      </a>
+    </nav>
+    <div class="sidebar-label">Estágios</div>
+    <nav>
+      <a href="#/solicitacao" data-tab="solicitacao">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+        Solicitação
+      </a>
+      <a href="#/aprovacao" data-tab="aprovacao">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        Aprovação
+      </a>
+      <a href="#/producao" data-tab="producao">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        Produção
+      </a>
+      <a href="#/areceber" data-tab="areceber">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        A receber
+      </a>
+      <a href="#/calendario" data-tab="calendario">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Calendário
+      </a>
+    </nav>
+    <div class="sidebar-label">Recursos</div>
+    <nav>
+      <a href="https://www.nfse.gov.br/EmissorNacional/login" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="8" y1="9" x2="10" y2="9"></line></svg>
+        Nota Fiscal
+      </a>
+      <a href="https://drive.google.com/drive/u/0/" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        Google Drive
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div id="view-home" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1>Início</h1>
+          <p>Visão geral da semana para a equipe Teovox</p>
+        </div>
+        <div class="total-receivable" id="total-receivable">
+          <div class="total-receivable-label">Total a receber</div>
+          <div class="total-receivable-row">
+            <span class="total-receivable-num" id="total-receivable-num">••••••</span>
+            <button type="button" class="eye-toggle" id="btn-toggle-money" title="Mostrar valor" aria-label="Mostrar valor">
+              <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="reminders-list" class="reminders-list"></div>
+
+      <div class="card upcoming-card" id="upcoming-card" style="display:none;">
+        <h2>Próximos valores a receber</h2>
+        <div id="upcoming-list" class="upcoming-list"></div>
+      </div>
+
+      <div class="card urgency-card">
+        <div class="urgency-header">
+          <div>
+            <h2>Urgência para chegar em "A receber" esta semana</h2>
+            <p>Quantidade de itens parados em cada etapa do fluxo, em todos os clientes</p>
+          </div>
+          <div class="urgency-total" id="urgency-total">
+            <span class="urgency-total-num">0</span>
+            <span class="urgency-total-label">itens pendentes</span>
+          </div>
+        </div>
+        <div class="urgency-chart" id="urgency-chart"></div>
+      </div>
+    </div>
+
+    <div id="view-clients" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1>Clientes</h1>
+          <p>Gestão de clientes de comunicação e marketing</p>
+        </div>
+        <button class="btn-primary" id="btn-new-client">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Novo Cliente
+        </button>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th class="actions-col">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="clients-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="empty-state" style="display:none;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <p>Nenhum cliente cadastrado ainda.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-board" style="display:none;">
+      <a href="#/clientes" class="breadcrumb-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Clientes
+      </a>
+      <div class="topbar">
+        <div>
+          <h1 id="board-client-name">Cliente</h1>
+          <p>Fluxo de solicitações do cliente</p>
+        </div>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div id="view-stage" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1 id="stage-title">Estágio<span class="count-pill" id="stage-count-pill">0</span></h1>
+          <p>Todos os registros de todos os clientes nesta etapa</p>
+        </div>
+        <div class="urgency-total" id="stage-total-wrap" style="display:none;">
+          <span class="urgency-total-num" id="stage-total-num">R$ 0,00</span>
+          <span class="urgency-total-label">total a receber</span>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead id="stage-thead">
+            <tr>
+              <th>Registro</th>
+              <th>Cliente</th>
+            </tr>
+          </thead>
+          <tbody id="stage-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="stage-empty-state" style="display:none;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <p>Nenhum registro nesta etapa ainda.</p>
+        </div>
+      </div>
+
+      <div id="mensalistas-section" style="display:none;">
+        <div class="topbar mensalistas-topbar">
+          <div>
+            <h2 class="mensalistas-title">Mensalistas<span class="count-pill" id="mensalistas-count-pill">0</span></h2>
+            <p>Clientes com cobrança recorrente mensal</p>
+          </div>
+          <div class="urgency-total" id="mensalistas-total-wrap" style="display:none;">
+            <span class="urgency-total-num" id="mensalistas-total-num">R$ 0,00</span>
+            <span class="urgency-total-label">por mês</span>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Solicitação</th>
+                <th>Valor</th>
+                <th>Dia do pagamento</th>
+              </tr>
+            </thead>
+            <tbody id="mensalistas-tbody"></tbody>
+          </table>
+          <div class="empty-state" id="mensalistas-empty-state" style="display:none;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <p>Nenhum cliente mensalista cadastrado ainda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-calendar" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1 id="calendar-title">Calendário</h1>
+          <p>Datas comemorativas e oportunidades de marketing do mês — clique em uma data marcada para ver ideias de ação</p>
+        </div>
+        <div class="calendar-nav">
+          <a href="#" id="btn-prev-month" class="icon-btn calendar-nav-btn" title="Mês anterior" aria-label="Mês anterior">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </a>
+          <a href="#" id="btn-next-month" class="icon-btn calendar-nav-btn" title="Próximo mês" aria-label="Próximo mês">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+        </div>
+      </div>
+      <div class="card calendar-card">
+        <div class="calendar-weekdays">
+          <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+    </div>
+
+    <div id="view-ideas" style="display:none;">
+      <a href="#/calendario" class="breadcrumb-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Calendário
+      </a>
+      <div class="topbar">
+        <div>
+          <h1 id="ideas-title">Ideias de marketing</h1>
+          <p id="ideas-subtitle">30 ações para prospectar e engajar clientes nesta data</p>
+        </div>
+      </div>
+      <p class="ideas-context" id="ideas-context"></p>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th class="ideas-num-col">#</th>
+              <th>Ideia</th>
+              <th>Canal</th>
+              <th>Recomendação</th>
+            </tr>
+          </thead>
+          <tbody id="ideas-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2 id="modal-title">Novo Cliente</h2>
+      <form id="client-form" novalidate>
+        <input type="hidden" id="client-id">
+        <div class="field" id="field-nome">
+          <label for="input-nome">Nome</label>
+          <input type="text" id="input-nome" autocomplete="off" placeholder="Nome do cliente">
+          <div class="error">Informe o nome do cliente.</div>
+        </div>
+        <div class="field" id="field-telefone">
+          <label for="input-telefone">Telefone</label>
+          <input type="tel" id="input-telefone" autocomplete="off" placeholder="(00) 00000-0000">
+          <div class="error">Informe um telefone válido.</div>
+        </div>
+        <div class="field" id="field-email">
+          <label for="input-email">Email</label>
+          <input type="email" id="input-email" autocomplete="off" placeholder="cliente@empresa.com">
+          <div class="error">Informe um email válido.</div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary">Cadastrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </div>
+
+<script>
+  const TEOVOX_USER = 'teovox';
+  const TEOVOX_PASS = 'teovox2026';
+  const AUTH_KEY = 'teovox_auth';
+
+  const loginScreen = document.getElementById('login-screen');
+  const appRoot = document.getElementById('app-root');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+  const loginUser = document.getElementById('login-user');
+  const loginPass = document.getElementById('login-pass');
+
+  function showApp() {
+    loginScreen.style.display = 'none';
+    appRoot.style.display = '';
+  }
+
+  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+    showApp();
+  } else {
+    loginUser.focus();
+  }
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (loginUser.value.trim() === TEOVOX_USER && loginPass.value === TEOVOX_PASS) {
+      sessionStorage.setItem(AUTH_KEY, '1');
+      loginError.classList.remove('show');
+      showApp();
+      route();
+    } else {
+      loginError.classList.add('show');
+      loginPass.value = '';
+      loginPass.focus();
+    }
+  });
+
+  const STORAGE_KEY = 'teovox_clients';
+
+  function loadClients() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveClients(clients) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  const tbody = document.getElementById('clients-tbody');
+  const emptyState = document.getElementById('empty-state');
+
+  function render() {
+    const clients = loadClients();
+    tbody.innerHTML = '';
+    emptyState.style.display = clients.length ? 'none' : 'block';
+
+    clients.forEach(client => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><a class="client-name" href="#/cliente/${client.id}">${escapeHtml(client.nome)}</a></td>
+        <td class="actions-col">
+          <button class="icon-btn" data-edit="${client.id}" title="Editar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+          <button class="icon-btn danger" data-delete="${client.id}" title="Excluir">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  const overlay = document.getElementById('modal-overlay');
+  const modalTitle = document.getElementById('modal-title');
+  const form = document.getElementById('client-form');
+  const inputId = document.getElementById('client-id');
+  const inputNome = document.getElementById('input-nome');
+  const inputTelefone = document.getElementById('input-telefone');
+  const inputEmail = document.getElementById('input-email');
+
+  function openModal(client) {
+    form.reset();
+    document.querySelectorAll('.field').forEach(f => f.classList.remove('invalid'));
+    if (client) {
+      modalTitle.textContent = 'Editar Cliente';
+      inputId.value = client.id;
+      inputNome.value = client.nome;
+      inputTelefone.value = client.telefone;
+      inputEmail.value = client.email;
+    } else {
+      modalTitle.textContent = 'Novo Cliente';
+      inputId.value = '';
+    }
+    overlay.classList.add('open');
+    inputNome.focus();
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+  }
+
+  document.getElementById('btn-new-client').addEventListener('click', () => openModal(null));
+  document.getElementById('btn-cancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  tbody.addEventListener('click', (e) => {
+    const editId = e.target.closest('[data-edit]')?.dataset.edit;
+    const deleteId = e.target.closest('[data-delete]')?.dataset.delete;
+    if (editId) {
+      const client = loadClients().find(c => c.id === editId);
+      if (client) openModal(client);
+    }
+    if (deleteId) {
+      if (confirm('Excluir este cliente?')) {
+        const clients = loadClients().filter(c => c.id !== deleteId);
+        saveClients(clients);
+        render();
+      }
+    }
+  });
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function setInvalid(fieldId, invalid) {
+    document.getElementById(fieldId).classList.toggle('invalid', invalid);
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const nome = inputNome.value.trim();
+    const telefone = inputTelefone.value.trim();
+    const email = inputEmail.value.trim();
+
+    let valid = true;
+    setInvalid('field-nome', !nome); if (!nome) valid = false;
+    setInvalid('field-telefone', !telefone); if (!telefone) valid = false;
+    setInvalid('field-email', !emailRegex.test(email)); if (!emailRegex.test(email)) valid = false;
+    if (!valid) return;
+
+    const clients = loadClients();
+    if (inputId.value) {
+      const idx = clients.findIndex(c => c.id === inputId.value);
+      if (idx !== -1) clients[idx] = { ...clients[idx], nome, telefone, email };
+    } else {
+      clients.push({ id: crypto.randomUUID(), nome, telefone, email });
+    }
+    saveClients(clients);
+    closeModal();
+    render();
+  });
+
+  render();
+
+  /* ── BOARD (kanban por cliente) ── */
+  const BOARD_COLUMNS = [
+    { key: 'solicitacao', label: 'Solicitação' },
+    { key: 'aprovacao', label: 'Aprovação' },
+    { key: 'producao', label: 'Produção' },
+    { key: 'areceber', label: 'A receber' },
+  ];
+
+  function boardStorageKey(clientId) { return `teovox_board_${clientId}`; }
+
+  function formatBRL(value) {
+    return (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function formatDateBR(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function loadBoard(clientId) {
+    let board;
+    try { board = JSON.parse(localStorage.getItem(boardStorageKey(clientId))); }
+    catch { board = null; }
+    if (!board || typeof board !== 'object') board = {};
+    BOARD_COLUMNS.forEach(col => { if (!Array.isArray(board[col.key])) board[col.key] = []; });
+    return board;
+  }
+
+  function saveBoard(clientId, board) {
+    localStorage.setItem(boardStorageKey(clientId), JSON.stringify(board));
+  }
+
+  const viewClients = document.getElementById('view-clients');
+  const viewBoard = document.getElementById('view-board');
+  const boardEl = document.getElementById('board');
+  const boardClientName = document.getElementById('board-client-name');
+
+  let draggedCard = null;
+
+  function renderBoard(clientId) {
+    const board = loadBoard(clientId);
+    boardEl.innerHTML = '';
+
+    BOARD_COLUMNS.forEach(col => {
+      const cards = board[col.key];
+
+      const colEl = document.createElement('div');
+      colEl.className = 'board-col';
+      colEl.dataset.column = col.key;
+
+      const header = document.createElement('div');
+      header.className = 'board-col-header';
+      header.innerHTML = `<span class="board-col-title">${escapeHtml(col.label)}</span><span class="board-col-count">${cards.length}</span>`;
+      colEl.appendChild(header);
+
+      const body = document.createElement('div');
+      body.className = 'board-col-body';
+      body.dataset.column = col.key;
+
+      cards.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'board-card';
+        cardEl.draggable = true;
+        cardEl.dataset.cardId = card.id;
+        const meta = [];
+        if (card.valor) meta.push(`<span class="board-card-valor">${formatBRL(card.valor)}</span>`);
+        if (card.mensalista) meta.push('<span class="board-card-mensalista">Mensalista</span>');
+        if (card.dataPagamento) meta.push(`<span class="board-card-date">Pagamento: ${formatDateBR(card.dataPagamento)}</span>`);
+        cardEl.innerHTML = `<div class="board-card-text">${escapeHtml(card.text)}</div>${meta.length ? `<div class="board-card-meta">${meta.join('')}</div>` : ''}<button class="board-card-delete" title="Remover" aria-label="Remover">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>`;
+
+        cardEl.addEventListener('dragstart', () => {
+          draggedCard = { cardId: card.id, fromColumn: col.key };
+          cardEl.classList.add('dragging');
+        });
+        cardEl.addEventListener('dragend', () => {
+          cardEl.classList.remove('dragging');
+          draggedCard = null;
+        });
+
+        cardEl.querySelector('.board-card-delete').addEventListener('click', () => {
+          const b = loadBoard(clientId);
+          b[col.key] = b[col.key].filter(c => c.id !== card.id);
+          saveBoard(clientId, b);
+          renderBoard(clientId);
+        });
+
+        cardEl.addEventListener('click', (e) => {
+          if (e.target.closest('.board-card-delete')) return;
+          if (cardEl.querySelector('.add-task-actions')) return;
+          startCardEdit(clientId, col.key, card, cardEl);
+        });
+
+        body.appendChild(cardEl);
+      });
+
+      body.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        body.classList.add('drag-over');
+      });
+      body.addEventListener('dragleave', () => body.classList.remove('drag-over'));
+      body.addEventListener('drop', (e) => {
+        e.preventDefault();
+        body.classList.remove('drag-over');
+        if (!draggedCard) return;
+        const b = loadBoard(clientId);
+        const sourceList = b[draggedCard.fromColumn];
+        const idx = sourceList.findIndex(c => c.id === draggedCard.cardId);
+        if (idx === -1) return;
+        const [moved] = sourceList.splice(idx, 1);
+        b[col.key].push(moved);
+        saveBoard(clientId, b);
+        draggedCard = null;
+        renderBoard(clientId);
+      });
+
+      colEl.appendChild(body);
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-task-btn';
+      addBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Adicionar`;
+      addBtn.addEventListener('click', () => startCardAdd(clientId, col.key, colEl, addBtn));
+      colEl.appendChild(addBtn);
+
+      boardEl.appendChild(colEl);
+    });
+  }
+
+  function cardFormFieldsHTML(card) {
+    const c = card || {};
+    return `
+      <textarea placeholder="Título da solicitação" rows="2">${c.text ? escapeHtml(c.text) : ''}</textarea>
+      <div class="card-form-row">
+        <label class="card-form-label">
+          Valor (R$)
+          <input type="number" class="card-form-valor" min="0" step="0.01" placeholder="0,00" value="${c.valor || ''}">
+        </label>
+        <label class="card-form-label">
+          Dia do pagamento
+          <input type="date" class="card-form-data" value="${c.dataPagamento || ''}">
+        </label>
+      </div>
+      <label class="card-form-checkbox">
+        <input type="checkbox" class="card-form-mensalista" ${c.mensalista ? 'checked' : ''}>
+        Mensalista
+      </label>
+    `;
+  }
+
+  function readCardForm(formEl) {
+    const text = formEl.querySelector('textarea').value.trim();
+    const valorRaw = formEl.querySelector('.card-form-valor').value;
+    const valor = valorRaw ? parseFloat(valorRaw) : null;
+    const dataPagamento = formEl.querySelector('.card-form-data').value || null;
+    const mensalista = formEl.querySelector('.card-form-mensalista').checked;
+    return { text, valor, dataPagamento, mensalista };
+  }
+
+  function startCardAdd(clientId, columnKey, colEl, addBtn) {
+    addBtn.style.display = 'none';
+    const formEl = document.createElement('div');
+    formEl.className = 'add-task-form';
+    formEl.innerHTML = cardFormFieldsHTML(null) + `
+      <div class="add-task-actions">
+        <button type="button" class="btn-primary btn-sm">Adicionar</button>
+        <button type="button" class="btn-secondary btn-sm">Cancelar</button>
+      </div>
+    `;
+    colEl.insertBefore(formEl, addBtn);
+    const textarea = formEl.querySelector('textarea');
+    const [confirmBtn, cancelBtn] = formEl.querySelectorAll('.add-task-actions button');
+    textarea.focus();
+
+    function cleanup() {
+      formEl.remove();
+      addBtn.style.display = '';
+    }
+    function commit() {
+      const data = readCardForm(formEl);
+      if (data.text) {
+        const b = loadBoard(clientId);
+        b[columnKey].push({ id: crypto.randomUUID(), ...data });
+        saveBoard(clientId, b);
+        renderBoard(clientId);
+      } else {
+        cleanup();
+      }
+    }
+    confirmBtn.addEventListener('click', commit);
+    cancelBtn.addEventListener('click', cleanup);
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') cleanup();
+    });
+  }
+
+  function startCardEdit(clientId, columnKey, card, cardEl) {
+    cardEl.draggable = false;
+    cardEl.innerHTML = cardFormFieldsHTML(card) + `
+      <div class="add-task-actions">
+        <button type="button" class="btn-primary btn-sm">Salvar</button>
+        <button type="button" class="btn-secondary btn-sm">Cancelar</button>
+      </div>
+    `;
+    const textarea = cardEl.querySelector('textarea');
+    const [saveBtn, cancelBtn] = cardEl.querySelectorAll('.add-task-actions button');
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+
+    function commit() {
+      const data = readCardForm(cardEl);
+      const b = loadBoard(clientId);
+      if (data.text) {
+        const target = b[columnKey].find(c => c.id === card.id);
+        if (target) Object.assign(target, data);
+      } else {
+        b[columnKey] = b[columnKey].filter(c => c.id !== card.id);
+      }
+      saveBoard(clientId, b);
+      renderBoard(clientId);
+    }
+    saveBtn.addEventListener('click', commit);
+    cancelBtn.addEventListener('click', () => renderBoard(clientId));
+    cardEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') renderBoard(clientId);
+    });
+  }
+
+  const viewStage = document.getElementById('view-stage');
+  const stageTitle = document.getElementById('stage-title');
+  const stageCountPill = document.getElementById('stage-count-pill');
+  const stageThead = document.getElementById('stage-thead');
+  const stageTbody = document.getElementById('stage-tbody');
+  const stageEmptyState = document.getElementById('stage-empty-state');
+  const stageTotalWrap = document.getElementById('stage-total-wrap');
+  const stageTotalNum = document.getElementById('stage-total-num');
+  const mensalistasSection = document.getElementById('mensalistas-section');
+  const mensalistasCountPill = document.getElementById('mensalistas-count-pill');
+  const mensalistasTotalWrap = document.getElementById('mensalistas-total-wrap');
+  const mensalistasTotalNum = document.getElementById('mensalistas-total-num');
+  const mensalistasTbody = document.getElementById('mensalistas-tbody');
+  const mensalistasEmptyState = document.getElementById('mensalistas-empty-state');
+
+  function getAllMensalistaCards() {
+    const rows = [];
+    loadClients().forEach(client => {
+      const board = loadBoard(client.id);
+      BOARD_COLUMNS.forEach(col => {
+        (board[col.key] || []).forEach(card => {
+          if (card.mensalista) {
+            rows.push({ text: card.text, valor: card.valor, dataPagamento: card.dataPagamento, clientId: client.id, clientName: client.nome });
+          }
+        });
+      });
+    });
+    return rows;
+  }
+
+  const viewCalendar = document.getElementById('view-calendar');
+  const viewIdeas = document.getElementById('view-ideas');
+  const viewHome = document.getElementById('view-home');
+
+  function hideAllViews() {
+    viewHome.style.display = 'none';
+    viewClients.style.display = 'none';
+    viewBoard.style.display = 'none';
+    viewStage.style.display = 'none';
+    viewCalendar.style.display = 'none';
+    viewIdeas.style.display = 'none';
+  }
+
+  function setActiveNav(tab) {
+    document.querySelectorAll('.sidebar nav a').forEach(a => {
+      a.classList.toggle('active', a.dataset.tab === tab);
+    });
+  }
+
+  function showClientsList() {
+    hideAllViews();
+    viewClients.style.display = '';
+    setActiveNav('clientes');
+    render();
+  }
+
+  const remindersList = document.getElementById('reminders-list');
+  const urgencyTotal = document.getElementById('urgency-total');
+  const urgencyChart = document.getElementById('urgency-chart');
+  const totalReceivableNum = document.getElementById('total-receivable-num');
+  const btnToggleMoney = document.getElementById('btn-toggle-money');
+  const eyeIcon = document.getElementById('eye-icon');
+  const upcomingCard = document.getElementById('upcoming-card');
+  const upcomingList = document.getElementById('upcoming-list');
+
+  const EYE_OPEN_PATH = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  const EYE_CLOSED_PATH = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+
+  let moneyVisible = false;
+
+  function getReceivableItems() {
+    const items = [];
+    const seenCardIds = new Set();
+    loadClients().forEach(client => {
+      const board = loadBoard(client.id);
+      (board.areceber || []).forEach(card => {
+        seenCardIds.add(card.id);
+        items.push({ cardId: card.id, text: card.text, valor: card.valor, dataPagamento: card.dataPagamento, mensalista: card.mensalista, clientId: client.id, clientName: client.nome });
+      });
+      BOARD_COLUMNS.forEach(col => {
+        if (col.key === 'areceber') return;
+        (board[col.key] || []).forEach(card => {
+          if (card.mensalista && !seenCardIds.has(card.id)) {
+            seenCardIds.add(card.id);
+            items.push({ cardId: card.id, text: card.text, valor: card.valor, dataPagamento: card.dataPagamento, mensalista: card.mensalista, clientId: client.id, clientName: client.nome });
+          }
+        });
+      });
+    });
+    return items;
+  }
+
+  function nextOccurrence(dateStr, isMensalista) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    let date = new Date(y, m - 1, d);
+    if (!isMensalista) return date;
+    const today = new Date(new Date().setHours(0, 0, 0, 0));
+    const day = date.getDate();
+    let candidate = new Date(today.getFullYear(), today.getMonth(), day);
+    if (candidate < today) candidate = new Date(today.getFullYear(), today.getMonth() + 1, day);
+    return candidate;
+  }
+
+  function renderMoney() {
+    const items = getReceivableItems();
+    const total = items.reduce((sum, it) => sum + (it.valor || 0), 0);
+
+    totalReceivableNum.textContent = moneyVisible ? formatBRL(total) : '••••••';
+    btnToggleMoney.classList.toggle('visible', moneyVisible);
+    btnToggleMoney.title = moneyVisible ? 'Ocultar valor' : 'Mostrar valor';
+    btnToggleMoney.setAttribute('aria-label', btnToggleMoney.title);
+    eyeIcon.innerHTML = moneyVisible ? EYE_OPEN_PATH : EYE_CLOSED_PATH;
+
+    const upcoming = items
+      .filter(it => it.dataPagamento)
+      .map(it => ({ ...it, nextDate: nextOccurrence(it.dataPagamento, it.mensalista) }))
+      .sort((a, b) => a.nextDate - b.nextDate)
+      .slice(0, 6);
+
+    upcomingCard.style.display = upcoming.length ? '' : 'none';
+    upcomingList.innerHTML = '';
+    upcoming.forEach(it => {
+      const dateLabel = it.nextDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+      const row = document.createElement('div');
+      row.className = 'upcoming-row';
+      row.innerHTML = `
+        <span class="upcoming-row-badge">${escapeHtml(dateLabel)}</span>
+        <span class="upcoming-row-body">${it.mensalista ? 'Mensalista ' : ''}<a href="#/cliente/${it.clientId}"><strong>${escapeHtml(it.clientName)}</strong></a> — ${escapeHtml(it.text)}</span>
+        <span class="upcoming-row-value">${moneyVisible ? formatBRL(it.valor) : '••••'}</span>
+      `;
+      upcomingList.appendChild(row);
+    });
+  }
+
+  btnToggleMoney.addEventListener('click', () => {
+    moneyVisible = !moneyVisible;
+    renderMoney();
+  });
+
+  function getUpcomingEvents(count) {
+    const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const upcoming = [];
+    [now.getFullYear(), now.getFullYear() + 1].forEach(year => {
+      getEventsForYear(year).forEach((event, key) => {
+        const [y, m, d] = key.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        if (dateObj >= todayMidnight) upcoming.push({ key, dateObj, title: event.title });
+      });
+    });
+    upcoming.sort((a, b) => a.dateObj - b.dateObj);
+    return upcoming.slice(0, count);
+  }
+
+  function showHome() {
+    hideAllViews();
+    viewHome.style.display = '';
+    setActiveNav(null);
+
+    moneyVisible = false;
+    renderMoney();
+
+    remindersList.innerHTML = '';
+    getUpcomingEvents(3).forEach(ev => {
+      const daysUntil = Math.round((ev.dateObj - new Date(new Date().setHours(0, 0, 0, 0))) / 86400000);
+      const dateLabel = ev.dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+      const countdown = daysUntil === 0 ? 'É hoje!' : daysUntil === 1 ? 'Amanhã' : `Em ${daysUntil} dias`;
+      const a = document.createElement('a');
+      a.href = `#/calendario/${ev.key}`;
+      a.className = 'reminder-card';
+      a.innerHTML = `
+        <span class="reminder-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </span>
+        <span class="reminder-body">
+          <span class="reminder-title"><strong>${escapeHtml(ev.title)}</strong>. ${dateLabel}. <span class="reminder-cta">Ver ações</span></span>
+        </span>
+        <span class="reminder-countdown">${countdown}</span>
+      `;
+      remindersList.appendChild(a);
+    });
+    if (!remindersList.children.length) {
+      remindersList.innerHTML = '<p class="urgency-empty">Nenhuma data comemorativa nos próximos dias.</p>';
+    }
+
+    const clients = loadClients();
+    const counts = { solicitacao: 0, aprovacao: 0, producao: 0 };
+    clients.forEach(client => {
+      const board = loadBoard(client.id);
+      counts.solicitacao += board.solicitacao.length;
+      counts.aprovacao += board.aprovacao.length;
+      counts.producao += board.producao.length;
+    });
+    const total = counts.solicitacao + counts.aprovacao + counts.producao;
+    urgencyTotal.querySelector('.urgency-total-num').textContent = total;
+
+    const rowsData = [
+      { key: 'solicitacao', label: 'Solicitação', value: counts.solicitacao },
+      { key: 'aprovacao', label: 'Aprovação', value: counts.aprovacao },
+      { key: 'producao', label: 'Produção', value: counts.producao },
+    ];
+    const maxValue = Math.max(1, ...rowsData.map(r => r.value));
+    const bottleneckKey = total > 0 ? rowsData.reduce((a, b) => (b.value > a.value ? b : a)).key : null;
+
+    urgencyChart.innerHTML = '';
+    if (total === 0) {
+      urgencyChart.innerHTML = '<p class="urgency-empty">Nenhum item pendente — tudo já chegou em "A receber".</p>';
+      return;
+    }
+    rowsData.forEach(row => {
+      const pct = Math.round((row.value / maxValue) * 100);
+      const a = document.createElement('a');
+      a.href = `#/${row.key}`;
+      a.className = 'urgency-row';
+      a.innerHTML = `
+        <span class="urgency-row-label">${row.label}${row.key === bottleneckKey && row.value > 0 ? '<span class="urgency-critical-tag">Mais urgente</span>' : ''}</span>
+        <span class="urgency-track"><span class="urgency-bar" style="width:${pct}%"></span></span>
+        <span class="urgency-row-value">${row.value}</span>
+      `;
+      urgencyChart.appendChild(a);
+    });
+  }
+
+  function showBoard(clientId) {
+    const client = loadClients().find(c => c.id === clientId);
+    if (!client) { location.hash = '#/clientes'; return; }
+    boardClientName.textContent = client.nome;
+    hideAllViews();
+    viewBoard.style.display = '';
+    setActiveNav(null);
+    renderBoard(clientId);
+  }
+
+  function showStage(stageKey) {
+    const col = BOARD_COLUMNS.find(c => c.key === stageKey);
+    if (!col) { location.hash = '#/clientes'; return; }
+    hideAllViews();
+    viewStage.style.display = '';
+    setActiveNav(stageKey);
+
+    stageTitle.childNodes[0].textContent = col.label;
+    const isReceivable = stageKey === 'areceber';
+
+    const clients = loadClients();
+    const rows = [];
+    clients.forEach(client => {
+      const board = loadBoard(client.id);
+      (board[stageKey] || []).forEach(card => {
+        rows.push({ text: card.text, valor: card.valor, dataPagamento: card.dataPagamento, clientId: client.id, clientName: client.nome });
+      });
+    });
+
+    stageCountPill.textContent = rows.length;
+    stageTbody.innerHTML = '';
+    stageEmptyState.style.display = rows.length ? 'none' : 'block';
+
+    stageThead.innerHTML = isReceivable
+      ? '<tr><th>Registro</th><th>Cliente</th><th>Valor</th><th>Dia do pagamento</th></tr>'
+      : '<tr><th>Registro</th><th>Cliente</th></tr>';
+
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = isReceivable
+        ? `
+          <td>${escapeHtml(row.text)}</td>
+          <td><a class="client-name" href="#/cliente/${row.clientId}">${escapeHtml(row.clientName)}</a></td>
+          <td>${row.valor ? formatBRL(row.valor) : '—'}</td>
+          <td>${row.dataPagamento ? formatDateBR(row.dataPagamento) : '—'}</td>
+        `
+        : `
+          <td>${escapeHtml(row.text)}</td>
+          <td><a class="client-name" href="#/cliente/${row.clientId}">${escapeHtml(row.clientName)}</a></td>
+        `;
+      stageTbody.appendChild(tr);
+    });
+
+    if (isReceivable) {
+      const total = rows.reduce((sum, r) => sum + (r.valor || 0), 0);
+      stageTotalWrap.style.display = total ? '' : 'none';
+      stageTotalNum.textContent = formatBRL(total);
+
+      mensalistasSection.style.display = '';
+      const mensalistas = getAllMensalistaCards();
+      mensalistasCountPill.textContent = mensalistas.length;
+      mensalistasEmptyState.style.display = mensalistas.length ? 'none' : 'block';
+      mensalistasTbody.innerHTML = '';
+      mensalistas.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><a class="client-name" href="#/cliente/${row.clientId}">${escapeHtml(row.clientName)}</a></td>
+          <td>${escapeHtml(row.text)}</td>
+          <td>${row.valor ? formatBRL(row.valor) : '—'}</td>
+          <td>${row.dataPagamento ? formatDateBR(row.dataPagamento) : '—'}</td>
+        `;
+        mensalistasTbody.appendChild(tr);
+      });
+      const mensalistasTotal = mensalistas.reduce((sum, r) => sum + (r.valor || 0), 0);
+      mensalistasTotalWrap.style.display = mensalistasTotal ? '' : 'none';
+      mensalistasTotalNum.textContent = formatBRL(mensalistasTotal);
+    } else {
+      stageTotalWrap.style.display = 'none';
+      mensalistasSection.style.display = 'none';
+    }
+  }
+
+  /* ── CALENDÁRIO DE DATAS COMEMORATIVAS ── */
+  const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  const FIXED_DATES = [
+    { month: 1, day: 1, title: 'Ano Novo', segments: ['varejo em geral', 'bem-estar', 'turismo'], audience: 'consumidores planejando o novo ciclo' },
+    { month: 2, day: 14, title: 'Valentine\'s Day (Dia dos Namorados internacional)', segments: ['presentes', 'joalherias', 'moda', 'beleza'], audience: 'casais e quem presenteia parceiros(as)' },
+    { month: 3, day: 8, title: 'Dia Internacional da Mulher', segments: ['beleza', 'moda', 'saúde', 'bem-estar'], audience: 'público feminino' },
+    { month: 3, day: 15, title: 'Dia Mundial do Consumidor', segments: ['varejo em geral', 'e-commerce'], audience: 'consumidores atentos a preço e transparência' },
+    { month: 4, day: 1, title: 'Dia da Mentira', segments: ['marcas com tom de voz descontraído', 'entretenimento'], audience: 'seguidores engajados nas redes sociais' },
+    { month: 4, day: 21, title: 'Tiradentes', segments: ['comércio local', 'turismo'], audience: 'público aproveitando o feriado prolongado' },
+    { month: 4, day: 22, title: 'Dia da Terra', segments: ['sustentabilidade', 'alimentação', 'moda consciente'], audience: 'consumidores engajados em causas ambientais' },
+    { month: 5, day: 1, title: 'Dia do Trabalho', segments: ['comércio local', 'serviços'], audience: 'trabalhadores e famílias no feriado' },
+    { month: 6, day: 5, title: 'Dia Mundial do Meio Ambiente', segments: ['sustentabilidade', 'agro', 'alimentação'], audience: 'consumidores conscientes' },
+    { month: 6, day: 12, title: 'Dia dos Namorados', segments: ['presentes', 'moda', 'gastronomia', 'hotelaria'], audience: 'casais' },
+    { month: 7, day: 20, title: 'Dia do Amigo', segments: ['bares e restaurantes', 'entretenimento', 'presentes'], audience: 'grupos de amigos' },
+    { month: 9, day: 7, title: 'Independência do Brasil', segments: ['comércio local', 'moda'], audience: 'público no feriado nacional' },
+    { month: 9, day: 15, title: 'Dia do Cliente', segments: ['todos os segmentos B2C'], audience: 'base de clientes já existente' },
+    { month: 10, day: 12, title: 'Dia das Crianças', segments: ['brinquedos', 'moda infantil', 'alimentação', 'entretenimento'], audience: 'pais e responsáveis' },
+    { month: 10, day: 15, title: 'Dia do Professor', segments: ['papelaria', 'livrarias', 'presentes'], audience: 'educadores e quem os presenteia' },
+    { month: 10, day: 31, title: 'Halloween (Dia das Bruxas)', segments: ['festas', 'doces', 'moda e fantasias', 'entretenimento'], audience: 'jovens e famílias' },
+    { month: 11, day: 11, title: 'Dia dos Solteiros', segments: ['e-commerce', 'moda', 'beleza', 'eletrônicos'], audience: 'consumidores solteiros e autopresenteáveis' },
+    { month: 11, day: 15, title: 'Proclamação da República', segments: ['comércio local'], audience: 'público no feriado nacional' },
+    { month: 11, day: 19, title: 'Dia Internacional do Homem', segments: ['moda masculina', 'beleza', 'saúde'], audience: 'público masculino' },
+    { month: 11, day: 20, title: 'Dia da Consciência Negra', segments: ['moda', 'beleza', 'cultura', 'educação'], audience: 'público engajado em pautas de representatividade' },
+    { month: 12, day: 25, title: 'Natal', segments: ['todos os segmentos, presentes em geral'], audience: 'famílias e quem presenteia' },
+  ];
+
+  function nthWeekdayOfMonth(year, monthIndex, weekday, n) {
+    const first = new Date(year, monthIndex, 1);
+    const offset = (weekday - first.getDay() + 7) % 7;
+    const day = 1 + offset + (n - 1) * 7;
+    return new Date(year, monthIndex, day);
+  }
+
+  function computeEaster(year) {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+
+  function getMovableDates(year) {
+    const easter = computeEaster(year);
+    const carnaval = new Date(easter);
+    carnaval.setDate(easter.getDate() - 47);
+
+    const mothersDay = nthWeekdayOfMonth(year, 4, 0, 2);
+    const fathersDay = nthWeekdayOfMonth(year, 7, 0, 2);
+    const thanksgivingThu = nthWeekdayOfMonth(year, 10, 4, 4);
+    const blackFriday = new Date(thanksgivingThu);
+    blackFriday.setDate(thanksgivingThu.getDate() + 1);
+    const cyberMonday = new Date(blackFriday);
+    cyberMonday.setDate(blackFriday.getDate() + 3);
+
+    return [
+      { month: carnaval.getMonth() + 1, day: carnaval.getDate(), title: 'Carnaval', segments: ['moda e fantasias', 'beleza', 'turismo', 'bares e eventos'], audience: 'foliões e turistas' },
+      { month: easter.getMonth() + 1, day: easter.getDate(), title: 'Páscoa', segments: ['chocolates', 'gastronomia', 'presentes infantis'], audience: 'famílias' },
+      { month: mothersDay.getMonth() + 1, day: mothersDay.getDate(), title: 'Dia das Mães', segments: ['presentes', 'moda', 'beleza', 'gastronomia'], audience: 'quem presenteia mães' },
+      { month: fathersDay.getMonth() + 1, day: fathersDay.getDate(), title: 'Dia dos Pais', segments: ['presentes', 'moda masculina', 'eletrônicos', 'gastronomia'], audience: 'quem presenteia pais' },
+      { month: blackFriday.getMonth() + 1, day: blackFriday.getDate(), title: 'Black Friday', segments: ['e-commerce', 'varejo em geral'], audience: 'caçadores de promoções' },
+      { month: cyberMonday.getMonth() + 1, day: cyberMonday.getDate(), title: 'Cyber Monday', segments: ['e-commerce', 'tecnologia'], audience: 'compradores online' },
+    ];
+  }
+
+  function getEventsForYear(year) {
+    const map = new Map();
+    FIXED_DATES.concat(getMovableDates(year)).forEach(ev => {
+      const key = `${year}-${String(ev.month).padStart(2, '0')}-${String(ev.day).padStart(2, '0')}`;
+      if (map.has(key)) {
+        const existing = map.get(key);
+        existing.title += ' + ' + ev.title;
+        existing.segments = existing.segments.concat(ev.segments);
+        existing.audience += ' e ' + ev.audience;
+      } else {
+        map.set(key, { title: ev.title, segments: ev.segments, audience: ev.audience });
+      }
+    });
+    return map;
+  }
+
+  const calendarTitle = document.getElementById('calendar-title');
+  const calendarGrid = document.getElementById('calendar-grid');
+  const btnPrevMonth = document.getElementById('btn-prev-month');
+  const btnNextMonth = document.getElementById('btn-next-month');
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function showCalendar(year, monthIndex) {
+    hideAllViews();
+    viewCalendar.style.display = '';
+    setActiveNav('calendario');
+
+    const now = new Date();
+    if (year === undefined || monthIndex === undefined) {
+      year = now.getFullYear();
+      monthIndex = now.getMonth();
+    }
+    calendarTitle.textContent = `${MONTH_NAMES[monthIndex]} ${year}`;
+
+    const prev = new Date(year, monthIndex - 1, 1);
+    const next = new Date(year, monthIndex + 1, 1);
+    btnPrevMonth.href = `#/calendario/${prev.getFullYear()}-${pad2(prev.getMonth() + 1)}`;
+    btnNextMonth.href = `#/calendario/${next.getFullYear()}-${pad2(next.getMonth() + 1)}`;
+
+    const events = getEventsForYear(year);
+    const firstDay = new Date(year, monthIndex, 1);
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const leadingBlanks = firstDay.getDay();
+    const todayKey = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+
+    calendarGrid.innerHTML = '';
+
+    for (let i = 0; i < leadingBlanks; i++) {
+      const blank = document.createElement('div');
+      blank.className = 'calendar-cell empty';
+      calendarGrid.appendChild(blank);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = `${year}-${pad2(monthIndex + 1)}-${pad2(day)}`;
+      const event = events.get(key);
+      const isToday = key === todayKey;
+      const cell = document.createElement(event ? 'a' : 'div');
+      cell.className = 'calendar-cell ' + (event ? 'has-event' : 'plain') + (isToday ? ' today' : '');
+      if (event) cell.href = `#/calendario/${key}`;
+      cell.innerHTML = `<span class="calendar-day-num">${day}</span>` + (event ? `<span class="calendar-event-label">${escapeHtml(event.title)}</span>` : '');
+      calendarGrid.appendChild(cell);
+    }
+  }
+
+  /* ── IDEIAS DE PROSPECÇÃO POR DATA ── */
+  function seededRandom(seedStr) {
+    let h = 1779033703 ^ seedStr.length;
+    for (let i = 0; i < seedStr.length; i++) {
+      h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function () {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h ^= h >>> 16;
+      return (h >>> 0) / 4294967296;
+    };
+  }
+
+  function seededShuffle(array, seedStr) {
+    const rnd = seededRandom(seedStr);
+    const arr = array.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const IDEA_POOL = [
+    { title: 'Pacote de posts temáticos', channel: 'online', make: (o, s, p) => `Crie um pacote de feed, stories e reels com a identidade visual do ${o}, pronto para publicar na semana da data — ideal para negócios de ${s} que querem alcançar ${p}.` },
+    { title: 'Campanha de anúncios pagos sazonal', channel: 'online', make: (o, s, p) => `Planeje e crie anúncios no Meta e Google Ads com verba otimizada para o ${o}, mirando ${p} interessado em ${s}.` },
+    { title: 'Landing page exclusiva da campanha', channel: 'online', make: (o, s, p) => `Desenvolva uma página de vendas dedicada ao ${o}, com contagem regressiva e oferta única para converter ${p}.` },
+    { title: 'Sequência de e-mail marketing', channel: 'online', make: (o, s, p) => `Monte uma sequência de e-mails com storytelling sobre o ${o} para reativar a base de contatos e atrair ${p}.` },
+    { title: 'Automação de WhatsApp Business', channel: 'online', make: (o, s, p) => `Configure um fluxo automático com cupom e lembrete do ${o} para a lista de clientes, gerando recompra entre ${p}.` },
+    { title: 'Vídeo institucional comemorativo', channel: 'online', make: (o, s, p) => `Produza uma peça em vídeo emocional celebrando o ${o}, pensada para conectar a marca com ${p}.` },
+    { title: 'Kit visual sazonal', channel: 'online', make: (o, s, p) => `Entregue banners, capas e templates prontos com o tema do ${o} para toda a comunicação do cliente em ${s}.` },
+    { title: 'Consultoria de precificação promocional', channel: 'hybrid', make: (o, s, p) => `Ajude o cliente a definir descontos e combos estratégicos para o ${o} sem corroer a margem, pensando em ${p}.` },
+    { title: 'Campanha de sorteio e engajamento', channel: 'online', make: (o, s, p) => `Estruture um sorteio nas redes sociais para viralizar a marca durante o ${o} e atrair ${p}.` },
+    { title: 'Artigo de SEO sazonal', channel: 'online', make: (o, s, p) => `Escreva um conteúdo de blog otimizado para buscas relacionadas ao ${o}, gerando tráfego orgânico de ${p}.` },
+    { title: 'Planejamento de mídia paga multiplataforma', channel: 'online', make: (o, s, p) => `Monte um mix de anúncios em redes sociais e Google com o tema do ${o}, direcionado a ${p}.` },
+    { title: 'Comunicação visual para loja física', channel: 'offline', make: (o, s, p) => `Crie cartazes, vitrine e sinalização temática do ${o} no ponto de venda para atrair ${p} que passa na rua.` },
+    { title: 'Produção de fotos e vídeos temáticos', channel: 'hybrid', make: (o, s, p) => `Realize uma sessão de conteúdo com o tema do ${o} para alimentar as redes do cliente ao longo do mês, falando com ${p}.` },
+    { title: 'Parceria de co-marketing local', channel: 'hybrid', make: (o, s, p) => `Conecte o cliente a outro negócio da região para uma ação conjunta de ${o}, dividindo alcance e custos com ${p}.` },
+    { title: 'Programa de fidelidade digital', channel: 'hybrid', make: (o, s, p) => `Implemente pontuação em dobro ou recompensa especial vinculada ao ${o} para reter ${p}.` },
+    { title: 'Assessoria de imprensa local', channel: 'offline', make: (o, s, p) => `Prepare um release e pauta sugerida para veículos da região sobre a ação de ${o} do cliente.` },
+    { title: 'Ativação presencial ou evento', channel: 'offline', make: (o, s, p) => `Organize um pequeno evento no espaço do cliente para celebrar o ${o} com ${p}.` },
+    { title: 'Consultoria de CRM e reativação', channel: 'online', make: (o, s, p) => `Use a base de clientes inativos do cliente para uma oferta pontual de ${o}, recuperando ${p}.` },
+    { title: 'Anúncio em rádio ou mídia local', channel: 'offline', make: (o, s, p) => `Produza uma peça publicitária curta para veicular em rádios locais durante o período do ${o}.` },
+    { title: 'Inserção em podcast patrocinado', channel: 'online', make: (o, s, p) => `Negocie uma inserção comercial em podcast regional com o tema do ${o}, falando direto com ${p}.` },
+    { title: 'Série de reels/vídeos curtos', channel: 'online', make: (o, s, p) => `Crie uma série de vídeos rápidos explorando o tema do ${o} para as redes sociais do cliente.` },
+    { title: 'Coleção ou drop temporário', channel: 'hybrid', make: (o, s, p) => `Cure uma seleção especial de produtos ou serviços de ${s} para o período do ${o}.` },
+    { title: 'Fluxo de e-mail pós-venda', channel: 'online', make: (o, s, p) => `Configure agradecimento e pedido de indicação após compras feitas na campanha de ${o}.` },
+    { title: 'Pesquisa de satisfação temática', channel: 'online', make: (o, s, p) => `Aplique um formulário rápido logo após o ${o} para captar feedback e novos leads entre ${p}.` },
+    { title: 'Gestão de influenciadores locais', channel: 'online', make: (o, s, p) => `Selecione e faça o briefing de criadores de conteúdo da região para divulgar a campanha de ${o}.` },
+    { title: 'Brinde personalizado com a marca', channel: 'offline', make: (o, s, p) => `Desenvolva um mimo exclusivo de ${o} com a identidade do cliente para presentear ${p}.` },
+    { title: 'Treinamento da equipe de vendas', channel: 'offline', make: (o, s, p) => `Monte um roteiro de abordagem e argumentos de venda para o período do ${o}.` },
+    { title: 'Mídia paga geolocalizada', channel: 'hybrid', make: (o, s, p) => `Direcione anúncios para quem está próximo ao ponto físico durante o ${o}, convertendo ${p} em visita.` },
+    { title: 'Auditoria de redes sociais pré-data', channel: 'online', make: (o, s, p) => `Faça um diagnóstico e ajustes no perfil do cliente antes do pico de buscas pelo ${o}.` },
+    { title: 'Cartão-presente digital temático', channel: 'online', make: (o, s, p) => `Crie e divulgue um vale-presente com a arte do ${o}, facilitando a decisão de compra de ${p}.` },
+    { title: 'Live shopping guiada', channel: 'online', make: (o, s, p) => `Estruture uma transmissão ao vivo com ofertas exclusivas de ${o}, apresentada pela equipe do cliente.` },
+    { title: 'Campanha de conteúdo do público (UGC)', channel: 'online', make: (o, s, p) => `Incentive ${p} a postar fotos usando produtos/serviços do cliente durante o ${o}, com hashtag própria.` },
+    { title: 'Filtro de realidade aumentada com a marca', channel: 'online', make: (o, s, p) => `Crie um filtro de Instagram/TikTok personalizado com a marca do cliente para o clima do ${o}.` },
+    { title: 'Relatório de oportunidades sazonais', channel: 'online', make: (o, s, p) => `Analise dados de vendas de anos anteriores para embasar a estratégia deste ${o} e mostrar resultado ao cliente.` },
+  ];
+
+  const CHANNEL_LABELS = { online: 'Online', offline: 'Offline', hybrid: 'Online + Offline' };
+
+  const ideasTitle = document.getElementById('ideas-title');
+  const ideasSubtitle = document.getElementById('ideas-subtitle');
+  const ideasContext = document.getElementById('ideas-context');
+  const ideasTbody = document.getElementById('ideas-tbody');
+
+  function showIdeas(dateKey) {
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const events = getEventsForYear(year);
+    const event = events.get(dateKey);
+    if (!event) { location.hash = '#/calendario'; return; }
+
+    hideAllViews();
+    viewIdeas.style.display = '';
+    setActiveNav('calendario');
+
+    const occasion = event.title;
+    const segmentsStr = [...new Set(event.segments)].join(', ');
+    const audienceStr = event.audience;
+    const dateLabel = new Date(year, month - 1, day).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    ideasTitle.textContent = occasion;
+    ideasSubtitle.textContent = `30 ideias de prospecção para oferecer aos seus clientes em ${dateLabel}`;
+    ideasContext.innerHTML = `<strong>Segmentos com maior potencial:</strong> ${escapeHtml(segmentsStr)} &nbsp;·&nbsp; <strong>Público-alvo:</strong> ${escapeHtml(audienceStr)}`;
+
+    const clients = loadClients();
+    const rnd = seededRandom(dateKey + '-offset');
+    const clientOffset = clients.length ? Math.floor(rnd() * clients.length) : 0;
+    const ideas = seededShuffle(IDEA_POOL, dateKey).slice(0, 30);
+
+    ideasTbody.innerHTML = '';
+    ideas.forEach((idea, idx) => {
+      const client = clients.length ? clients[(clientOffset + idx) % clients.length] : null;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>
+          <div class="idea-title">${escapeHtml(idea.title)}</div>
+          <div class="idea-desc">${escapeHtml(idea.make(occasion, segmentsStr, audienceStr))}</div>
+        </td>
+        <td><span class="channel-tag ${idea.channel}">${CHANNEL_LABELS[idea.channel]}</span></td>
+        <td>${client
+          ? `Ação ideal para <a class="client-name" href="#/cliente/${client.id}">${escapeHtml(client.nome)}</a>`
+          : '<span class="idea-no-client">Cadastre um cliente para receber recomendações</span>'}</td>
+      `;
+      ideasTbody.appendChild(tr);
+    });
+  }
+
+  function route() {
+    const clientMatch = location.hash.match(/^#\/cliente\/(.+)$/);
+    const stageMatch = location.hash.match(/^#\/(solicitacao|aprovacao|producao|areceber)$/);
+    const ideasMatch = location.hash.match(/^#\/calendario\/(\d{4}-\d{2}-\d{2})$/);
+    const monthMatch = location.hash.match(/^#\/calendario\/(\d{4})-(\d{2})$/);
+    if (clientMatch) showBoard(decodeURIComponent(clientMatch[1]));
+    else if (stageMatch) showStage(stageMatch[1]);
+    else if (ideasMatch) showIdeas(ideasMatch[1]);
+    else if (monthMatch) showCalendar(Number(monthMatch[1]), Number(monthMatch[2]) - 1);
+    else if (location.hash === '#/calendario') showCalendar();
+    else if (location.hash === '#/clientes') showClientsList();
+    else showHome();
+  }
+  window.addEventListener('hashchange', route);
+  route();
+</script>
 </body>
 </html>
