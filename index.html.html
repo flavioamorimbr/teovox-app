@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teovox — Painel de Clientes</title>
-<link rel="icon" href="../Logotipo-teovox2.png">
+<link rel="icon" href="https://teovox.com.br/Logotipo-teovox2.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -33,8 +33,8 @@
     --lead-100: #D8D8D8;
     --lead-50: #F2F2F2;
     --white: #FFFFFF;
-    --font-display: 'Syne', -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    --font-body: 'DM Sans', -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-display: 'Inter', -apple-system, "SF Pro Display", "Roboto", "Segoe UI", Arial, sans-serif;
+    --font-body: 'Inter', -apple-system, "SF Pro Text", "Roboto", "Segoe UI", Arial, sans-serif;
   }
 
   html, body { height: 100%; }
@@ -854,6 +854,32 @@
   }
   .login-error.show { display: block; }
   .login-card .btn-primary { width: 100%; justify-content: center; margin-top: 0.5rem; }
+  .login-toggle {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--lead-400);
+    margin-top: 1.25rem;
+  }
+  .login-toggle a { color: var(--blue-500); font-weight: 700; text-decoration: none; cursor: pointer; }
+  .login-toggle a:hover { text-decoration: underline; }
+  .sidebar-logout {
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+  .sidebar-logout a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar-logout a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
   #app-root { display: none; }
 </style>
 </head>
@@ -862,12 +888,13 @@
   <div class="login-screen" id="login-screen">
     <div class="login-card">
       <div class="login-brand">
-        <img src="../Logotipo-teovox2.png" alt="Teovox">
+        <img src="https://teovox.com.br/Logotipo-teovox2.png" alt="Teovox">
         <span>Teovox</span>
       </div>
-      <h1>Acesso ao painel</h1>
-      <p class="login-sub">Entre com seu usuário e senha para continuar.</p>
+      <h1 id="auth-title">Acesso ao painel</h1>
+      <p class="login-sub" id="auth-sub">Entre com seu usuário e senha para continuar.</p>
       <div class="login-error" id="login-error">Usuário ou senha incorretos.</div>
+
       <form id="login-form" novalidate>
         <div class="field">
           <label for="login-user">Usuário</label>
@@ -879,13 +906,34 @@
         </div>
         <button type="submit" class="btn-primary">Entrar</button>
       </form>
+
+      <form id="register-form" novalidate style="display:none;">
+        <div class="field" id="field-reg-user">
+          <label for="reg-user">Escolha um usuário</label>
+          <input type="text" id="reg-user" autocomplete="username" placeholder="usuário">
+          <div class="error">Informe um usuário.</div>
+        </div>
+        <div class="field" id="field-reg-pass">
+          <label for="reg-pass">Escolha uma senha</label>
+          <input type="password" id="reg-pass" autocomplete="new-password" placeholder="mínimo 4 caracteres">
+          <div class="error">A senha deve ter pelo menos 4 caracteres.</div>
+        </div>
+        <div class="field" id="field-reg-pass2">
+          <label for="reg-pass2">Confirme a senha</label>
+          <input type="password" id="reg-pass2" autocomplete="new-password" placeholder="repita a senha">
+          <div class="error">As senhas não coincidem.</div>
+        </div>
+        <button type="submit" class="btn-primary">Cadastrar acesso</button>
+      </form>
+
+      <p class="login-toggle" id="login-toggle"></p>
     </div>
   </div>
 
   <div id="app-root">
   <aside class="sidebar">
     <a href="#/inicio" class="brand" aria-label="Início">
-      <img src="../Logotipo-teovox2.png" alt="Teovox">
+      <img src="https://teovox.com.br/Logotipo-teovox2.png" alt="Teovox">
       <span>Teovox</span>
     </a>
     <nav>
@@ -928,6 +976,12 @@
         Google Drive
       </a>
     </nav>
+    <div class="sidebar-logout">
+      <a id="btn-logout">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Sair
+      </a>
+    </div>
   </aside>
 
   <main class="main">
@@ -1152,32 +1206,69 @@
   </div>
 
 <script>
-  const TEOVOX_USER = 'teovox';
-  const TEOVOX_PASS = 'teovox2026';
+  const CRED_KEY = 'teovox_credentials';
   const AUTH_KEY = 'teovox_auth';
+
+  function loadCredentials() {
+    try { return JSON.parse(localStorage.getItem(CRED_KEY)); }
+    catch { return null; }
+  }
+  function saveCredentials(user, pass) {
+    localStorage.setItem(CRED_KEY, JSON.stringify({ user, pass }));
+  }
 
   const loginScreen = document.getElementById('login-screen');
   const appRoot = document.getElementById('app-root');
+  const authTitle = document.getElementById('auth-title');
+  const authSub = document.getElementById('auth-sub');
   const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
   const loginError = document.getElementById('login-error');
   const loginUser = document.getElementById('login-user');
   const loginPass = document.getElementById('login-pass');
+  const regUser = document.getElementById('reg-user');
+  const regPass = document.getElementById('reg-pass');
+  const regPass2 = document.getElementById('reg-pass2');
+  const loginToggle = document.getElementById('login-toggle');
 
   function showApp() {
     loginScreen.style.display = 'none';
     appRoot.style.display = '';
   }
 
-  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+  function setAuthMode(mode) {
+    loginError.classList.remove('show');
+    document.querySelectorAll('#login-screen .field').forEach(f => f.classList.remove('invalid'));
+    if (mode === 'register') {
+      authTitle.textContent = 'Cadastrar acesso';
+      authSub.textContent = 'Crie um usuário e senha para acessar o painel.';
+      loginForm.style.display = 'none';
+      registerForm.style.display = '';
+      loginToggle.innerHTML = 'Já tem uma senha cadastrada? <a id="link-to-login">Entrar</a>';
+      document.getElementById('link-to-login').addEventListener('click', () => setAuthMode('login'));
+      regUser.focus();
+    } else {
+      authTitle.textContent = 'Acesso ao painel';
+      authSub.textContent = 'Entre com seu usuário e senha para continuar.';
+      loginForm.style.display = '';
+      registerForm.style.display = 'none';
+      loginToggle.innerHTML = 'Ainda não cadastrou um acesso? <a id="link-to-register">Cadastrar login e senha</a>';
+      document.getElementById('link-to-register').addEventListener('click', () => setAuthMode('register'));
+      loginUser.focus();
+    }
+  }
+
+  if (localStorage.getItem(AUTH_KEY) === '1' && loadCredentials()) {
     showApp();
   } else {
-    loginUser.focus();
+    setAuthMode(loadCredentials() ? 'login' : 'register');
   }
 
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    if (loginUser.value.trim() === TEOVOX_USER && loginPass.value === TEOVOX_PASS) {
-      sessionStorage.setItem(AUTH_KEY, '1');
+    const creds = loadCredentials();
+    if (creds && loginUser.value.trim() === creds.user && loginPass.value === creds.pass) {
+      localStorage.setItem(AUTH_KEY, '1');
       loginError.classList.remove('show');
       showApp();
       route();
@@ -1186,6 +1277,32 @@
       loginPass.value = '';
       loginPass.focus();
     }
+  });
+
+  registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const user = regUser.value.trim();
+    const pass = regPass.value;
+    const pass2 = regPass2.value;
+
+    let valid = true;
+    document.getElementById('field-reg-user').classList.toggle('invalid', !user);
+    if (!user) valid = false;
+    document.getElementById('field-reg-pass').classList.toggle('invalid', pass.length < 4);
+    if (pass.length < 4) valid = false;
+    document.getElementById('field-reg-pass2').classList.toggle('invalid', pass2 !== pass || !pass2);
+    if (pass2 !== pass || !pass2) valid = false;
+    if (!valid) return;
+
+    saveCredentials(user, pass);
+    localStorage.setItem(AUTH_KEY, '1');
+    showApp();
+    route();
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    localStorage.removeItem(AUTH_KEY);
+    location.reload();
   });
 
   const STORAGE_KEY = 'teovox_clients';
