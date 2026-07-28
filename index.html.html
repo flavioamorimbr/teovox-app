@@ -884,6 +884,7 @@
     margin-top: 1.25rem;
   }
   .login-toggle a { color: var(--blue-500); font-weight: 700; text-decoration: none; cursor: pointer; }
+  .login-forgot-link { display: inline-block; margin-top: 0.5rem; color: var(--lead-400) !important; font-weight: 600 !important; font-size: 0.78rem; }
   .login-toggle a:hover { text-decoration: underline; }
   .sidebar-logout {
     margin-top: auto;
@@ -1451,8 +1452,15 @@
       authSub.textContent = 'Entre com seu usuário e senha para continuar.';
       loginForm.style.display = '';
       registerForm.style.display = 'none';
-      loginToggle.innerHTML = 'Ainda não cadastrou um acesso? <a id="link-to-register">Cadastrar login e senha</a>';
+      loginToggle.innerHTML = 'Ainda não cadastrou um acesso? <a id="link-to-register">Cadastrar login e senha</a><br><a id="link-forgot-password" class="login-forgot-link">Esqueci minha senha</a>';
       document.getElementById('link-to-register').addEventListener('click', () => setAuthMode('register'));
+      document.getElementById('link-forgot-password').addEventListener('click', () => {
+        if (confirm('Isso vai apagar o usuário e senha salvos neste navegador e permitir cadastrar novos. Continuar?')) {
+          localStorage.removeItem(CRED_KEY);
+          localStorage.removeItem(AUTH_KEY);
+          setAuthMode('register');
+        }
+      });
       loginUser.focus();
     }
   }
