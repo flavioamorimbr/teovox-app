@@ -2087,7 +2087,6 @@
   });
 
   cardModalCancel.addEventListener('click', closeCardModal);
-  btnNovaProducao.addEventListener('click', openNewProductionModal);
   cardModalOverlay.addEventListener('click', (e) => { if (e.target === cardModalOverlay) closeCardModal(); });
 
   cardModalDelete.addEventListener('click', () => {
@@ -2117,6 +2116,7 @@
   const stageTotalWrap = document.getElementById('stage-total-wrap');
   const stageTotalNum = document.getElementById('stage-total-num');
   const btnNovaProducao = document.getElementById('btn-nova-producao');
+  btnNovaProducao.addEventListener('click', () => openNewProductionModal());
   const concluidoSection = document.getElementById('concluido-section');
   const concluidoCountPill = document.getElementById('concluido-count-pill');
   const concluidoTbody = document.getElementById('concluido-tbody');
