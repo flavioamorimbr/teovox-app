@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -821,6 +820,18 @@
   .channel-tag.offline { background: var(--lead-50); color: var(--lead-500); border: 1px solid var(--lead-100); }
   .channel-tag.hybrid { background: #FBEAE7; color: #C0392B; border: 1px solid #FBEAE7; }
 
+  /* ── HISTÓRICO ── */
+  .historico-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .historico-tag.pago { background: #E4F5EB; color: #1D7A4C; border: 1px solid #C7E9D4; }
+  .historico-tag.excluido { background: #FBEAE7; color: #C0392B; border: 1px solid #F4C7C0; }
+
   /* ── LOGIN ── */
   .login-screen {
     position: fixed;
@@ -1094,6 +1105,10 @@
     </nav>
     <div class="sidebar-label">Dados</div>
     <nav>
+      <a href="#/historico" data-tab="historico">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+        Histórico
+      </a>
       <a id="btn-export-backup">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Exportar backup
@@ -1324,6 +1339,40 @@
       <div class="board" id="prospeccao-board"></div>
     </div>
 
+    <div id="view-historico" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1>Histórico<span class="count-pill" id="historico-count-pill">0</span></h1>
+          <p>Tarefas concluídas, contas pagas e registros excluídos</p>
+        </div>
+      </div>
+
+      <div class="clients-toolbar">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="historico-search" placeholder="Buscar no histórico por cliente ou registro...">
+        </div>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Cliente</th>
+              <th>Registro</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody id="historico-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="historico-empty-state" style="display:none;">
+          <p>Nenhum registro no histórico ainda.</p>
+        </div>
+      </div>
+    </div>
+
     <div id="view-calendar" style="display:none;">
       <div class="topbar">
         <div>
@@ -1551,6 +1600,7 @@
       boards,
       concluidos: loadConcluidos(),
       prospeccao: loadProspeccao(),
+      historico: loadHistorico(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1584,6 +1634,7 @@
       Object.entries(data.boards || {}).forEach(([clientId, board]) => saveBoard(clientId, board));
       saveConcluidos(data.concluidos || []);
       saveProspeccao(data.prospeccao || {});
+      saveHistorico(data.historico || []);
       alert('Backup importado com sucesso!');
       location.reload();
     };
@@ -1692,8 +1743,10 @@
     }
     if (deleteId) {
       if (confirm('Excluir este cliente?')) {
+        const deletedClient = loadClients().find(c => c.id === deleteId);
         const clients = loadClients().filter(c => c.id !== deleteId);
         saveClients(clients);
+        logHistorico('Cliente excluído', deletedClient ? deletedClient.nome : '', '', null);
         render();
       }
     }
@@ -1830,6 +1883,8 @@
           const b = loadBoard(clientId);
           b[col.key] = b[col.key].filter(c => c.id !== card.id);
           saveBoard(clientId, b);
+          const clientForLog = loadClients().find(c => c.id === clientId);
+          logHistorico('Excluído', clientForLog ? clientForLog.nome : '', card.text, card.valor);
           renderBoard(clientId);
         });
 
@@ -2005,6 +2060,8 @@
       const b = loadBoard(clientId);
       b[columnKey] = b[columnKey].filter(c => c.id !== card.id);
       saveBoard(clientId, b);
+      const clientForLog = loadClients().find(c => c.id === clientId);
+      logHistorico('Excluído', clientForLog ? clientForLog.nome : '', card.text, card.valor);
       closeCardModal();
       renderBoard(clientId);
     } else if (cardModalContext.kind === 'prospect') {
@@ -2036,6 +2093,29 @@
     localStorage.setItem(CONCLUIDOS_KEY, JSON.stringify(list));
   }
 
+  const HISTORICO_KEY = 'teovox_historico';
+
+  function loadHistorico() {
+    try { return JSON.parse(localStorage.getItem(HISTORICO_KEY)) || []; }
+    catch { return []; }
+  }
+  function saveHistorico(list) {
+    localStorage.setItem(HISTORICO_KEY, JSON.stringify(list));
+  }
+  function logHistorico(tipo, clientName, registro, valor) {
+    const list = loadHistorico();
+    list.push({
+      id: crypto.randomUUID(),
+      tipo,
+      clientName: clientName || '',
+      registro: registro || '',
+      valor: valor || null,
+      data: new Date().toISOString(),
+    });
+    if (list.length > 1000) list.splice(0, list.length - 1000);
+    saveHistorico(list);
+  }
+
   function markAsPago(clientId, cardId) {
     const board = loadBoard(clientId);
     const idx = board.areceber.findIndex(c => c.id === cardId);
@@ -2044,17 +2124,19 @@
     saveBoard(clientId, board);
 
     const client = loadClients().find(c => c.id === clientId);
+    const clientName = client ? client.nome : '';
     const concluidos = loadConcluidos();
     concluidos.push({
       id: card.id,
       clientId,
-      clientName: client ? client.nome : '',
+      clientName,
       text: card.text,
       valor: card.valor,
       dataPagamento: card.dataPagamento,
       concluidoEm: new Date().toISOString(),
     });
     saveConcluidos(concluidos);
+    logHistorico('Pago', clientName, card.text, card.valor);
     showStage('areceber');
   }
 
@@ -2125,6 +2207,7 @@
   const viewIdeas = document.getElementById('view-ideas');
   const viewHome = document.getElementById('view-home');
   const viewProspeccao = document.getElementById('view-prospeccao');
+  const viewHistorico = document.getElementById('view-historico');
 
   function hideAllViews() {
     viewHome.style.display = 'none';
@@ -2134,6 +2217,7 @@
     viewCalendar.style.display = 'none';
     viewIdeas.style.display = 'none';
     viewProspeccao.style.display = 'none';
+    viewHistorico.style.display = 'none';
   }
 
   function setActiveNav(tab) {
@@ -2721,8 +2805,10 @@
   function deleteProspectCard(columnKey, cardId) {
     if (!confirm('Tem certeza que deseja apagar?')) return;
     const d = loadProspeccao();
+    const removed = d[columnKey].find(c => c.id === cardId);
     d[columnKey] = d[columnKey].filter(c => c.id !== cardId);
     saveProspeccao(d);
+    if (removed) logHistorico('Excluído', 'Prospecção', removed.titulo, null);
     renderProspeccaoBoard();
   }
 
@@ -2835,6 +2921,57 @@
     renderProspeccaoBoard();
   }
 
+  /* ── HISTÓRICO ── */
+  const historicoTbody = document.getElementById('historico-tbody');
+  const historicoEmptyState = document.getElementById('historico-empty-state');
+  const historicoCountPill = document.getElementById('historico-count-pill');
+  const historicoSearchInput = document.getElementById('historico-search');
+  let historicoSearchTerm = '';
+
+  const HISTORICO_TAG_CLASS = {
+    'Pago': 'pago',
+    'Excluído': 'excluido',
+    'Cliente excluído': 'excluido',
+  };
+
+  function renderHistorico() {
+    const list = loadHistorico().slice().reverse();
+    const term = historicoSearchTerm.trim().toLowerCase();
+    const filtered = term
+      ? list.filter(item => item.clientName.toLowerCase().includes(term) || item.registro.toLowerCase().includes(term))
+      : list;
+
+    historicoCountPill.textContent = list.length;
+    historicoTbody.innerHTML = '';
+    historicoEmptyState.style.display = filtered.length ? 'none' : 'block';
+
+    filtered.forEach(item => {
+      const tr = document.createElement('tr');
+      const dateLabel = new Date(item.data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const tagClass = HISTORICO_TAG_CLASS[item.tipo] || 'excluido';
+      tr.innerHTML = `
+        <td>${escapeHtml(dateLabel)}</td>
+        <td><span class="historico-tag ${tagClass}">${escapeHtml(item.tipo)}</span></td>
+        <td>${escapeHtml(item.clientName || '—')}</td>
+        <td>${escapeHtml(item.registro || '—')}</td>
+        <td>${item.valor ? formatBRL(item.valor) : '—'}</td>
+      `;
+      historicoTbody.appendChild(tr);
+    });
+  }
+
+  historicoSearchInput.addEventListener('input', () => {
+    historicoSearchTerm = historicoSearchInput.value;
+    renderHistorico();
+  });
+
+  function showHistorico() {
+    hideAllViews();
+    viewHistorico.style.display = '';
+    setActiveNav('historico');
+    renderHistorico();
+  }
+
   function route() {
     const clientMatch = location.hash.match(/^#\/cliente\/(.+)$/);
     const stageMatch = location.hash.match(/^#\/(solicitacao|aprovacao|producao|areceber)$/);
@@ -2847,6 +2984,7 @@
     else if (location.hash === '#/calendario') showCalendar();
     else if (location.hash === '#/clientes') showClientsList();
     else if (location.hash === '#/prospeccao') showProspeccao();
+    else if (location.hash === '#/historico') showHistorico();
     else showHome();
   }
   window.addEventListener('hashchange', route);
