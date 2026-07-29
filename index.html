@@ -1255,6 +1255,10 @@
           <span class="urgency-total-num" id="stage-total-num">R$ 0,00</span>
           <span class="urgency-total-label">total a receber</span>
         </div>
+        <button class="btn-primary" id="btn-nova-producao" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Nova Produção
+        </button>
       </div>
       <div class="card">
         <table>
@@ -2014,6 +2018,23 @@
     document.getElementById('prospect-modal-titulo').focus();
   }
 
+  function openNewProductionModal() {
+    cardModalContext = { kind: 'new-production' };
+    cardModalTitle.textContent = 'Nova Produção';
+    cardModalSubmit.textContent = 'Adicionar';
+    const clientOptions = loadClients().map(c => `<option value="${escapeHtml(c.nome)}">`).join('');
+    cardModalFields.innerHTML = `
+      <div class="field">
+        <label for="new-production-client">Cliente</label>
+        <input type="text" id="new-production-client" list="new-production-client-list" autocomplete="off" placeholder="Digite ou escolha o cliente">
+        <datalist id="new-production-client-list">${clientOptions}</datalist>
+      </div>
+    ` + cardFormFieldsHTML(null, 'producao');
+    cardModalDelete.style.display = 'none';
+    cardModalOverlay.classList.add('open');
+    document.getElementById('new-production-client').focus();
+  }
+
   cardModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!cardModalContext) return;
@@ -2047,10 +2068,25 @@
       saveProspeccao(d);
       closeCardModal();
       renderProspeccaoBoard();
+    } else if (cardModalContext.kind === 'new-production') {
+      const clientNameInput = document.getElementById('new-production-client').value.trim();
+      const client = loadClients().find(c => c.nome.toLowerCase() === clientNameInput.toLowerCase());
+      if (!client) {
+        alert('Selecione um cliente válido da lista.');
+        return;
+      }
+      const data = readCardForm(cardModalFields);
+      if (!data.text) { closeCardModal(); return; }
+      const b = loadBoard(client.id);
+      b.producao.push({ id: crypto.randomUUID(), ...data });
+      saveBoard(client.id, b);
+      closeCardModal();
+      showStage('producao');
     }
   });
 
   cardModalCancel.addEventListener('click', closeCardModal);
+  btnNovaProducao.addEventListener('click', openNewProductionModal);
   cardModalOverlay.addEventListener('click', (e) => { if (e.target === cardModalOverlay) closeCardModal(); });
 
   cardModalDelete.addEventListener('click', () => {
@@ -2079,6 +2115,7 @@
   const stageEmptyState = document.getElementById('stage-empty-state');
   const stageTotalWrap = document.getElementById('stage-total-wrap');
   const stageTotalNum = document.getElementById('stage-total-num');
+  const btnNovaProducao = document.getElementById('btn-nova-producao');
   const concluidoSection = document.getElementById('concluido-section');
   const concluidoCountPill = document.getElementById('concluido-count-pill');
   const concluidoTbody = document.getElementById('concluido-tbody');
@@ -2114,6 +2151,18 @@
     });
     if (list.length > 1000) list.splice(0, list.length - 1000);
     saveHistorico(list);
+  }
+
+  function deleteStageCard(clientId, stageKey, cardId) {
+    if (!confirm('Tem certeza que deseja deletar?')) return;
+    const board = loadBoard(clientId);
+    const idx = board[stageKey].findIndex(c => c.id === cardId);
+    if (idx === -1) return;
+    const [card] = board[stageKey].splice(idx, 1);
+    saveBoard(clientId, board);
+    const client = loadClients().find(c => c.id === clientId);
+    logHistorico('Excluído', client ? client.nome : '', card.text, card.valor);
+    showStage(stageKey);
   }
 
   function markAsPago(clientId, cardId) {
@@ -2452,6 +2501,8 @@
     stageTitle.childNodes[0].textContent = col.label;
     const isReceivable = stageKey === 'areceber';
 
+    btnNovaProducao.style.display = stageKey === 'producao' ? '' : 'none';
+
     const clients = loadClients();
     const rows = [];
     clients.forEach(client => {
@@ -2467,7 +2518,7 @@
 
     stageThead.innerHTML = isReceivable
       ? '<tr><th>Cliente</th><th>Registro</th><th>Valor</th><th>Dia do pagamento</th><th class="actions-col">Ações</th></tr>'
-      : '<tr><th>Registro</th><th>Cliente</th></tr>';
+      : '<tr><th>Registro</th><th>Cliente</th><th class="actions-col">Ações</th></tr>';
 
     rows.forEach(row => {
       const tr = document.createElement('tr');
@@ -2482,15 +2533,24 @@
         : `
           <td>${escapeHtml(row.text)}</td>
           <td><a class="client-name" href="#/cliente/${row.clientId}">${escapeHtml(row.clientName)}</a></td>
+          <td class="actions-col"></td>
         `;
+      const actionsCell = tr.querySelector('.actions-col');
       if (isReceivable) {
         const btnPago = document.createElement('button');
         btnPago.type = 'button';
         btnPago.className = 'btn-pago';
-        btnPago.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Pago`;
+        btnPago.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> A receber`;
         btnPago.addEventListener('click', () => markAsPago(row.clientId, row.cardId));
-        tr.querySelector('.actions-col').appendChild(btnPago);
+        actionsCell.appendChild(btnPago);
       }
+      const btnDelete = document.createElement('button');
+      btnDelete.type = 'button';
+      btnDelete.className = 'icon-btn danger';
+      btnDelete.title = 'Excluir';
+      btnDelete.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
+      btnDelete.addEventListener('click', () => deleteStageCard(row.clientId, stageKey, row.cardId));
+      actionsCell.appendChild(btnDelete);
       stageTbody.appendChild(tr);
     });
 
@@ -2837,8 +2897,8 @@
         cardEl.className = 'prospect-card';
         cardEl.draggable = true;
         cardEl.dataset.cardId = card.id;
-        cardEl.innerHTML = `<div class="prospect-card-title">${escapeHtml(card.titulo)}</div>${card.descricao ? `<div class="prospect-card-desc">${escapeHtml(card.descricao)}</div>` : ''}<button class="board-card-delete" title="Remover" aria-label="Remover">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        cardEl.innerHTML = `<div class="prospect-card-title">${escapeHtml(card.titulo)}</div>${card.descricao ? `<div class="prospect-card-desc">${escapeHtml(card.descricao)}</div>` : ''}<button class="board-card-delete" title="Excluir" aria-label="Excluir">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
         </button>`;
 
         cardEl.addEventListener('dragstart', () => {
