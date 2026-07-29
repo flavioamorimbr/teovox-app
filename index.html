@@ -1277,6 +1277,32 @@
         </div>
       </div>
 
+      <div id="producao-concluida-section" style="display:none;">
+        <div class="topbar concluido-topbar">
+          <div>
+            <h2 class="concluido-title">Produção Concluída<span class="count-pill" id="producao-concluida-count-pill">0</span></h2>
+            <p>Itens já finalizados</p>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Registro</th>
+                <th>Valor</th>
+                <th>Dia do pagamento</th>
+                <th class="actions-col">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="producao-concluida-tbody" class="concluido-tbody"></tbody>
+          </table>
+          <div class="empty-state" id="producao-concluida-empty-state" style="display:none;">
+            <p>Nenhum item concluído ainda.</p>
+          </div>
+        </div>
+      </div>
+
       <div id="mensalistas-section" style="display:none;">
         <div class="topbar mensalistas-topbar">
           <div>
@@ -1606,6 +1632,7 @@
       concluidos: loadConcluidos(),
       prospeccao: loadProspeccao(),
       historico: loadHistorico(),
+      producaoConcluida: loadProducaoConcluida(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1639,6 +1666,7 @@
       Object.entries(data.boards || {}).forEach(([clientId, board]) => saveBoard(clientId, board));
       saveConcluidos(data.concluidos || []);
       saveProspeccao(data.prospeccao || {});
+      saveProducaoConcluida(data.producaoConcluida || []);
       saveHistorico(data.historico || []);
       alert('Backup importado com sucesso!');
       location.reload();
@@ -2231,6 +2259,85 @@
     });
   }
 
+  const PRODUCAO_CONCLUIDA_KEY = 'teovox_producao_concluida';
+  const producaoConcluidaSection = document.getElementById('producao-concluida-section');
+  const producaoConcluidaCountPill = document.getElementById('producao-concluida-count-pill');
+  const producaoConcluidaTbody = document.getElementById('producao-concluida-tbody');
+  const producaoConcluidaEmptyState = document.getElementById('producao-concluida-empty-state');
+
+  function loadProducaoConcluida() {
+    try { return JSON.parse(localStorage.getItem(PRODUCAO_CONCLUIDA_KEY)) || []; }
+    catch { return []; }
+  }
+  function saveProducaoConcluida(list) {
+    localStorage.setItem(PRODUCAO_CONCLUIDA_KEY, JSON.stringify(list));
+  }
+
+  function markProducaoConcluida(clientId, cardId) {
+    const board = loadBoard(clientId);
+    const idx = board.producao.findIndex(c => c.id === cardId);
+    if (idx === -1) return;
+    const [card] = board.producao.splice(idx, 1);
+    saveBoard(clientId, board);
+
+    const client = loadClients().find(c => c.id === clientId);
+    const clientName = client ? client.nome : '';
+    const list = loadProducaoConcluida();
+    list.push({
+      id: card.id,
+      clientId,
+      clientName,
+      text: card.text,
+      valor: card.valor,
+      dataPagamento: card.dataPagamento,
+      concluidoEm: new Date().toISOString(),
+    });
+    saveProducaoConcluida(list);
+    logHistorico('Produção concluída', clientName, card.text, card.valor);
+    showStage('producao');
+  }
+
+  function restoreProducaoConcluida(itemId) {
+    const list = loadProducaoConcluida();
+    const idx = list.findIndex(c => c.id === itemId);
+    if (idx === -1) return;
+    const [item] = list.splice(idx, 1);
+    saveProducaoConcluida(list);
+
+    if (loadClients().some(c => c.id === item.clientId)) {
+      const board = loadBoard(item.clientId);
+      board.producao.push({ id: item.id, text: item.text, valor: item.valor, dataPagamento: item.dataPagamento, mensalista: false });
+      saveBoard(item.clientId, board);
+    }
+    showStage('producao');
+  }
+
+  function renderProducaoConcluida() {
+    const list = loadProducaoConcluida();
+    producaoConcluidaSection.style.display = '';
+    producaoConcluidaCountPill.textContent = list.length;
+    producaoConcluidaEmptyState.style.display = list.length ? 'none' : 'block';
+    producaoConcluidaTbody.innerHTML = '';
+    list.slice().reverse().forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(item.clientName)}</td>
+        <td>${escapeHtml(item.text)}</td>
+        <td>${item.valor ? formatBRL(item.valor) : '—'}</td>
+        <td>${item.dataPagamento ? formatDateBR(item.dataPagamento) : '—'}</td>
+        <td class="actions-col"></td>
+      `;
+      const btnRestore = document.createElement('button');
+      btnRestore.type = 'button';
+      btnRestore.className = 'icon-btn';
+      btnRestore.title = 'Restaurar para "Produção"';
+      btnRestore.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>`;
+      btnRestore.addEventListener('click', () => restoreProducaoConcluida(item.id));
+      tr.querySelector('.actions-col').appendChild(btnRestore);
+      producaoConcluidaTbody.appendChild(tr);
+    });
+  }
+
   const mensalistasSection = document.getElementById('mensalistas-section');
   const mensalistasCountPill = document.getElementById('mensalistas-count-pill');
   const mensalistasTotalWrap = document.getElementById('mensalistas-total-wrap');
@@ -2545,6 +2652,14 @@
         btnPago.addEventListener('click', () => markAsPago(row.clientId, row.cardId));
         actionsCell.appendChild(btnPago);
       }
+      if (stageKey === 'producao') {
+        const btnConcluir = document.createElement('button');
+        btnConcluir.type = 'button';
+        btnConcluir.className = 'btn-pago';
+        btnConcluir.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Concluir`;
+        btnConcluir.addEventListener('click', () => markProducaoConcluida(row.clientId, row.cardId));
+        actionsCell.appendChild(btnConcluir);
+      }
       const btnDelete = document.createElement('button');
       btnDelete.type = 'button';
       btnDelete.className = 'icon-btn danger';
@@ -2584,6 +2699,12 @@
       stageTotalWrap.style.display = 'none';
       mensalistasSection.style.display = 'none';
       concluidoSection.style.display = 'none';
+    }
+
+    if (stageKey === 'producao') {
+      renderProducaoConcluida();
+    } else {
+      producaoConcluidaSection.style.display = 'none';
     }
   }
 
