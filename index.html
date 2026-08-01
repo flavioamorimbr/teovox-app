@@ -787,15 +787,25 @@
     color: var(--lead-900);
   }
 
-  a.calendar-cell.has-event {
+  a.calendar-cell.has-event,
+  .calendar-cell.has-event {
     background: var(--blue-50);
     border-color: var(--blue-100);
     text-decoration: none;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, transform 0.1s;
   }
-  a.calendar-cell.has-event:hover { background: var(--blue-100); transform: translateY(-1px); }
-  a.calendar-cell.has-event .calendar-day-num { color: var(--blue-700); }
+  a.calendar-cell.has-event:hover,
+  .calendar-cell.has-event:hover { background: var(--blue-100); transform: translateY(-1px); }
+  a.calendar-cell.has-event .calendar-day-num,
+  .calendar-cell.has-event .calendar-day-num { color: var(--blue-700); }
+  .calendar-cell.plain { cursor: pointer; }
+  .calendar-cell.plain:hover { background: var(--lead-100); }
+  .calendar-event-more {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--lead-400);
+  }
 
   .calendar-event-label {
     font-size: 0.7rem;
@@ -818,6 +828,10 @@
     height: 36px;
     text-decoration: none;
   }
+
+  /* ── AGENDA ── */
+  .agenda-topbar-actions { display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; }
+  #agenda-time-row.hidden { display: none; }
 
   /* ── IDEIAS ── */
   .ideas-context {
@@ -1130,7 +1144,11 @@
       </a>
       <a href="#/calendario" data-tab="calendario">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        Calendário
+        Datas Comemorativas
+      </a>
+      <a href="#/agenda" data-tab="agenda">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><circle cx="12" cy="15" r="3"></circle><line x1="12" y1="13.5" x2="12" y2="15"></line><line x1="12" y1="15" x2="13" y2="15.5"></line></svg>
+        Agenda
       </a>
       <a href="#/followup" data-tab="followup">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -1487,7 +1505,7 @@
     <div id="view-calendar" style="display:none;">
       <div class="topbar">
         <div>
-          <h1 id="calendar-title">Calendário</h1>
+          <h1 id="calendar-title">Datas Comemorativas</h1>
           <p>Datas comemorativas e oportunidades de marketing do mês — clique em uma data marcada para ver ideias de ação</p>
         </div>
         <div class="calendar-nav">
@@ -1507,10 +1525,59 @@
       </div>
     </div>
 
+    <div id="view-agenda" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1 id="agenda-calendar-title">Agenda</h1>
+          <p>Seus compromissos e eventos pessoais</p>
+        </div>
+        <div class="agenda-topbar-actions">
+          <div class="calendar-nav">
+            <a href="#" id="btn-agenda-prev-month" class="icon-btn calendar-nav-btn" title="Mês anterior" aria-label="Mês anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </a>
+            <a href="#" id="btn-agenda-next-month" class="icon-btn calendar-nav-btn" title="Próximo mês" aria-label="Próximo mês">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+          </div>
+          <button class="btn-primary" id="btn-new-agenda-event">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Novo evento
+          </button>
+        </div>
+      </div>
+      <div class="card calendar-card">
+        <div class="calendar-weekdays">
+          <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+        </div>
+        <div class="calendar-grid" id="agenda-calendar-grid"></div>
+      </div>
+
+      <div class="mensalistas-topbar">
+        <h2 class="mensalistas-title">Todos os eventos</h2>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Evento</th>
+              <th>Local</th>
+              <th class="actions-col">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="agenda-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="agenda-empty-state" style="display:none;">
+          <p>Nenhum evento cadastrado ainda.</p>
+        </div>
+      </div>
+    </div>
+
     <div id="view-ideas" style="display:none;">
       <a href="#/calendario" class="breadcrumb-link">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        Calendário
+        Datas Comemorativas
       </a>
       <div class="topbar">
         <div>
@@ -1574,6 +1641,54 @@
           </button>
           <button type="button" class="btn-secondary" id="card-modal-cancel">Cancelar</button>
           <button type="submit" class="btn-primary" id="card-modal-submit">Adicionar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="agenda-modal-overlay">
+    <div class="modal">
+      <h2 id="agenda-modal-title">Novo evento</h2>
+      <form id="agenda-modal-form" novalidate>
+        <div class="field" id="agenda-field-titulo">
+          <label for="agenda-input-titulo">Título</label>
+          <input type="text" id="agenda-input-titulo" autocomplete="off" placeholder="Nome do evento">
+          <div class="error">Informe o título do evento.</div>
+        </div>
+        <label class="card-form-checkbox" id="agenda-field-allday">
+          <input type="checkbox" id="agenda-input-allday">
+          Dia inteiro
+        </label>
+        <div class="card-form-row">
+          <label class="card-form-label">
+            Data
+            <input type="date" id="agenda-input-data">
+          </label>
+        </div>
+        <div class="card-form-row" id="agenda-time-row">
+          <label class="card-form-label">
+            Início
+            <input type="time" id="agenda-input-hora-inicio" value="09:00">
+          </label>
+          <label class="card-form-label">
+            Fim
+            <input type="time" id="agenda-input-hora-fim" value="10:00">
+          </label>
+        </div>
+        <div class="field">
+          <label for="agenda-input-local">Local</label>
+          <input type="text" id="agenda-input-local" autocomplete="off" placeholder="Opcional">
+        </div>
+        <div class="field">
+          <label for="agenda-input-descricao">Descrição</label>
+          <textarea class="card-modal-textarea" id="agenda-input-descricao" rows="3" placeholder="Opcional"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="icon-btn danger card-modal-delete-btn" id="agenda-modal-delete" title="Remover" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+          </button>
+          <button type="button" class="btn-secondary" id="agenda-modal-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary" id="agenda-modal-submit">Adicionar</button>
         </div>
       </form>
     </div>
@@ -1714,6 +1829,7 @@
       historico: loadHistorico(),
       producaoConcluida: loadProducaoConcluida(),
       followup: loadFollowup(),
+      agenda: loadAgenda(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1749,6 +1865,7 @@
       saveProspeccao(data.prospeccao || {});
       saveProducaoConcluida(data.producaoConcluida || []);
       saveFollowup(data.followup || []);
+      saveAgenda(data.agenda || []);
       saveHistorico(data.historico || []);
       alert('Backup importado com sucesso!');
       location.reload();
@@ -2390,6 +2507,219 @@
     renderFollowupTable();
   }
 
+  /* ── AGENDA ── */
+  const AGENDA_KEY = 'teovox_agenda';
+
+  function loadAgenda() {
+    try { return JSON.parse(localStorage.getItem(AGENDA_KEY)) || []; }
+    catch { return []; }
+  }
+  function saveAgenda(list) {
+    localStorage.setItem(AGENDA_KEY, JSON.stringify(list));
+  }
+
+  const agendaTbody = document.getElementById('agenda-tbody');
+  const agendaEmptyState = document.getElementById('agenda-empty-state');
+
+  function renderAgenda() {
+    if (!agendaTbody) return;
+    const list = loadAgenda().slice().sort((a, b) => {
+      const da = a.data + 'T' + (a.horaInicio || '00:00');
+      const db = b.data + 'T' + (b.horaInicio || '00:00');
+      return da.localeCompare(db);
+    });
+    agendaTbody.innerHTML = '';
+    agendaEmptyState.style.display = list.length ? 'none' : 'block';
+    list.forEach(event => {
+      const tr = document.createElement('tr');
+      const dateLabel = formatDateBR(event.data) + (event.allDay ? ' · Dia inteiro' : ` · ${event.horaInicio || ''}${event.horaFim ? '–' + event.horaFim : ''}`);
+      tr.style.cursor = 'pointer';
+      tr.innerHTML = `
+        <td>${escapeHtml(dateLabel)}</td>
+        <td>${escapeHtml(event.titulo)}</td>
+        <td>${escapeHtml(event.local || '—')}</td>
+        <td class="actions-col"></td>
+      `;
+      tr.addEventListener('click', (e) => {
+        if (e.target.closest('.actions-col')) return;
+        openAgendaModal(event);
+      });
+      const btnDelete = document.createElement('button');
+      btnDelete.type = 'button';
+      btnDelete.className = 'icon-btn danger';
+      btnDelete.title = 'Excluir';
+      btnDelete.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
+      btnDelete.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteAgendaEvent(event.id);
+      });
+      tr.querySelector('.actions-col').appendChild(btnDelete);
+      agendaTbody.appendChild(tr);
+    });
+  }
+
+  function deleteAgendaEvent(id) {
+    if (!confirm('Tem certeza que deseja deletar?')) return;
+    const list = loadAgenda();
+    saveAgenda(list.filter(e => e.id !== id));
+    renderAgenda();
+    renderAgendaCalendar();
+  }
+
+  const agendaModalOverlay = document.getElementById('agenda-modal-overlay');
+  const agendaModalTitle = document.getElementById('agenda-modal-title');
+  const agendaModalForm = document.getElementById('agenda-modal-form');
+  const agendaModalDelete = document.getElementById('agenda-modal-delete');
+  const agendaModalCancel = document.getElementById('agenda-modal-cancel');
+  const agendaModalSubmit = document.getElementById('agenda-modal-submit');
+  const agendaInputTitulo = document.getElementById('agenda-input-titulo');
+  const agendaInputAllday = document.getElementById('agenda-input-allday');
+  const agendaInputData = document.getElementById('agenda-input-data');
+  const agendaInputHoraInicio = document.getElementById('agenda-input-hora-inicio');
+  const agendaInputHoraFim = document.getElementById('agenda-input-hora-fim');
+  const agendaInputLocal = document.getElementById('agenda-input-local');
+  const agendaInputDescricao = document.getElementById('agenda-input-descricao');
+  const agendaTimeRow = document.getElementById('agenda-time-row');
+
+  let agendaModalContext = null;
+
+  function toggleAgendaTimeRow() {
+    agendaTimeRow.classList.toggle('hidden', agendaInputAllday.checked);
+  }
+  agendaInputAllday.addEventListener('change', toggleAgendaTimeRow);
+
+  function openAgendaModal(event, prefillDate) {
+    agendaModalContext = { event };
+    document.querySelectorAll('#agenda-modal-overlay .field').forEach(f => f.classList.remove('invalid'));
+    agendaModalTitle.textContent = event ? 'Editar evento' : 'Novo evento';
+    agendaModalSubmit.textContent = event ? 'Salvar' : 'Adicionar';
+    agendaModalDelete.style.display = event ? '' : 'none';
+    agendaInputTitulo.value = event ? event.titulo : '';
+    agendaInputAllday.checked = event ? !!event.allDay : false;
+    agendaInputData.value = event ? event.data : (prefillDate || new Date().toISOString().slice(0, 10));
+    agendaInputHoraInicio.value = event && event.horaInicio ? event.horaInicio : '09:00';
+    agendaInputHoraFim.value = event && event.horaFim ? event.horaFim : '10:00';
+    agendaInputLocal.value = event && event.local ? event.local : '';
+    agendaInputDescricao.value = event && event.descricao ? event.descricao : '';
+    toggleAgendaTimeRow();
+    agendaModalOverlay.classList.add('open');
+    agendaInputTitulo.focus();
+  }
+  function closeAgendaModal() {
+    agendaModalOverlay.classList.remove('open');
+    agendaModalContext = null;
+  }
+
+  agendaModalCancel.addEventListener('click', closeAgendaModal);
+  agendaModalOverlay.addEventListener('click', (e) => { if (e.target === agendaModalOverlay) closeAgendaModal(); });
+
+  agendaModalForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const titulo = agendaInputTitulo.value.trim();
+    document.getElementById('agenda-field-titulo').classList.toggle('invalid', !titulo);
+    if (!titulo) return;
+    const data = agendaInputData.value;
+    if (!data) { agendaInputData.focus(); return; }
+
+    const eventData = {
+      titulo,
+      allDay: agendaInputAllday.checked,
+      data,
+      horaInicio: agendaInputAllday.checked ? null : agendaInputHoraInicio.value,
+      horaFim: agendaInputAllday.checked ? null : agendaInputHoraFim.value,
+      local: agendaInputLocal.value.trim(),
+      descricao: agendaInputDescricao.value.trim(),
+    };
+
+    const list = loadAgenda();
+    const existing = agendaModalContext && agendaModalContext.event;
+    if (existing) {
+      const target = list.find(ev => ev.id === existing.id);
+      if (target) Object.assign(target, eventData);
+    } else {
+      list.push({ id: crypto.randomUUID(), ...eventData });
+    }
+    saveAgenda(list);
+    closeAgendaModal();
+    renderAgenda();
+    renderAgendaCalendar();
+  });
+
+  agendaModalDelete.addEventListener('click', () => {
+    if (!agendaModalContext || !agendaModalContext.event) return;
+    const { event } = agendaModalContext;
+    closeAgendaModal();
+    deleteAgendaEvent(event.id);
+  });
+
+  document.getElementById('btn-new-agenda-event').addEventListener('click', () => openAgendaModal(null));
+
+  const agendaCalendarGrid = document.getElementById('agenda-calendar-grid');
+  const agendaCalendarTitle = document.getElementById('agenda-calendar-title');
+  const btnAgendaPrevMonth = document.getElementById('btn-agenda-prev-month');
+  const btnAgendaNextMonth = document.getElementById('btn-agenda-next-month');
+  const agendaNow = new Date();
+  let agendaCalYear = agendaNow.getFullYear();
+  let agendaCalMonthIndex = agendaNow.getMonth();
+
+  function renderAgendaCalendar() {
+    if (!agendaCalendarGrid) return;
+    agendaCalendarTitle.textContent = `${MONTH_NAMES[agendaCalMonthIndex]} ${agendaCalYear}`;
+    const eventsByDay = new Map();
+    loadAgenda().forEach(event => {
+      if (!eventsByDay.has(event.data)) eventsByDay.set(event.data, []);
+      eventsByDay.get(event.data).push(event);
+    });
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+    const firstDay = new Date(agendaCalYear, agendaCalMonthIndex, 1);
+    const daysInMonth = new Date(agendaCalYear, agendaCalMonthIndex + 1, 0).getDate();
+    const leadingBlanks = firstDay.getDay();
+    agendaCalendarGrid.innerHTML = '';
+    for (let i = 0; i < leadingBlanks; i++) {
+      const blank = document.createElement('div');
+      blank.className = 'calendar-cell empty';
+      agendaCalendarGrid.appendChild(blank);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = `${agendaCalYear}-${pad2(agendaCalMonthIndex + 1)}-${pad2(day)}`;
+      const dayEvents = eventsByDay.get(key) || [];
+      const isToday = key === todayKey;
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell ' + (dayEvents.length ? 'has-event' : 'plain') + (isToday ? ' today' : '');
+      const labels = dayEvents.slice(0, 2).map(ev => `<span class="calendar-event-label">${escapeHtml(ev.titulo)}</span>`).join('');
+      const more = dayEvents.length > 2 ? `<span class="calendar-event-more">+${dayEvents.length - 2}</span>` : '';
+      cell.innerHTML = `<span class="calendar-day-num">${day}</span>${labels}${more}`;
+      cell.addEventListener('click', () => {
+        if (dayEvents.length === 1) openAgendaModal(dayEvents[0]);
+        else if (dayEvents.length > 1) openAgendaModal(dayEvents[0]);
+        else openAgendaModal(null, key);
+      });
+      agendaCalendarGrid.appendChild(cell);
+    }
+  }
+
+  if (btnAgendaPrevMonth) btnAgendaPrevMonth.addEventListener('click', (e) => {
+    e.preventDefault();
+    agendaCalMonthIndex--;
+    if (agendaCalMonthIndex < 0) { agendaCalMonthIndex = 11; agendaCalYear--; }
+    renderAgendaCalendar();
+  });
+  if (btnAgendaNextMonth) btnAgendaNextMonth.addEventListener('click', (e) => {
+    e.preventDefault();
+    agendaCalMonthIndex++;
+    if (agendaCalMonthIndex > 11) { agendaCalMonthIndex = 0; agendaCalYear++; }
+    renderAgendaCalendar();
+  });
+
+  function showAgenda() {
+    hideAllViews();
+    viewAgenda.style.display = '';
+    setActiveNav('agenda');
+    renderAgenda();
+    renderAgendaCalendar();
+  }
+
   function deleteStageCard(clientId, stageKey, cardId) {
     if (!confirm('Tem certeza que deseja deletar?')) return;
     const board = loadBoard(clientId);
@@ -2574,6 +2904,7 @@
   const viewProspeccao = document.getElementById('view-prospeccao');
   const viewHistorico = document.getElementById('view-historico');
   const viewFollowup = document.getElementById('view-followup');
+  const viewAgenda = document.getElementById('view-agenda');
 
   function hideAllViews() {
     viewHome.style.display = 'none';
@@ -2585,6 +2916,7 @@
     viewProspeccao.style.display = 'none';
     viewHistorico.style.display = 'none';
     viewFollowup.style.display = 'none';
+    viewAgenda.style.display = 'none';
   }
 
   function setActiveNav(tab) {
@@ -3379,6 +3711,7 @@
     else if (location.hash === '#/prospeccao') showProspeccao();
     else if (location.hash === '#/historico') showHistorico();
     else if (location.hash === '#/followup') showFollowup();
+    else if (location.hash === '#/agenda') showAgenda();
     else showHome();
   }
   window.addEventListener('hashchange', route);
