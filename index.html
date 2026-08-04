@@ -2049,6 +2049,28 @@
     return new Date(y, m - 1, d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
+  function parseLocalDate(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function getNextMonday() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysToNextMonday = ((1 - today.getDay() + 7) % 7) || 7;
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + daysToNextMonday);
+    return nextMonday;
+  }
+
+  function producaoDateLabel(dateStr) {
+    if (!dateStr) return { html: '—' };
+    if (parseLocalDate(dateStr) >= getNextMonday()) {
+      return { html: `<span title="${escapeHtml(formatDateBR(dateStr))}">próxima semana</span>` };
+    }
+    return { html: escapeHtml(formatDateBR(dateStr)) };
+  }
+
   function loadBoard(clientId) {
     let board;
     try { board = JSON.parse(localStorage.getItem(boardStorageKey(clientId))); }
@@ -3167,8 +3189,12 @@
     stageTbody.innerHTML = '';
     stageEmptyState.style.display = rows.length ? 'none' : 'block';
 
+    const isProducao = stageKey === 'producao';
+
     stageThead.innerHTML = isReceivable
       ? '<tr><th>Cliente</th><th>Registro</th><th>Valor</th><th>Dia do pagamento</th><th class="actions-col">Ações</th></tr>'
+      : isProducao
+      ? '<tr><th>Registro</th><th>Cliente</th><th>Data</th><th class="actions-col">Ações</th></tr>'
       : '<tr><th>Registro</th><th>Cliente</th><th class="actions-col">Ações</th></tr>';
 
     rows.forEach(row => {
@@ -3179,6 +3205,13 @@
           <td>${escapeHtml(row.text)}</td>
           <td>${row.valor ? formatBRL(row.valor) : '—'}</td>
           <td>${row.dataPagamento ? formatDateBR(row.dataPagamento) : '—'}</td>
+          <td class="actions-col"></td>
+        `
+        : isProducao
+        ? `
+          <td>${escapeHtml(row.text)}</td>
+          <td><a class="client-name" href="#/cliente/${row.clientId}">${escapeHtml(row.clientName)}</a></td>
+          <td>${producaoDateLabel(row.dataPagamento).html}</td>
           <td class="actions-col"></td>
         `
         : `
