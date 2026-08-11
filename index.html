@@ -420,6 +420,8 @@
     top: 0.35rem;
     right: 0.35rem;
     opacity: 0;
+    pointer-events: none;
+    white-space: normal;
     transition: opacity 0.15s, background 0.15s, color 0.15s;
     background: none;
     border: none;
@@ -430,7 +432,7 @@
     line-height: 0;
   }
   .board-card:hover .board-card-delete,
-  .board-card-delete:focus-visible { opacity: 1; }
+  .board-card-delete:focus-visible { opacity: 1; pointer-events: auto; }
   .board-card-delete:hover { background: #FBEAE7; color: #C0392B; }
 
   .board-card-text { white-space: pre-wrap; word-break: break-word; }
@@ -613,9 +615,7 @@
   .split-btn .btn-primary { display: inline-flex; align-items: center; gap: 0.4rem; }
   .split-btn .split-caret { margin-left: 0.15rem; }
   .split-btn-menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
+    position: fixed;
     min-width: 170px;
     background: #fff;
     border: 1px solid var(--lead-100);
@@ -623,7 +623,7 @@
     box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
     padding: 0.35rem;
     display: none;
-    z-index: 60;
+    z-index: 1000;
   }
   .split-btn-menu.open { display: block; }
   .split-btn-menu a {
@@ -2205,7 +2205,7 @@
         if (card.valor) meta.push(`<span class="board-card-valor">${formatBRL(card.valor)}</span>`);
         if (card.mensalista) meta.push('<span class="board-card-mensalista">Mensalista</span>');
         if (card.dataPagamento) meta.push(`<span class="board-card-date">Pagamento: ${formatDateBR(card.dataPagamento)}</span>`);
-        cardEl.innerHTML = `<div class="board-card-inner">${card.fromFollowup ? `<button type="button" class="board-card-undo">Desfazer</button>` : ''}<div class="board-card-body"><div class="board-card-text">${escapeHtml(card.text)}</div>${card.descricao ? `<div class="board-card-desc">${escapeHtml(card.descricao)}</div>` : ''}${meta.length ? `<div class="board-card-meta">${meta.join('')}</div>` : ''}</div></div><button class="board-card-delete" title="Remover" aria-label="Remover">
+        cardEl.innerHTML = `<div class="board-card-inner"><div class="board-card-body"><div class="board-card-text">${escapeHtml(card.text)}</div>${card.descricao ? `<div class="board-card-desc">${escapeHtml(card.descricao)}</div>` : ''}${meta.length ? `<div class="board-card-meta">${meta.join('')}</div>` : ''}</div>${card.fromFollowup ? `<button type="button" class="board-card-undo">Desfazer</button>` : ''}</div><button class="board-card-delete" title="Remover" aria-label="Remover">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>`;
 
@@ -2348,6 +2348,23 @@
   }
 
   /* ── SPLIT BUTTON (dropdown) genérico ── */
+  function positionDropdownMenu(trigger, menu) {
+    const rect = trigger.getBoundingClientRect();
+    menu.style.left = '-9999px';
+    menu.style.top = '-9999px';
+    menu.classList.add('open');
+    const menuRect = menu.getBoundingClientRect();
+    let left = rect.right - menuRect.width;
+    let top = rect.bottom + 6;
+    if (top + menuRect.height > window.innerHeight - 8) {
+      top = rect.top - menuRect.height - 6;
+    }
+    if (left < 8) left = 8;
+    if (left + menuRect.width > window.innerWidth - 8) left = window.innerWidth - menuRect.width - 8;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  }
+
   document.addEventListener('click', (e) => {
     const trigger = e.target.closest('[data-dropdown-trigger]');
     if (trigger) {
@@ -2355,13 +2372,20 @@
       const menu = trigger.parentElement.querySelector('.split-btn-menu');
       const wasOpen = menu && menu.classList.contains('open');
       document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
-      if (menu && !wasOpen) menu.classList.add('open');
+      if (menu && !wasOpen) positionDropdownMenu(trigger, menu);
       return;
     }
     if (!e.target.closest('.split-btn-menu')) {
       document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
     }
   });
+
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
+  });
+  window.addEventListener('scroll', () => {
+    document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
+  }, true);
 
   document.querySelectorAll('[data-board-add-stage]').forEach(a => {
     a.addEventListener('click', (e) => {
