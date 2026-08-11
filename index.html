@@ -397,6 +397,21 @@
   .board-card:active { cursor: grabbing; }
   .board-card.dragging { opacity: 0.4; }
 
+  .board-card-undo {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    border: 1px solid var(--lead-100);
+    background: var(--lead-50);
+    color: var(--lead-700);
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .board-card-undo:hover { background: var(--lead-100); }
+
   .board-card-delete {
     position: absolute;
     top: 0.35rem;
@@ -2187,7 +2202,7 @@
         if (card.valor) meta.push(`<span class="board-card-valor">${formatBRL(card.valor)}</span>`);
         if (card.mensalista) meta.push('<span class="board-card-mensalista">Mensalista</span>');
         if (card.dataPagamento) meta.push(`<span class="board-card-date">Pagamento: ${formatDateBR(card.dataPagamento)}</span>`);
-        cardEl.innerHTML = `<div class="board-card-text">${escapeHtml(card.text)}</div>${card.descricao ? `<div class="board-card-desc">${escapeHtml(card.descricao)}</div>` : ''}${meta.length ? `<div class="board-card-meta">${meta.join('')}</div>` : ''}<button class="board-card-delete" title="Remover" aria-label="Remover">
+        cardEl.innerHTML = `<div class="board-card-text">${escapeHtml(card.text)}</div>${card.descricao ? `<div class="board-card-desc">${escapeHtml(card.descricao)}</div>` : ''}${meta.length ? `<div class="board-card-meta">${meta.join('')}</div>` : ''}${card.fromFollowup ? `<button type="button" class="board-card-undo">Desfazer</button>` : ''}<button class="board-card-delete" title="Remover" aria-label="Remover">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>`;
 
@@ -2209,8 +2224,22 @@
           renderBoard(clientId);
         });
 
+        const undoBtn = cardEl.querySelector('.board-card-undo');
+        if (undoBtn) {
+          undoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const b = loadBoard(clientId);
+            b[col.key] = b[col.key].filter(c => c.id !== card.id);
+            saveBoard(clientId, b);
+            const followupList = loadFollowup();
+            followupList.push({ id: crypto.randomUUID(), titulo: card.text, descricao: card.descricao || '', data: new Date().toISOString() });
+            saveFollowup(followupList);
+            renderBoard(clientId);
+          });
+        }
+
         cardEl.addEventListener('click', (e) => {
-          if (e.target.closest('.board-card-delete')) return;
+          if (e.target.closest('.board-card-delete') || e.target.closest('.board-card-undo')) return;
           openClientCardModal(clientId, col.key, card);
         });
 
@@ -2238,12 +2267,6 @@
       });
 
       colEl.appendChild(body);
-
-      const addBtn = document.createElement('button');
-      addBtn.className = 'add-task-btn';
-      addBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Adicionar`;
-      addBtn.addEventListener('click', () => openClientCardModal(clientId, col.key, null));
-      colEl.appendChild(addBtn);
 
       boardEl.appendChild(colEl);
     });
@@ -2446,7 +2469,7 @@
       const data = readCardForm(cardModalFields);
       if (!data.text) { closeCardModal(); return; }
       const b = loadBoard(client.id);
-      b[stageKey].push({ id: crypto.randomUUID(), ...data });
+      b[stageKey].push({ id: crypto.randomUUID(), ...data, ...(sourceFollowupId ? { fromFollowup: true } : {}) });
       saveBoard(client.id, b);
       if (sourceFollowupId) {
         saveFollowup(loadFollowup().filter(i => i.id !== sourceFollowupId));
