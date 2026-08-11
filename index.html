@@ -590,6 +590,52 @@
   .followup-mural-desc { color: var(--lead-500); font-size: 0.82rem; margin-top: 0.15rem; white-space: pre-wrap; word-break: break-word; }
   .followup-mural-date { color: var(--lead-300); font-size: 0.7rem; margin-top: 0.3rem; }
 
+  /* ── SPLIT BUTTON (dropdown) ── */
+  .split-btn { position: relative; display: inline-flex; }
+  .split-btn .btn-primary { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .split-btn .split-caret { margin-left: 0.15rem; }
+  .split-btn-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 170px;
+    background: #fff;
+    border: 1px solid var(--lead-100);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+    padding: 0.35rem;
+    display: none;
+    z-index: 60;
+  }
+  .split-btn-menu.open { display: block; }
+  .split-btn-menu a {
+    display: block;
+    padding: 0.5rem 0.65rem;
+    border-radius: 7px;
+    color: var(--lead-900);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .split-btn-menu a:hover { background: var(--lead-50); }
+
+  .split-btn-sm { position: relative; display: inline-flex; }
+  .split-btn-sm-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 100px;
+    border: 1px solid var(--lead-100);
+    background: var(--lead-50);
+    color: var(--lead-700);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .split-btn-sm-trigger:hover { background: var(--lead-100); }
+  .split-btn-sm .split-btn-menu { min-width: 150px; }
+
   @media (max-width: 900px) {
     .home-two-col { grid-template-columns: 1fr; }
   }
@@ -1128,19 +1174,19 @@
       </a>
       <a href="#/solicitacao" data-tab="solicitacao">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-        Solicitação
+        Demanda
       </a>
       <a href="#/aprovacao" data-tab="aprovacao">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        Aprovação
+        Orçamento
       </a>
       <a href="#/producao" data-tab="producao">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-        Produção
+        Execução
       </a>
       <a href="#/areceber" data-tab="areceber">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-        A receber
+        Faturamento
       </a>
       <a href="#/calendario" data-tab="calendario">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -1248,7 +1294,7 @@
       <div class="card urgency-card">
         <div class="urgency-header">
           <div>
-            <h2>Urgência para chegar em "A receber" esta semana</h2>
+            <h2>Urgência para chegar em "Faturamento" esta semana</h2>
             <p>Quantidade de itens parados em cada etapa do fluxo, em todos os clientes</p>
           </div>
           <div class="urgency-total" id="urgency-total">
@@ -1311,6 +1357,19 @@
           <h1 id="board-client-name">Cliente</h1>
           <p>Fluxo de solicitações do cliente</p>
         </div>
+        <div class="split-btn">
+          <button type="button" class="btn-primary" id="btn-board-add" data-dropdown-trigger>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Adicionar
+            <svg class="split-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="split-btn-menu">
+            <a href="#" data-board-add-stage="solicitacao">Demanda</a>
+            <a href="#" data-board-add-stage="aprovacao">Orçamento</a>
+            <a href="#" data-board-add-stage="producao">Execução</a>
+            <a href="#" data-board-add-stage="areceber">Faturamento</a>
+          </div>
+        </div>
       </div>
       <div class="board" id="board"></div>
     </div>
@@ -1327,7 +1386,7 @@
         </div>
         <button class="btn-primary" id="btn-nova-producao" style="display:none;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Nova Produção
+          <span id="btn-nova-producao-label">Nova Produção</span>
         </button>
       </div>
       <div class="card">
@@ -1349,7 +1408,7 @@
       <div id="producao-concluida-section" style="display:none;">
         <div class="topbar concluido-topbar">
           <div>
-            <h2 class="concluido-title">Produção Concluída<span class="count-pill" id="producao-concluida-count-pill">0</span></h2>
+            <h2 class="concluido-title">Execução Concluída<span class="count-pill" id="producao-concluida-count-pill">0</span></h2>
             <p>Itens já finalizados</p>
           </div>
         </div>
@@ -1388,7 +1447,7 @@
             <thead>
               <tr>
                 <th>Cliente</th>
-                <th>Solicitação</th>
+                <th>Registro</th>
                 <th>Valor</th>
                 <th>Dia do pagamento</th>
               </tr>
@@ -1491,6 +1550,7 @@
               <th>Data</th>
               <th>Aviso</th>
               <th>Descrição</th>
+              <th>Encaminhar</th>
               <th class="actions-col">Ações</th>
             </tr>
           </thead>
@@ -2031,11 +2091,18 @@
 
   /* ── BOARD (kanban por cliente) ── */
   const BOARD_COLUMNS = [
-    { key: 'solicitacao', label: 'Solicitação' },
-    { key: 'aprovacao', label: 'Aprovação' },
-    { key: 'producao', label: 'Produção' },
-    { key: 'areceber', label: 'A receber' },
+    { key: 'solicitacao', label: 'Demanda' },
+    { key: 'aprovacao', label: 'Orçamento' },
+    { key: 'producao', label: 'Execução' },
+    { key: 'areceber', label: 'Faturamento' },
   ];
+
+  const NEW_ITEM_BUTTON_LABELS = {
+    solicitacao: 'Nova Demanda',
+    aprovacao: 'Novo Orçamento',
+    producao: 'Nova Execução',
+    areceber: 'Novo Faturamento',
+  };
 
   function boardStorageKey(clientId) { return `teovox_board_${clientId}`; }
 
@@ -2182,11 +2249,13 @@
     });
   }
 
-  const COLUMNS_WITH_DESCRIPTION = ['solicitacao', 'aprovacao', 'producao'];
+  const COLUMNS_WITH_DESCRIPTION = ['solicitacao', 'aprovacao', 'producao', 'areceber'];
+  const COLUMNS_WITH_PAYMENT_FIELDS = ['areceber'];
 
   function cardFormFieldsHTML(card, columnKey) {
     const c = card || {};
     const withDescription = COLUMNS_WITH_DESCRIPTION.includes(columnKey);
+    const withPayment = COLUMNS_WITH_PAYMENT_FIELDS.includes(columnKey);
     const valorField = `
         <label class="card-form-label">
           Valor (R$)
@@ -2200,13 +2269,14 @@
     return `
       <textarea placeholder="Título da solicitação" rows="2">${c.text ? escapeHtml(c.text) : ''}</textarea>
       ${withDescription ? `<textarea class="card-form-desc" placeholder="Descrição" rows="2">${c.descricao ? escapeHtml(c.descricao) : ''}</textarea>` : ''}
+      ${withPayment ? `
       <div class="card-form-row">
-        ${withDescription ? dataField + valorField : valorField + dataField}
+        ${dataField}${valorField}
       </div>
       <label class="card-form-checkbox">
         <input type="checkbox" class="card-form-mensalista" ${c.mensalista ? 'checked' : ''}>
         Mensalista
-      </label>
+      </label>` : ''}
     `;
   }
 
@@ -2214,10 +2284,12 @@
     const text = formEl.querySelector('textarea').value.trim();
     const descEl = formEl.querySelector('.card-form-desc');
     const descricao = descEl ? descEl.value.trim() : '';
-    const valorRaw = formEl.querySelector('.card-form-valor').value;
-    const valor = valorRaw ? parseFloat(valorRaw) : null;
-    const dataPagamento = formEl.querySelector('.card-form-data').value || null;
-    const mensalista = formEl.querySelector('.card-form-mensalista').checked;
+    const valorEl = formEl.querySelector('.card-form-valor');
+    const valor = valorEl && valorEl.value ? parseFloat(valorEl.value) : null;
+    const dataEl = formEl.querySelector('.card-form-data');
+    const dataPagamento = dataEl && dataEl.value ? dataEl.value : null;
+    const mensalistaEl = formEl.querySelector('.card-form-mensalista');
+    const mensalista = mensalistaEl ? mensalistaEl.checked : false;
     return { text, descricao, valor, dataPagamento, mensalista };
   }
 
@@ -2248,6 +2320,31 @@
     firstTextarea.focus();
     firstTextarea.setSelectionRange(firstTextarea.value.length, firstTextarea.value.length);
   }
+
+  /* ── SPLIT BUTTON (dropdown) genérico ── */
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-dropdown-trigger]');
+    if (trigger) {
+      e.preventDefault();
+      const menu = trigger.parentElement.querySelector('.split-btn-menu');
+      const wasOpen = menu && menu.classList.contains('open');
+      document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
+      if (menu && !wasOpen) menu.classList.add('open');
+      return;
+    }
+    if (!e.target.closest('.split-btn-menu')) {
+      document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
+    }
+  });
+
+  document.querySelectorAll('[data-board-add-stage]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
+      if (!currentBoardClientId) return;
+      openClientCardModal(currentBoardClientId, a.dataset.boardAddStage, null);
+    });
+  });
 
   function openProspectModal(columnKey, card) {
     cardModalContext = { kind: 'prospect', columnKey, card };
@@ -2287,18 +2384,19 @@
     document.getElementById('followup-modal-titulo').focus();
   }
 
-  function openNewProductionModal() {
-    cardModalContext = { kind: 'new-production' };
-    cardModalTitle.textContent = 'Nova Produção';
+  function openNewStageItemModal(stageKey, prefill, sourceFollowupId) {
+    cardModalContext = { kind: 'new-stage-item', stageKey, sourceFollowupId: sourceFollowupId || null };
+    cardModalTitle.textContent = NEW_ITEM_BUTTON_LABELS[stageKey] || 'Novo registro';
     cardModalSubmit.textContent = 'Adicionar';
     const clientOptions = loadClients().map(c => `<option value="${escapeHtml(c.nome)}">`).join('');
+    const prefillCard = prefill ? { text: prefill.titulo || '', descricao: prefill.descricao || '' } : null;
     cardModalFields.innerHTML = `
       <div class="field">
         <label for="new-production-client">Cliente</label>
         <input type="text" id="new-production-client" list="new-production-client-list" autocomplete="off" placeholder="Digite ou escolha o cliente">
         <datalist id="new-production-client-list">${clientOptions}</datalist>
       </div>
-    ` + cardFormFieldsHTML(null, 'producao');
+    ` + cardFormFieldsHTML(prefillCard, stageKey);
     cardModalDelete.style.display = 'none';
     cardModalOverlay.classList.add('open');
     document.getElementById('new-production-client').focus();
@@ -2337,7 +2435,8 @@
       saveProspeccao(d);
       closeCardModal();
       renderProspeccaoBoard();
-    } else if (cardModalContext.kind === 'new-production') {
+    } else if (cardModalContext.kind === 'new-stage-item') {
+      const { stageKey, sourceFollowupId } = cardModalContext;
       const clientNameInput = document.getElementById('new-production-client').value.trim();
       const client = loadClients().find(c => c.nome.toLowerCase() === clientNameInput.toLowerCase());
       if (!client) {
@@ -2347,10 +2446,17 @@
       const data = readCardForm(cardModalFields);
       if (!data.text) { closeCardModal(); return; }
       const b = loadBoard(client.id);
-      b.producao.push({ id: crypto.randomUUID(), ...data });
+      b[stageKey].push({ id: crypto.randomUUID(), ...data });
       saveBoard(client.id, b);
+      if (sourceFollowupId) {
+        saveFollowup(loadFollowup().filter(i => i.id !== sourceFollowupId));
+      }
       closeCardModal();
-      showStage('producao');
+      if (sourceFollowupId) {
+        renderFollowupTable();
+      } else {
+        showStage(stageKey);
+      }
     } else if (cardModalContext.kind === 'followup') {
       const { item } = cardModalContext;
       const titulo = document.getElementById('followup-modal-titulo').value.trim();
@@ -2404,7 +2510,9 @@
   const stageTotalWrap = document.getElementById('stage-total-wrap');
   const stageTotalNum = document.getElementById('stage-total-num');
   const btnNovaProducao = document.getElementById('btn-nova-producao');
-  btnNovaProducao.addEventListener('click', () => openNewProductionModal());
+  const btnNovaProducaoLabel = document.getElementById('btn-nova-producao-label');
+  let currentStageKey = null;
+  btnNovaProducao.addEventListener('click', () => { if (currentStageKey) openNewStageItemModal(currentStageKey); });
   document.getElementById('btn-new-followup').addEventListener('click', () => openFollowupModal(null));
   document.getElementById('btn-add-followup-home').addEventListener('click', () => openFollowupModal(null));
   const concluidoSection = document.getElementById('concluido-section');
@@ -2480,8 +2588,31 @@
         <td>${escapeHtml(dateLabel)}</td>
         <td>${escapeHtml(item.titulo)}</td>
         <td>${escapeHtml(item.descricao || '—')}</td>
+        <td>
+          <div class="split-btn-sm">
+            <button type="button" class="split-btn-sm-trigger" data-dropdown-trigger>
+              Encaminhar
+              <svg class="split-caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="split-btn-menu">
+              <a href="#" data-encaminhar-stage="solicitacao" data-encaminhar-id="${item.id}">Demanda</a>
+              <a href="#" data-encaminhar-stage="aprovacao" data-encaminhar-id="${item.id}">Orçamento</a>
+              <a href="#" data-encaminhar-stage="producao" data-encaminhar-id="${item.id}">Execução</a>
+              <a href="#" data-encaminhar-stage="areceber" data-encaminhar-id="${item.id}">Faturamento</a>
+            </div>
+          </div>
+        </td>
         <td class="actions-col"></td>
       `;
+      tr.querySelectorAll('[data-encaminhar-stage]').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          document.querySelectorAll('.split-btn-menu.open').forEach(m => m.classList.remove('open'));
+          const followupItem = loadFollowup().find(f => f.id === a.dataset.encaminharId);
+          if (!followupItem) return;
+          openNewStageItemModal(a.dataset.encaminharStage, followupItem, followupItem.id);
+        });
+      });
       const actionsCell = tr.querySelector('.actions-col');
       const btnEdit = document.createElement('button');
       btnEdit.type = 'button';
@@ -2811,7 +2942,7 @@
       const btnRestore = document.createElement('button');
       btnRestore.type = 'button';
       btnRestore.className = 'icon-btn';
-      btnRestore.title = 'Restaurar para "A receber"';
+      btnRestore.title = 'Restaurar para "Faturamento"';
       btnRestore.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>`;
       btnRestore.addEventListener('click', () => restoreConcluido(item.id));
       tr.querySelector('.actions-col').appendChild(btnRestore);
@@ -2853,7 +2984,7 @@
       concluidoEm: new Date().toISOString(),
     });
     saveProducaoConcluida(list);
-    logHistorico('Produção concluída', clientName, card.text, card.valor);
+    logHistorico('Execução concluída', clientName, card.text, card.valor);
     showStage('producao');
   }
 
@@ -2890,7 +3021,7 @@
       const btnRestore = document.createElement('button');
       btnRestore.type = 'button';
       btnRestore.className = 'icon-btn';
-      btnRestore.title = 'Restaurar para "Produção"';
+      btnRestore.title = 'Restaurar para "Execução"';
       btnRestore.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>`;
       btnRestore.addEventListener('click', () => restoreProducaoConcluida(item.id));
       tr.querySelector('.actions-col').appendChild(btnRestore);
@@ -3128,16 +3259,16 @@
     urgencyTotal.querySelector('.urgency-total-num').textContent = total;
 
     const rowsData = [
-      { key: 'solicitacao', label: 'Solicitação', value: counts.solicitacao },
-      { key: 'aprovacao', label: 'Aprovação', value: counts.aprovacao },
-      { key: 'producao', label: 'Produção', value: counts.producao },
+      { key: 'solicitacao', label: 'Demanda', value: counts.solicitacao },
+      { key: 'aprovacao', label: 'Orçamento', value: counts.aprovacao },
+      { key: 'producao', label: 'Execução', value: counts.producao },
     ];
     const maxValue = Math.max(1, ...rowsData.map(r => r.value));
     const bottleneckKey = total > 0 ? rowsData.reduce((a, b) => (b.value > a.value ? b : a)).key : null;
 
     urgencyChart.innerHTML = '';
     if (total === 0) {
-      urgencyChart.innerHTML = '<p class="urgency-empty">Nenhum item pendente — tudo já chegou em "A receber".</p>';
+      urgencyChart.innerHTML = '<p class="urgency-empty">Nenhum item pendente — tudo já chegou em "Faturamento".</p>';
       return;
     }
     rowsData.forEach(row => {
@@ -3154,10 +3285,13 @@
     });
   }
 
+  let currentBoardClientId = null;
+
   function showBoard(clientId) {
     const client = loadClients().find(c => c.id === clientId);
     if (!client) { location.hash = '#/clientes'; return; }
     boardClientName.textContent = client.nome;
+    currentBoardClientId = clientId;
     hideAllViews();
     viewBoard.style.display = '';
     setActiveNav(null);
@@ -3174,7 +3308,9 @@
     stageTitle.childNodes[0].textContent = col.label;
     const isReceivable = stageKey === 'areceber';
 
-    btnNovaProducao.style.display = stageKey === 'producao' ? '' : 'none';
+    currentStageKey = stageKey;
+    btnNovaProducaoLabel.textContent = NEW_ITEM_BUTTON_LABELS[stageKey] || 'Novo registro';
+    btnNovaProducao.style.display = '';
 
     const clients = loadClients();
     const rows = [];
