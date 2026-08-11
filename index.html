@@ -397,10 +397,13 @@
   .board-card:active { cursor: grabbing; }
   .board-card.dragging { opacity: 0.4; }
 
+  .board-card-inner { display: flex; align-items: flex-start; gap: 0.55rem; }
+  .board-card-body { flex: 1; min-width: 0; }
+
   .board-card-undo {
+    flex: none;
     display: inline-flex;
     align-items: center;
-    margin-top: 0.4rem;
     padding: 0.25rem 0.6rem;
     border-radius: 100px;
     border: 1px solid var(--lead-100);
@@ -2202,7 +2205,7 @@
         if (card.valor) meta.push(`<span class="board-card-valor">${formatBRL(card.valor)}</span>`);
         if (card.mensalista) meta.push('<span class="board-card-mensalista">Mensalista</span>');
         if (card.dataPagamento) meta.push(`<span class="board-card-date">Pagamento: ${formatDateBR(card.dataPagamento)}</span>`);
-        cardEl.innerHTML = `<div class="board-card-text">${escapeHtml(card.text)}</div>${card.descricao ? `<div class="board-card-desc">${escapeHtml(card.descricao)}</div>` : ''}${meta.length ? `<div class="board-card-meta">${meta.join('')}</div>` : ''}${card.fromFollowup ? `<button type="button" class="board-card-undo">Desfazer</button>` : ''}<button class="board-card-delete" title="Remover" aria-label="Remover">
+        cardEl.innerHTML = `<div class="board-card-inner">${card.fromFollowup ? `<button type="button" class="board-card-undo">Desfazer</button>` : ''}<div class="board-card-body"><div class="board-card-text">${escapeHtml(card.text)}</div>${card.descricao ? `<div class="board-card-desc">${escapeHtml(card.descricao)}</div>` : ''}${meta.length ? `<div class="board-card-meta">${meta.join('')}</div>` : ''}</div></div><button class="board-card-delete" title="Remover" aria-label="Remover">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>`;
 
