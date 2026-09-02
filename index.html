@@ -1287,6 +1287,42 @@
   .prospect-card-trash:hover { background: #FBEAE7; color: #C0392B; }
   #prospeccao-board { grid-template-columns: repeat(2, minmax(260px, 1fr)); grid-auto-rows: calc(100vh - 260px); }
 </style>
+<style>
+  .postit-board{
+    display:flex; flex-wrap:wrap; gap:26px; padding:22px 8px; align-items:flex-start;
+  }
+  .postit-empty{ padding:40px 12px; color:#9aa0a6; font-size:14px; }
+  .postit{
+    position:relative; width:210px; min-height:210px;
+    background:#fff7a8; border:1px solid #f2e46a;
+    box-shadow:0 8px 18px rgba(0,0,0,.16), 0 2px 4px rgba(0,0,0,.10);
+    border-radius:2px; padding:26px 16px 16px;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .postit:nth-child(3n+1){ transform:rotate(-2deg); background:#fff7a8; }
+  .postit:nth-child(3n+2){ transform:rotate(1.5deg); background:#fdf07a; }
+  .postit:nth-child(3n+3){ transform:rotate(-0.8deg); background:#fff1b8; }
+  .postit:hover{ transform:rotate(0deg) scale(1.02); box-shadow:0 14px 28px rgba(0,0,0,.22); z-index:2; }
+  .postit::before{
+    content:""; position:absolute; top:-9px; left:50%; transform:translateX(-50%) rotate(-4deg);
+    width:64px; height:20px; background:rgba(210,190,90,.45);
+    box-shadow:0 1px 2px rgba(0,0,0,.12); border-radius:1px;
+  }
+  .postit textarea{
+    width:100%; height:100%; min-height:150px; border:none; outline:none; resize:none;
+    background:transparent; color:#4a4326;
+    font-family:'Comic Sans MS','Comic Sans','Chalkboard SE','Comic Neue','Segoe Print',cursive;
+    font-size:16px; line-height:1.5; overflow:hidden;
+  }
+  .postit textarea::placeholder{ color:#b3a758; }
+  .postit-x{
+    position:absolute; top:5px; right:6px; width:22px; height:22px; border:none; background:transparent;
+    color:#8a7d2e; cursor:pointer; border-radius:50%; display:grid; place-items:center; line-height:1;
+    font-size:15px; transition:background .12s, color .12s;
+  }
+  .postit-x:hover{ background:rgba(0,0,0,.10); color:#5a5019; }
+  @media (max-width:560px){ .postit{ width:100%; } }
+</style>
 </head>
 <body class="pre-auth">
 
@@ -1369,6 +1405,10 @@
     </nav>
     <div class="sidebar-label">Recursos</div>
     <nav>
+      <a href="#/postit" data-tab="postit">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9l7-7V5a2 2 0 0 0-2-2z"></path><path d="M15 21v-6a2 2 0 0 1 2-2h4"></path></svg>
+        Post-it
+      </a>
       <a href="#/followup" data-tab="followup">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         Follow-up
@@ -1885,6 +1925,23 @@
             <button type="submit" class="btn-primary">Salvar</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div id="view-postit" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1>Post-it<span class="count-pill" id="postit-count-pill">0</span></h1>
+          <p>Seu mural de lembretes — cole quantos post-its quiser</p>
+        </div>
+        <button class="btn-primary" id="btn-new-postit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Novo post-it
+        </button>
+      </div>
+      <div id="postit-board" class="postit-board"></div>
+      <div class="postit-empty" id="postit-empty">
+        <p>Nenhum lembrete ainda. Clique em <b>+ Novo post-it</b> para colar o primeiro.</p>
       </div>
     </div>
 
@@ -4785,6 +4842,97 @@
 
   function start(){
     if(!el('view-contatos')) return;
+    wire();
+    window.addEventListener('hashchange', handleRoute);
+    handleRoute();
+  }
+  if(document.readyState!=='loading') setTimeout(start,0);
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+
+</script>
+<script>
+(function(){
+  var KEY='teovox_postits';
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ return []; } }
+  function save(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
+  function el(id){ return document.getElementById(id); }
+  function uid(){ return 'pi'+Date.now()+Math.random().toString(16).slice(2,6); }
+
+  function setActiveNav(tab){
+    document.querySelectorAll('.sidebar nav a').forEach(function(a){
+      a.classList.toggle('active', a.dataset.tab===tab);
+    });
+  }
+  function hideOtherViews(){
+    document.querySelectorAll('[id^="view-"]').forEach(function(v){
+      if(v.id!=='view-postit') v.style.display='none';
+    });
+  }
+  function showPostit(){
+    hideOtherViews();
+    var v=el('view-postit'); if(v) v.style.display='';
+    setActiveNav('postit');
+    render();
+  }
+
+  function autoGrow(ta){ ta.style.height='auto'; ta.style.height=Math.max(150, ta.scrollHeight)+'px'; }
+
+  function render(){
+    var board=el('postit-board'); if(!board) return;
+    var list=load();
+    el('postit-count-pill').textContent=list.length;
+    el('postit-empty').style.display=list.length?'none':'block';
+    board.innerHTML='';
+    list.forEach(function(item){
+      var note=document.createElement('div');
+      note.className='postit';
+      var x=document.createElement('button');
+      x.type='button'; x.className='postit-x'; x.title='Fechar'; x.innerHTML='&#10005;';
+      x.addEventListener('click', function(){
+        var atual=load().find(function(p){ return p.id===item.id; });
+        if(atual && (atual.texto||'').trim() && !confirm('Fechar este post-it? O lembrete será removido.')) return;
+        save(load().filter(function(p){ return p.id!==item.id; }));
+        render();
+      });
+      var ta=document.createElement('textarea');
+      ta.value=item.texto||'';
+      ta.placeholder='Escreva seu lembrete...';
+      var t=null;
+      ta.addEventListener('input', function(){
+        autoGrow(ta);
+        if(t)clearTimeout(t);
+        t=setTimeout(function(){
+          var l=load(); var it=l.find(function(p){ return p.id===item.id; });
+          if(it){ it.texto=ta.value; save(l); el('postit-count-pill').textContent=l.length; }
+        }, 350);
+      });
+      note.appendChild(x);
+      note.appendChild(ta);
+      board.appendChild(note);
+      autoGrow(ta);
+    });
+  }
+
+  function addPostit(){
+    var l=load();
+    l.push({ id:uid(), texto:'', data:new Date().toISOString() });
+    save(l);
+    render();
+    // foca o novo (último) post-it
+    var notes=el('postit-board').querySelectorAll('.postit textarea');
+    if(notes.length){ notes[notes.length-1].focus(); }
+  }
+
+  function wire(){
+    var b=el('btn-new-postit'); if(b) b.addEventListener('click', addPostit);
+  }
+  function handleRoute(){
+    if(location.hash==='#/postit') showPostit();
+    else { var v=el('view-postit'); if(v) v.style.display='none'; }
+  }
+  function start(){
+    if(!el('view-postit')) return;
     wire();
     window.addEventListener('hashchange', handleRoute);
     handleRoute();
