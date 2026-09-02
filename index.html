@@ -2794,11 +2794,44 @@
         <label for="new-production-client">Cliente</label>
         <input type="text" id="new-production-client" list="new-production-client-list" autocomplete="off" placeholder="Digite ou escolha o cliente">
         <datalist id="new-production-client-list">${clientOptions}</datalist>
+        <button type="button" id="toggle-new-client" style="margin-top:6px;background:none;border:none;color:#2169b8;font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;padding:0;">+ Cadastrar novo cliente</button>
+      </div>
+      <div id="new-client-fields" style="display:none;">
+        <div class="field">
+          <label for="nc-nome">Nome do novo cliente</label>
+          <input type="text" id="nc-nome" autocomplete="off" placeholder="Nome do cliente">
+        </div>
+        <div class="field">
+          <label for="nc-telefone">Telefone</label>
+          <input type="tel" id="nc-telefone" autocomplete="off" placeholder="(00) 00000-0000">
+        </div>
+        <div class="field">
+          <label for="nc-email">Email</label>
+          <input type="email" id="nc-email" autocomplete="off" placeholder="cliente@empresa.com">
+        </div>
       </div>
     ` + cardFormFieldsHTML(prefillCard, stageKey);
     cardModalDelete.style.display = 'none';
     cardModalOverlay.classList.add('open');
-    document.getElementById('new-production-client').focus();
+    const _clientInput = document.getElementById('new-production-client');
+    const _toggleNewClient = document.getElementById('toggle-new-client');
+    const _newClientFields = document.getElementById('new-client-fields');
+    if (_toggleNewClient) _toggleNewClient.addEventListener('click', () => {
+      const on = _newClientFields.style.display === 'none';
+      _newClientFields.style.display = on ? '' : 'none';
+      _toggleNewClient.textContent = on ? '− Usar cliente existente' : '+ Cadastrar novo cliente';
+      if (on) {
+        const nc = document.getElementById('nc-nome');
+        if (_clientInput.value.trim() && !nc.value) nc.value = _clientInput.value.trim();
+        _clientInput.value = '';
+        _clientInput.disabled = true;
+        nc.focus();
+      } else {
+        _clientInput.disabled = false;
+        _clientInput.focus();
+      }
+    });
+    _clientInput.focus();
   }
 
   cardModalForm.addEventListener('submit', (e) => {
@@ -2836,11 +2869,28 @@
       renderProspeccaoBoard();
     } else if (cardModalContext.kind === 'new-stage-item') {
       const { stageKey, sourceFollowupId } = cardModalContext;
-      const clientNameInput = document.getElementById('new-production-client').value.trim();
-      const client = loadClients().find(c => c.nome.toLowerCase() === clientNameInput.toLowerCase());
-      if (!client) {
-        alert('Selecione um cliente válido da lista.');
-        return;
+      const _ncFields = document.getElementById('new-client-fields');
+      const _novoClienteMode = _ncFields && _ncFields.style.display !== 'none';
+      let client;
+      if (_novoClienteMode) {
+        const ncNome = document.getElementById('nc-nome').value.trim();
+        if (!ncNome) { document.getElementById('nc-nome').focus(); return; }
+        const clients = loadClients();
+        const jaExiste = clients.find(c => c.nome.toLowerCase() === ncNome.toLowerCase());
+        if (jaExiste) {
+          client = jaExiste;
+        } else {
+          client = { id: crypto.randomUUID(), nome: ncNome, telefone: document.getElementById('nc-telefone').value.trim(), email: document.getElementById('nc-email').value.trim() };
+          clients.push(client);
+          saveClients(clients);
+        }
+      } else {
+        const clientNameInput = document.getElementById('new-production-client').value.trim();
+        client = loadClients().find(c => c.nome.toLowerCase() === clientNameInput.toLowerCase());
+        if (!client) {
+          alert('Selecione um cliente da lista ou clique em "Cadastrar novo cliente".');
+          return;
+        }
       }
       const data = readCardForm(cardModalFields);
       if (!data.text) { closeCardModal(); return; }
