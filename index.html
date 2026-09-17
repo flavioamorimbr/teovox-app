@@ -1370,6 +1370,37 @@
   .an-popup-x{ position:absolute; top:8px; right:9px; background:none; border:none; color:rgba(255,255,255,.7); cursor:pointer; font-size:13px; line-height:1; }
   .an-popup-x:hover{ color:#fff; }
 </style>
+<style>
+  .ag-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; margin-top:4px; }
+  .ag-card{ background:#fff; border:1px solid #e6e9ee; border-radius:14px; padding:18px; cursor:pointer; transition:border-color .15s, box-shadow .15s, transform .12s; }
+  .ag-card:hover{ border-color:#2169b8; box-shadow:0 8px 22px rgba(11,31,58,.10); transform:translateY(-2px); }
+  .ag-ic{ width:42px; height:42px; border-radius:11px; background:#eef5fd; color:#2169b8; display:grid; place-items:center; margin-bottom:11px; }
+  .ag-name{ font-weight:700; color:#0b1f3a; font-size:15.5px; }
+  .ag-desc{ font-size:13px; color:#6a7280; margin-top:4px; line-height:1.45; }
+
+  .ag-panel{ display:none; }
+  .ag-panel.open{ display:block; }
+  .ag-back{ background:none; border:none; color:#2169b8; font:inherit; font-size:13.5px; cursor:pointer; padding:0; margin-bottom:12px; }
+  .ag-two{ display:grid; grid-template-columns:minmax(280px,380px) 1fr; gap:22px; align-items:start; }
+  .ag-form .field{ margin-bottom:12px; }
+  .ag-form label{ display:block; font-size:12.5px; color:#4a4a4a; margin-bottom:4px; font-weight:500; }
+  .ag-form input, .ag-form textarea, .ag-form select{ width:100%; box-sizing:border-box; border:1px solid #d8d8d8; border-radius:9px; padding:10px 11px; font:inherit; background:#fafbfc; }
+  .ag-form textarea{ resize:vertical; min-height:64px; }
+  .ag-form input:focus, .ag-form textarea:focus, .ag-form select:focus{ background:#fff; border-color:#2169b8; outline:none; }
+  .ag-gen{ width:100%; }
+  .ag-out-wrap{ background:#fff; border:1px solid #e6e9ee; border-radius:12px; min-height:280px; display:flex; flex-direction:column; }
+  .ag-out-head{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid #f0f2f5; }
+  .ag-out-head .ag-out-title{ font-weight:600; color:#0b1f3a; font-size:14px; }
+  .ag-copy{ margin-left:auto; }
+  .ag-out{ padding:16px; white-space:pre-wrap; font-size:14px; line-height:1.6; color:#243244; overflow:auto; flex:1; }
+  .ag-placeholder{ color:#9aa0a6; }
+  .ag-loading{ display:flex; align-items:center; gap:10px; color:#5a6472; font-size:13.5px; }
+  .ag-spin{ width:16px; height:16px; border:2px solid #cfe0f4; border-top-color:#2169b8; border-radius:50%; animation:agspin .8s linear infinite; }
+  @keyframes agspin{ to{ transform:rotate(360deg); } }
+  .ag-err{ color:#b91c1c; font-size:13.5px; }
+  .ag-warn{ background:#fffbeb; border:1px solid #fde68a; color:#92600a; border-radius:10px; padding:11px 13px; font-size:13px; margin-bottom:14px; }
+  @media (max-width:820px){ .ag-two{ grid-template-columns:1fr; } }
+</style>
 </head>
 <body class="pre-auth">
 
@@ -1463,6 +1494,10 @@
       <a href="#/calendario" data-tab="calendario">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         Datas Comemorativas
+      </a>
+      <a href="#/agentes" data-tab="agentes">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a2 2 0 0 1 2 2v1h3a2 2 0 0 1 2 2v3h1a2 2 0 0 1 0 4h-1v3a2 2 0 0 1-2 2h-3v-1a2 2 0 0 0-4 0v1H7a2 2 0 0 1-2-2v-3H4a2 2 0 0 1 0-4h1V7a2 2 0 0 1 2-2h3V4a2 2 0 0 1 2-2z"></path><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle></svg>
+        Agentes IA
       </a>
       <a href="#/contatos" data-tab="contatos">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><circle cx="12" cy="9" r="2"></circle><path d="M9 14a3 3 0 0 1 6 0"></path></svg>
@@ -2045,6 +2080,46 @@
       <div id="postit-board" class="postit-board"></div>
       <div class="postit-empty" id="postit-empty">
         <p>Nenhum lembrete ainda. Clique em <b>+ Novo post-it</b> para colar o primeiro.</p>
+      </div>
+    </div>
+
+    <div id="view-agentes" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1>Agentes IA</h1>
+          <p>Especialistas de IA para acelerar seu trabalho — proposta, copy, headlines e mais</p>
+        </div>
+      </div>
+
+      <div id="ag-cloudwarn" class="ag-warn" style="display:none;">
+        Para usar os Agentes, conecte-se à nuvem em <b>Perfil → Conta na nuvem</b>. É por lá que o app fala com a IA de forma segura.
+      </div>
+
+      <div class="ag-list" id="ag-list">
+        <div class="ag-grid" id="ag-grid"></div>
+      </div>
+
+      <div class="ag-panel" id="ag-panel">
+        <button class="ag-back" id="ag-back">‹ Voltar aos agentes</button>
+        <div class="topbar" style="margin-bottom:14px;">
+          <div>
+            <h1 id="ag-panel-title" style="font-size:20px;">Agente</h1>
+            <p id="ag-panel-desc"></p>
+          </div>
+        </div>
+        <div class="ag-two">
+          <form class="ag-form" id="ag-form" novalidate>
+            <div id="ag-fields"></div>
+            <button type="submit" class="btn-primary ag-gen" id="ag-generate">Gerar</button>
+          </form>
+          <div class="ag-out-wrap">
+            <div class="ag-out-head">
+              <span class="ag-out-title">Resultado</span>
+              <button type="button" class="btn-secondary ag-copy" id="ag-copy" style="display:none;">Copiar</button>
+            </div>
+            <div class="ag-out" id="ag-out"><span class="ag-placeholder">Preencha os campos e clique em <b>Gerar</b>. O texto aparece aqui.</span></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -5374,6 +5449,172 @@
     window.addEventListener('hashchange', function(){ if(location.hash==='#/agenda') setTimeout(buildControls, 80); });
     setInterval(tick, 30000);
     setTimeout(tick, 3000);
+  }
+  if(document.readyState!=='loading') setTimeout(start,0);
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+
+</script>
+<script>
+(function(){
+  var SUPABASE_URL='https://ainyemjuwkbzhwyuqfqj.supabase.co';
+  var SUPABASE_ANON_KEY='sb_publishable_A37OjzjIDahMEhixccb3lg_I5YM_-0u';
+  var sb=null;
+  function getSb(){
+    if(sb) return sb;
+    if(window.supabase && window.supabase.createClient){ sb=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+    return sb;
+  }
+
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':String(s)); return d.innerHTML; }
+
+  // ---- Agentes: cada um com campos e um prompt de especialista ----
+  var AGENTES=[
+    {
+      id:'proposta', nome:'Proposta Comercial', desc:'Gera uma proposta persuasiva e estruturada para fechar clientes.',
+      icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8M8 17h8"></path>',
+      campos:[
+        {k:'cliente', l:'Cliente / empresa', t:'input', ph:'Ex: Clínica Vitta'},
+        {k:'servico', l:'Serviço oferecido', t:'input', ph:'Ex: Gestão de social media + tráfego'},
+        {k:'objetivo', l:'Objetivo do cliente', t:'textarea', ph:'Ex: Atrair mais pacientes e lotar a agenda'},
+        {k:'diferenciais', l:'Diferenciais da Teovox', t:'textarea', ph:'Ex: método próprio, atendimento próximo, resultados comprovados'},
+        {k:'investimento', l:'Investimento (opcional)', t:'input', ph:'Ex: R$ 2.500/mês'},
+        {k:'tom', l:'Tom', t:'select', opts:['Profissional e confiante','Próximo e caloroso','Direto e objetivo','Sofisticado e premium']}
+      ],
+      system:'Você é um redator sênior especializado em propostas comerciais de agências de marketing no Brasil. Escreve propostas persuasivas, claras e orientadas a resultado, com estrutura profissional e português impecável. Evita jargão vazio; foca no valor e na transformação para o cliente.',
+      montar:function(v){
+        return 'Crie uma proposta comercial completa e persuasiva em português do Brasil.\n\n'+
+          '- Cliente: '+v.cliente+'\n- Serviço oferecido: '+v.servico+'\n- Objetivo do cliente: '+v.objetivo+'\n- Diferenciais da agência (Teovox): '+v.diferenciais+
+          (v.investimento?'\n- Investimento: '+v.investimento:'')+'\n- Tom desejado: '+v.tom+'\n\n'+
+          'Estruture assim: (1) Abertura personalizada citando a dor/objetivo; (2) O que propomos (escopo em tópicos claros); (3) Como isso gera resultado; (4) Por que a Teovox; (5) '+(v.investimento?'Investimento e ':'')+'próximo passo com chamada para ação. Seja específico, evite clichês e mantенha um tamanho enxuto e escaneável.'
+      }
+    },
+    {
+      id:'copy', nome:'Copywriter', desc:'Cria textos de venda para anúncios, páginas e posts.',
+      icon:'<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path>',
+      campos:[
+        {k:'produto', l:'Produto / serviço', t:'input', ph:'Ex: Consultoria de branding'},
+        {k:'publico', l:'Público-alvo', t:'input', ph:'Ex: donos de clínicas de estética'},
+        {k:'formato', l:'Formato do texto', t:'select', opts:['Anúncio (Meta/Google)','Legenda de post','Página de vendas (seção)','E-mail de vendas','Story com CTA']},
+        {k:'dor', l:'Principal dor/desejo', t:'textarea', ph:'Ex: não conseguem se diferenciar da concorrência'},
+        {k:'oferta', l:'Oferta / diferencial', t:'textarea', ph:'Ex: identidade visual + posicionamento em 30 dias'},
+        {k:'tom', l:'Tom', t:'select', opts:['Persuasivo e urgente','Inspirador','Educativo','Descontraído']}
+      ],
+      system:'Você é um copywriter de resposta direta de alto nível, especialista no mercado brasileiro. Escreve textos de venda que prendem a atenção na primeira linha, geram desejo e terminam com uma chamada para ação clara. Usa gatilhos mentais com naturalidade, sem soar apelativo.',
+      montar:function(v){
+        return 'Escreva um texto de venda em português do Brasil no formato "'+v.formato+'".\n\n'+
+          '- Produto/serviço: '+v.produto+'\n- Público-alvo: '+v.publico+'\n- Dor/desejo principal: '+v.dor+'\n- Oferta/diferencial: '+v.oferta+'\n- Tom: '+v.tom+'\n\n'+
+          'Comece com um gancho forte, desenvolva o desejo conectando com a dor, apresente a oferta e finalize com uma CTA clara. Entregue pronto para usar. Se o formato pedir, ofereça 2 variações.'
+      }
+    },
+    {
+      id:'headlines', nome:'Headlines', desc:'Gera títulos e chamadas magnéticas em lote.',
+      icon:'<path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"></path><path d="M9 20h6"></path><path d="M12 4v16"></path>',
+      campos:[
+        {k:'tema', l:'Tema / produto', t:'input', ph:'Ex: gestão de tráfego para clínicas'},
+        {k:'publico', l:'Público-alvo', t:'input', ph:'Ex: médicos e donos de clínica'},
+        {k:'canal', l:'Onde vai usar', t:'select', opts:['Anúncio','Post de Instagram','Título de site/landing','Assunto de e-mail','Thumbnail de vídeo']},
+        {k:'quantidade', l:'Quantas headlines', t:'select', opts:['10','15','20']},
+        {k:'angulo', l:'Ângulo (opcional)', t:'input', ph:'Ex: autoridade, prova, urgência, curiosidade'}
+      ],
+      system:'Você é um especialista em headlines e chamadas publicitárias para o mercado brasileiro. Cria títulos curtos, magnéticos e variados em ângulo (curiosidade, benefício, prova, urgência, dor), sempre em português natural e persuasivo.',
+      montar:function(v){
+        return 'Gere '+v.quantidade+' headlines em português do Brasil para usar em "'+v.canal+'".\n\n'+
+          '- Tema/produto: '+v.tema+'\n- Público: '+v.publico+(v.angulo?'\n- Ângulo preferido: '+v.angulo:'')+'\n\n'+
+          'Regras: variedade de ângulos (benefício, curiosidade, prova, urgência, dor/solução), frases curtas e impactantes. Entregue como uma lista numerada, sem explicações.'
+      }
+    }
+  ];
+
+  var atual=null;
+
+  function setActiveNav(tab){ document.querySelectorAll('.sidebar nav a').forEach(function(a){ a.classList.toggle('active', a.dataset.tab===tab); }); }
+  function hideOtherViews(){ document.querySelectorAll('[id^="view-"]').forEach(function(v){ if(v.id!=='view-agentes') v.style.display='none'; }); }
+
+  function temSessao(){
+    // supabase-js guarda a sessão no localStorage: sb-<ref>-auth-token
+    try{
+      for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k) && localStorage.getItem(k)) return true; }
+    }catch(e){}
+    return false;
+  }
+
+  function renderGrid(){
+    var grid=el('ag-grid'); if(!grid) return;
+    grid.innerHTML=AGENTES.map(function(a){
+      return '<div class="ag-card" data-ag="'+a.id+'">'+
+        '<div class="ag-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+a.icon+'</svg></div>'+
+        '<div class="ag-name">'+esc(a.nome)+'</div><div class="ag-desc">'+esc(a.desc)+'</div></div>';
+    }).join('');
+    grid.querySelectorAll('[data-ag]').forEach(function(c){ c.addEventListener('click', function(){ abrir(c.dataset.ag); }); });
+  }
+
+  function abrir(id){
+    atual=AGENTES.find(function(a){ return a.id===id; }); if(!atual) return;
+    el('ag-list').style.display='none';
+    el('ag-panel').classList.add('open');
+    el('ag-panel-title').textContent=atual.nome;
+    el('ag-panel-desc').textContent=atual.desc;
+    el('ag-fields').innerHTML=atual.campos.map(function(f){
+      var inner;
+      if(f.t==='textarea') inner='<textarea id="agf-'+f.k+'" placeholder="'+esc(f.ph||'')+'"></textarea>';
+      else if(f.t==='select') inner='<select id="agf-'+f.k+'">'+f.opts.map(function(o){ return '<option>'+esc(o)+'</option>'; }).join('')+'</select>';
+      else inner='<input type="text" id="agf-'+f.k+'" placeholder="'+esc(f.ph||'')+'" autocomplete="off">';
+      return '<div class="field"><label>'+esc(f.l)+'</label>'+inner+'</div>';
+    }).join('');
+    el('ag-out').innerHTML='<span class="ag-placeholder">Preencha os campos e clique em <b>Gerar</b>.</span>';
+    el('ag-copy').style.display='none';
+  }
+  function voltar(){ el('ag-panel').classList.remove('open'); el('ag-list').style.display=''; atual=null; }
+
+  async function gerar(){
+    if(!atual) return;
+    if(!temSessao()){ var _cw=el('ag-cloudwarn'); _cw.style.display=''; if(_cw.scrollIntoView) _cw.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+    var v={};
+    atual.campos.forEach(function(f){ var e=el('agf-'+f.k); v[f.k]=e?e.value.trim():''; });
+    var faltando=atual.campos.filter(function(f){ return f.t!=='select' && !(f.l.indexOf('opcional')>=0) && !v[f.k]; });
+    if(faltando.length){ var first=el('agf-'+faltando[0].k); if(first) first.focus(); return; }
+
+    var out=el('ag-out'), gen=el('ag-generate'), copy=el('ag-copy');
+    copy.style.display='none';
+    out.innerHTML='<div class="ag-loading"><span class="ag-spin"></span> Gerando com IA…</div>';
+    gen.disabled=true; gen.textContent='Gerando…';
+    try{
+      var client=getSb();
+      if(!client) throw new Error('Cliente Supabase indisponível. Recarregue a página.');
+      var resp=await client.functions.invoke('agente-ia', { body:{ system:atual.system, prompt:atual.montar(v) } });
+      if(resp.error) throw new Error(resp.error.message||'Falha ao chamar a IA.');
+      var data=resp.data||{};
+      if(data.error) throw new Error(data.error);
+      var texto=(data.text||'').trim();
+      if(!texto) throw new Error('A IA não retornou texto. Tente novamente.');
+      out.textContent=texto;
+      copy.style.display='';
+      copy.onclick=function(){ navigator.clipboard.writeText(texto).then(function(){ copy.textContent='Copiado!'; setTimeout(function(){ copy.textContent='Copiar'; },1500); }); };
+    }catch(e){
+      out.innerHTML='<span class="ag-err">'+esc(e.message||'Erro ao gerar.')+'</span><br><span class="ag-placeholder" style="font-size:12.5px">Verifique se a chave GEMINI_API_KEY foi salva nos segredos do Supabase e se você está conectado à nuvem.</span>';
+    }finally{
+      gen.disabled=false; gen.textContent='Gerar';
+    }
+  }
+
+  function showAgentes(){
+    hideOtherViews();
+    var v=el('view-agentes'); if(v) v.style.display='';
+    setActiveNav('agentes');
+    el('ag-cloudwarn').style.display = temSessao() ? 'none' : '';
+    renderGrid();
+    voltar();
+  }
+  function handleRoute(){ if(location.hash==='#/agentes') showAgentes(); else { var v=el('view-agentes'); if(v) v.style.display='none'; } }
+
+  function start(){
+    if(!el('view-agentes')) return;
+    var b=el('ag-back'); if(b) b.addEventListener('click', voltar);
+    var f=el('ag-form'); if(f) f.addEventListener('submit', function(e){ e.preventDefault(); gerar(); });
+    window.addEventListener('hashchange', handleRoute);
+    handleRoute();
   }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
