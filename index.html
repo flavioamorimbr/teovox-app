@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1323,6 +1324,32 @@
   .postit-x:hover{ background:rgba(0,0,0,.10); color:#5a5019; }
   @media (max-width:560px){ .postit{ width:100%; } }
 </style>
+<style>
+  .agenda-modes{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:2px 0 16px; }
+  .agenda-seg{ display:inline-flex; background:#eef2f7; border-radius:9px; padding:3px; }
+  .agenda-seg button{ border:none; background:none; padding:7px 15px; border-radius:7px; font:inherit; font-size:13.5px; font-weight:500; color:#5a6472; cursor:pointer; }
+  .agenda-seg button.active{ background:#fff; color:#0b1f3a; box-shadow:0 1px 4px rgba(11,31,58,.12); }
+  .agenda-hourfilter{ display:inline-flex; align-items:center; gap:7px; margin-left:auto; font-size:13px; color:#5a6472; flex-wrap:wrap; }
+  .agenda-hourfilter input[type=time]{ border:1px solid #d8d8d8; border-radius:8px; padding:6px 8px; font:inherit; }
+  #agenda-hourgrid-card{ padding:0; overflow:auto; }
+  .ahg-head{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid #eef0f3; position:sticky; left:0; }
+  .ahg-nav{ display:inline-flex; gap:4px; }
+  .ahg-nav button{ width:30px; height:30px; border:1px solid #e2e6ea; background:#fff; border-radius:8px; cursor:pointer; color:#5a6472; }
+  .ahg-nav button:hover{ background:#f2f5f8; }
+  .ahg-title{ font-weight:600; color:#0b1f3a; font-size:15px; }
+  .ahg-today{ margin-left:8px; border:1px solid #e2e6ea; background:#fff; border-radius:8px; padding:6px 10px; font:inherit; font-size:12.5px; cursor:pointer; color:#5a6472; }
+  .ahg-grid{ display:grid; min-width:100%; }
+  .ahg-corner, .ahg-daytop{ background:#f7f9fb; border-bottom:1px solid #eef0f3; border-right:1px solid #eef0f3; padding:8px; font-size:12px; font-weight:600; color:#0b1f3a; text-align:center; position:sticky; top:0; z-index:1; }
+  .ahg-daytop small{ display:block; font-weight:400; color:#8a94a0; }
+  .ahg-daytop.is-today{ color:#2169b8; }
+  .ahg-hourlabel{ padding:6px 8px; font-size:11px; color:#8a94a0; border-right:1px solid #eef0f3; border-bottom:1px solid #f3f5f7; text-align:right; white-space:nowrap; }
+  .ahg-cell{ border-right:1px solid #f3f5f7; border-bottom:1px solid #f3f5f7; min-height:44px; padding:3px; position:relative; }
+  .ahg-cell.is-today{ background:#f5faff; }
+  .ahg-ev{ background:#d6e8f9; border-left:3px solid #2169b8; border-radius:5px; padding:3px 6px; font-size:11.5px; color:#12345a; margin-bottom:3px; line-height:1.25; }
+  .ahg-ev.allday{ background:#fff3cd; border-left-color:#c99a00; }
+  .ahg-ev b{ font-weight:600; }
+  .ahg-alldayrow{ background:#fffdf5; }
+</style>
 </head>
 <body class="pre-auth">
 
@@ -1409,10 +1436,6 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9l7-7V5a2 2 0 0 0-2-2z"></path><path d="M15 21v-6a2 2 0 0 1 2-2h4"></path></svg>
         Post-it
       </a>
-      <a href="#/followup" data-tab="followup">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Follow-up
-      </a>
       <a href="#/agenda" data-tab="agenda">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><circle cx="12" cy="15" r="3"></circle><line x1="12" y1="13.5" x2="12" y2="15"></line><line x1="12" y1="15" x2="13" y2="15.5"></line></svg>
         Agenda
@@ -1424,6 +1447,10 @@
       <a href="#/contatos" data-tab="contatos">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><circle cx="12" cy="9" r="2"></circle><path d="M9 14a3 3 0 0 1 6 0"></path></svg>
         Contatos
+      </a>
+      <a href="https://mail.google.com/mail/u/0/?tab=rm&ogbl#inbox" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 6l-10 7L2 6"></path></svg>
+        Gmail
       </a>
       <a href="https://www.nfse.gov.br/EmissorNacional/login" target="_blank" rel="noopener">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="8" y1="9" x2="10" y2="9"></line></svg>
@@ -1734,6 +1761,37 @@
           Adicionar
         </button>
       </div>
+<style>
+  #ia-prospeccao{
+    background:linear-gradient(135deg,#0b1f3a,#174070 70%,#2169b8);
+    color:#fff; border:none; padding:20px 22px; margin-bottom:18px;
+  }
+  #ia-prospeccao .ia-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  #ia-prospeccao .ia-avatar{
+    width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,.14);
+    display:grid; place-items:center; font-size:20px; flex:0 0 40px;
+  }
+  #ia-prospeccao .ia-title{ font-weight:700; font-size:16px; letter-spacing:-.01em; }
+  #ia-prospeccao .ia-sub{ font-size:12.5px; opacity:.8; margin-top:1px; }
+  #ia-prospeccao .ia-btn{ margin-left:auto; background:#fff; color:#0b1f3a; border:none; font-weight:600; }
+  #ia-prospeccao .ia-btn:hover{ background:#d6e8f9; }
+  #ia-prospeccao .ia-tip{
+    margin:16px 0 0; font-size:17px; line-height:1.55; font-weight:500;
+    border-left:3px solid #6aaae4; padding-left:14px; min-height:26px;
+  }
+  @media (max-width:560px){ #ia-prospeccao .ia-btn{ margin-left:0; width:100%; } }
+</style>
+      <div class="card" id="ia-prospeccao">
+        <div class="ia-head">
+          <div class="ia-avatar">✦</div>
+          <div>
+            <div class="ia-title">Assistente de Prospecção</div>
+            <div class="ia-sub">Sua dica de hoje para conquistar novos clientes</div>
+          </div>
+          <button type="button" class="btn-secondary ia-btn" id="ia-new-tip">Gerar nova dica</button>
+        </div>
+        <p class="ia-tip" id="ia-tip">…</p>
+      </div>
       <div class="board" id="prospeccao-board"></div>
     </div>
 
@@ -1845,11 +1903,36 @@
           </button>
         </div>
       </div>
+        <div class="agenda-modes" id="agenda-modes">
+          <div class="agenda-seg" role="tablist">
+            <button type="button" data-agmode="dia">Dia</button>
+            <button type="button" data-agmode="semana">Semana</button>
+            <button type="button" data-agmode="mes" class="active">Mês</button>
+          </div>
+          <div class="agenda-hourfilter">
+            <span>Ver das</span>
+            <input type="time" id="agenda-hour-start" value="07:00" step="3600">
+            <span>às</span>
+            <input type="time" id="agenda-hour-end" value="20:00" step="3600">
+          </div>
+        </div>
       <div class="card calendar-card">
         <div class="calendar-weekdays">
           <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
         </div>
         <div class="calendar-grid" id="agenda-calendar-grid"></div>
+      </div>
+
+      <div class="card calendar-card" id="agenda-hourgrid-card" style="display:none;">
+        <div class="ahg-head">
+          <div class="ahg-nav">
+            <button type="button" id="ahg-prev" title="Anterior">‹</button>
+            <button type="button" id="ahg-next" title="Próximo">›</button>
+          </div>
+          <span class="ahg-title" id="ahg-title"></span>
+          <button type="button" class="ahg-today" id="ahg-today">Hoje</button>
+        </div>
+        <div class="ahg-grid" id="ahg-grid"></div>
       </div>
 
       <div class="mensalistas-topbar">
@@ -3965,6 +4048,27 @@
     { month: 11, day: 19, title: 'Dia Internacional do Homem', segments: ['moda masculina', 'beleza', 'saúde'], audience: 'público masculino' },
     { month: 11, day: 20, title: 'Dia da Consciência Negra', segments: ['moda', 'beleza', 'cultura', 'educação'], audience: 'público engajado em pautas de representatividade' },
     { month: 12, day: 25, title: 'Natal', segments: ['todos os segmentos, presentes em geral'], audience: 'famílias e quem presenteia' },
+    { month: 3, day: 23, title: 'Dia do Corretor de Imóveis', segments: ['imobiliário', 'construção'], audience: 'corretores e imobiliárias' },
+    { month: 4, day: 7, title: 'Dia do Jornalista', segments: ['comunicação', 'mídia', 'assessoria'], audience: 'jornalistas e comunicadores' },
+    { month: 4, day: 25, title: 'Dia do Contador (Contabilista)', segments: ['contabilidade', 'serviços financeiros'], audience: 'contadores e escritórios de contabilidade' },
+    { month: 4, day: 28, title: 'Dia da Educação', segments: ['escolas', 'cursos', 'educação'], audience: 'educadores e instituições de ensino' },
+    { month: 5, day: 12, title: 'Dia do Enfermeiro', segments: ['saúde'], audience: 'enfermeiros(as) e clínicas' },
+    { month: 6, day: 24, title: 'São João (Festas Juninas)', segments: ['gastronomia', 'eventos', 'moda'], audience: 'público das festas juninas' },
+    { month: 7, day: 2, title: 'Dia do Bombeiro', segments: ['segurança', 'serviços'], audience: 'bombeiros e comunidade' },
+    { month: 7, day: 25, title: 'Dia do Escritor', segments: ['livrarias', 'cultura', 'educação'], audience: 'escritores e leitores' },
+    { month: 8, day: 11, title: 'Dia do Advogado', segments: ['jurídico', 'serviços'], audience: 'advogados e escritórios de advocacia' },
+    { month: 8, day: 27, title: 'Dia do Psicólogo', segments: ['saúde', 'bem-estar'], audience: 'psicólogos(as) e clínicas' },
+    { month: 8, day: 28, title: 'Dia do Bancário', segments: ['serviços financeiros'], audience: 'bancários e instituições financeiras' },
+    { month: 8, day: 31, title: 'Dia do Nutricionista', segments: ['saúde', 'alimentação', 'bem-estar'], audience: 'nutricionistas e clínicas' },
+    { month: 9, day: 9, title: 'Dia do Administrador', segments: ['gestão', 'serviços'], audience: 'administradores e gestores' },
+    { month: 9, day: 27, title: 'Dia Mundial do Turismo', segments: ['turismo', 'hotelaria', 'gastronomia'], audience: 'agências, hotéis e público viajante' },
+    { month: 9, day: 30, title: 'Dia da Secretária', segments: ['serviços', 'presentes'], audience: 'secretárias(os) e assistentes' },
+    { month: 10, day: 1, title: 'Dia do Vendedor', segments: ['varejo', 'comércio'], audience: 'vendedores e equipes comerciais' },
+    { month: 10, day: 13, title: 'Dia do Fisioterapeuta', segments: ['saúde', 'bem-estar'], audience: 'fisioterapeutas e clínicas' },
+    { month: 10, day: 18, title: 'Dia do Médico', segments: ['saúde'], audience: 'médicos(as) e clínicas' },
+    { month: 10, day: 25, title: 'Dia do Dentista (Cirurgião-Dentista)', segments: ['saúde', 'odontologia'], audience: 'dentistas e clínicas odontológicas' },
+    { month: 10, day: 28, title: 'Dia do Servidor Público', segments: ['serviço público'], audience: 'servidores e órgãos públicos' },
+    { month: 11, day: 30, title: 'Dia do Evangélico', segments: ['igrejas', 'comunidades'], audience: 'comunidades e lideranças evangélicas' },
   ];
 
   function nthWeekdayOfMonth(year, monthIndex, weekday, n) {
@@ -4005,7 +4109,10 @@
     const cyberMonday = new Date(blackFriday);
     cyberMonday.setDate(blackFriday.getDate() + 3);
 
+    const pastorDay = nthWeekdayOfMonth(year, 11, 1, 2);
+
     return [
+      { month: pastorDay.getMonth() + 1, day: pastorDay.getDate(), title: 'Dia do Pastor Evangélico', segments: ['igrejas', 'comunidades'], audience: 'pastores e comunidades religiosas' },
       { month: carnaval.getMonth() + 1, day: carnaval.getDate(), title: 'Carnaval', segments: ['moda e fantasias', 'beleza', 'turismo', 'bares e eventos'], audience: 'foliões e turistas' },
       { month: easter.getMonth() + 1, day: easter.getDate(), title: 'Páscoa', segments: ['chocolates', 'gastronomia', 'presentes infantis'], audience: 'famílias' },
       { month: mothersDay.getMonth() + 1, day: mothersDay.getDate(), title: 'Dia das Mães', segments: ['presentes', 'moda', 'beleza', 'gastronomia'], audience: 'quem presenteia mães' },
@@ -4936,6 +5043,178 @@
     wire();
     window.addEventListener('hashchange', handleRoute);
     handleRoute();
+  }
+  if(document.readyState!=='loading') setTimeout(start,0);
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+
+</script>
+<script>
+(function(){
+  var TIPS=[
+    'Liste 5 empresas locais que você admira e mande hoje uma mensagem elogiando algo específico do trabalho delas — sem vender nada ainda.',
+    'Revise quem visitou seu perfil ou curtiu seus posts na última semana: são leads mornos esperando um "oi".',
+    'Grave um áudio curto (30s) apresentando uma ideia pronta para um prospecto — pessoal vende mais que texto.',
+    'Peça a um cliente satisfeito uma indicação hoje: "Você conhece alguém que também precisaria disso?"',
+    'Comente de forma útil em 3 posts de possíveis clientes antes de enviar qualquer proposta — apareça antes de abordar.',
+    'Ofereça um mini-diagnóstico gratuito: "Analiso seu Instagram e te mando 3 melhorias em 24h." Baixa fricção, alta conversão.',
+    'Reative um lead antigo que sumiu com: "Passando para ver se faz sentido retomarmos aquela conversa."',
+    'Escolha um nicho só para hoje e fale a língua dele: use os termos e as dores específicas daquele segmento.',
+    'Transforme um resultado recente de cliente em prova social e mande para um prospecto do mesmo segmento.',
+    'Mande a mensagem de prospecção entre 8h-9h ou 18h-19h: taxas de resposta costumam ser maiores fora do horário de pico.',
+    'Antes de abordar, encontre um gatilho: um post recente, uma novidade, um prêmio. Comece por ele, não por você.',
+    'Faça a "regra dos 3 nãos": ouça três não hoje. Isso te aproxima estatisticamente do próximo sim.',
+    'Prepare 1 estudo de caso de 1 página e use como isca: "Fiz isso para a empresa X, faria sentido para você?"',
+    'Mande mensagem de vídeo personalizada usando o nome e o site do prospecto — a taxa de resposta dispara.',
+    'Poste hoje um conteúdo que responda à dúvida nº 1 do seu cliente ideal: conteúdo bom prospecta enquanto você dorme.',
+    'Monte uma lista de 10 leads com nome, empresa e telefone e ligue para os 3 mais quentes ainda hoje.',
+    'Ofereça uma condição especial com prazo: escassez real move quem está em cima do muro.',
+    'Peça feedback, não venda: "O que faria você contratar uma agência hoje?" As respostas viram sua próxima abordagem.',
+    'Aborde pelo problema, não pelo serviço: "Vi que vocês não postam há 2 semanas — posso ajudar com isso?"',
+    'Reserve 30 minutos hoje só para prospecção ativa, sem checar e-mail ou redes. Foco vira pipeline.',
+    'Envie um "presente" de valor antes de pedir algo: um checklist, um template, uma ideia pronta.',
+    'Procure empresas que anunciam mal no Instagram: elas já investem, só precisam de quem faça melhor. Aborde uma hoje.',
+    'Follow-up é onde estão as vendas: reenvie hoje uma proposta que ficou sem resposta há 3-5 dias.',
+    'Peça 1 indicação por dia de cada cliente ativo: 10 clientes = 10 leads qualificados por dia.',
+    'Comente com autoridade em um grupo/rede do seu nicho hoje — visibilidade gera inbound.',
+    'Personalize a primeira linha da mensagem para cada prospecto; o resto pode ser modelo, mas a abertura, não.',
+    'Ligue em vez de escrever para o lead mais promissor de hoje — voz cria conexão que texto não cria.',
+    'Ofereça uma "amostra" do seu trabalho: crie 1 arte ou 1 legenda de graça para mostrar valor antes do orçamento.',
+    'Mapeie os concorrentes do seu cliente ideal e aborde-os com: "Vi que seu concorrente está crescendo no digital..."',
+    'Transforme objeções em roteiro: anote a última objeção que ouviu e prepare uma resposta pronta para a próxima.',
+    'Crie urgência com agenda: "Estou fechando a agenda do mês, consigo encaixar mais 2 clientes." Aborde 2 hoje.',
+    'Use o LinkedIn hoje: envie 5 convites com nota personalizada para decisores do seu segmento-alvo.',
+    'Reforce prova social no primeiro contato: número de clientes, resultado médio, tempo de mercado.',
+    'Segmente por dor do dia: hoje foque só em quem "posta pouco" ou "não tem identidade visual". Mensagem certeira.',
+    'Faça uma lista de aniversariantes/datas do mês dos seus prospectos e use a data como pretexto de contato.',
+    'Feche o dia registrando cada lead no funil de Prospecção — o que não é anotado não é acompanhado.'
+  ];
+  function el(id){ return document.getElementById(id); }
+  var last=-1;
+  function pick(){ var i; do{ i=Math.floor(Math.random()*TIPS.length); }while(TIPS.length>1 && i===last); last=i; return TIPS[i]; }
+  function dicaDoDia(){ var d=new Date(); last=(d.getFullYear()*372 + d.getMonth()*31 + d.getDate()) % TIPS.length; return TIPS[last]; }
+  function show(t){ var e=el('ia-tip'); if(e) e.textContent=t; }
+  function start(){
+    if(!el('ia-tip')) return;
+    show(dicaDoDia());
+    var b=el('ia-new-tip'); if(b) b.addEventListener('click', function(){ show(pick()); });
+  }
+  if(document.readyState!=='loading') setTimeout(start,0);
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+
+</script>
+<script>
+(function(){
+  var AGENDA_KEY='teovox_agenda';
+  var mode='mes', ref=new Date(), hStart=7, hEnd=20;
+  var DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var MON=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':String(s)); return d.innerHTML; }
+  function loadAgenda(){ try{ return JSON.parse(localStorage.getItem(AGENDA_KEY))||[]; }catch(e){ return []; } }
+  function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function sameDay(d){ var t=new Date(); return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate(); }
+  function parseHour(hhmm){ if(!hhmm) return null; var p=String(hhmm).split(':'); return parseInt(p[0],10); }
+
+  function monthCard(){ return document.querySelector('#view-agenda .card.calendar-card:not(#agenda-hourgrid-card)'); }
+  function eventsTableCard(){
+    // a seção "Todos os eventos" + a tabela ficam depois do grid do mês
+    var t=el('agenda-tbody'); return t ? t.closest('.card') : null;
+  }
+
+  function applyMode(){
+    document.querySelectorAll('#agenda-modes [data-agmode]').forEach(function(b){ b.classList.toggle('active', b.dataset.agmode===mode); });
+    var mc=monthCard(), hg=el('agenda-hourgrid-card');
+    if(!hg) return;
+    if(mode==='mes'){
+      if(mc) mc.style.display='';
+      hg.style.display='none';
+    }else{
+      if(mc) mc.style.display='none';
+      hg.style.display='';
+      renderGrid();
+    }
+  }
+
+  function eventsByDay(dateStr){
+    return loadAgenda().filter(function(e){ return e.data===dateStr; })
+      .sort(function(a,b){ return (a.horaInicio||'').localeCompare(b.horaInicio||''); });
+  }
+
+  function evChip(e){
+    var cls='ahg-ev'+(e.allDay?' allday':'');
+    var hora=e.allDay?'':((e.horaInicio||'')+(e.horaFim?'–'+e.horaFim:'')+' ');
+    return '<div class="'+cls+'" title="'+esc(e.titulo)+(e.local?' · '+esc(e.local):'')+'"><b>'+esc(hora)+'</b>'+esc(e.titulo)+'</div>';
+  }
+
+  function renderGrid(){
+    var grid=el('ahg-grid'); if(!grid) return;
+    var days=[];
+    if(mode==='dia'){ days=[new Date(ref)]; }
+    else { var s=new Date(ref); s.setDate(s.getDate()-s.getDay()); for(var i=0;i<7;i++){ var d=new Date(s); d.setDate(s.getDate()+i); days.push(d); } }
+
+    // título
+    if(mode==='dia'){ el('ahg-title').textContent=DOW[ref.getDay()]+', '+ref.getDate()+' de '+MON[ref.getMonth()]+' de '+ref.getFullYear(); }
+    else { var a=days[0], b=days[6]; el('ahg-title').textContent=a.getDate()+' '+MON[a.getMonth()].slice(0,3)+' – '+b.getDate()+' '+MON[b.getMonth()].slice(0,3)+' '+b.getFullYear(); }
+
+    var cols=days.length;
+    grid.style.gridTemplateColumns='64px repeat('+cols+',minmax(120px,1fr))';
+    var html='';
+    // cabeçalho
+    html+='<div class="ahg-corner"></div>';
+    days.forEach(function(d){ html+='<div class="ahg-daytop'+(sameDay(d)?' is-today':'')+'">'+DOW[d.getDay()]+'<small>'+d.getDate()+'/'+String(d.getMonth()+1).padStart(2,'0')+'</small></div>'; });
+    // linha "dia inteiro"
+    var anyAllday=days.some(function(d){ return eventsByDay(ymd(d)).some(function(e){ return e.allDay; }); });
+    if(anyAllday){
+      html+='<div class="ahg-hourlabel ahg-alldayrow">dia todo</div>';
+      days.forEach(function(d){
+        var evs=eventsByDay(ymd(d)).filter(function(e){ return e.allDay; });
+        html+='<div class="ahg-cell ahg-alldayrow'+(sameDay(d)?' is-today':'')+'">'+evs.map(evChip).join('')+'</div>';
+      });
+    }
+    // horas
+    for(var h=hStart; h<=hEnd; h++){
+      html+='<div class="ahg-hourlabel">'+String(h).padStart(2,'0')+':00</div>';
+      days.forEach(function(d){
+        var evs=eventsByDay(ymd(d)).filter(function(e){ return !e.allDay && parseHour(e.horaInicio)===h; });
+        html+='<div class="ahg-cell'+(sameDay(d)?' is-today':'')+'">'+evs.map(evChip).join('')+'</div>';
+      });
+    }
+    grid.innerHTML=html;
+  }
+
+  function shift(dir){
+    if(mode==='dia') ref.setDate(ref.getDate()+dir);
+    else if(mode==='semana') ref.setDate(ref.getDate()+dir*7);
+    renderGrid();
+  }
+
+  function wire(){
+    document.querySelectorAll('#agenda-modes [data-agmode]').forEach(function(b){
+      b.addEventListener('click', function(){ mode=b.dataset.agmode; applyMode(); });
+    });
+    var hs=el('agenda-hour-start'), he=el('agenda-hour-end');
+    function readHours(){
+      var a=parseHour(hs.value); var b=parseHour(he.value);
+      if(a!=null) hStart=a; if(b!=null) hEnd=b;
+      if(hEnd<hStart) hEnd=hStart;
+      if(mode!=='mes') renderGrid();
+    }
+    if(hs) hs.addEventListener('change', readHours);
+    if(he) he.addEventListener('change', readHours);
+    var p=el('ahg-prev'), n=el('ahg-next'), t=el('ahg-today');
+    if(p) p.addEventListener('click', function(){ shift(-1); });
+    if(n) n.addEventListener('click', function(){ shift(1); });
+    if(t) t.addEventListener('click', function(){ ref=new Date(); renderGrid(); });
+  }
+
+  function onAgendaShown(){ if(mode!=='mes') applyMode(); }
+  function start(){
+    if(!el('agenda-modes')) return;
+    wire();
+    window.addEventListener('hashchange', function(){ if(location.hash==='#/agenda') setTimeout(onAgendaShown,60); });
+    if(location.hash==='#/agenda') setTimeout(onAgendaShown,60);
   }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
