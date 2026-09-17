@@ -1350,6 +1350,26 @@
   .ahg-ev b{ font-weight:600; }
   .ahg-alldayrow{ background:#fffdf5; }
 </style>
+<style>
+  .agenda-notif{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:-6px 0 16px; font-size:13px; color:#5a6472; }
+  .agenda-notif .an-btn{ font-size:13px; }
+  #an-toggle.on{ background:#e7f7ee; border-color:#a7e0c2; color:#0f766e; }
+  .agenda-notif .an-check{ display:inline-flex; align-items:center; gap:6px; }
+  .agenda-notif .an-check select{ border:1px solid #d8d8d8; border-radius:8px; padding:5px 7px; font:inherit; }
+  .agenda-notif .an-status{ color:#8a94a0; font-size:12.5px; }
+
+  #an-popups{ position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:10px; z-index:9999; max-width:340px; }
+  .an-popup{
+    background:#0b1f3a; color:#fff; border-radius:12px; padding:14px 16px 14px 16px; position:relative;
+    box-shadow:0 12px 34px rgba(11,31,58,.34); border-left:4px solid #12a7f0;
+    transform:translateX(120%); opacity:0; transition:transform .3s ease, opacity .3s ease;
+  }
+  .an-popup.show{ transform:translateX(0); opacity:1; }
+  .an-popup-t{ font-weight:700; font-size:14.5px; padding-right:18px; }
+  .an-popup-b{ font-size:13px; opacity:.85; margin-top:4px; }
+  .an-popup-x{ position:absolute; top:8px; right:9px; background:none; border:none; color:rgba(255,255,255,.7); cursor:pointer; font-size:13px; line-height:1; }
+  .an-popup-x:hover{ color:#fff; }
+</style>
 </head>
 <body class="pre-auth">
 
@@ -5215,6 +5235,145 @@
     wire();
     window.addEventListener('hashchange', function(){ if(location.hash==='#/agenda') setTimeout(onAgendaShown,60); });
     if(location.hash==='#/agenda') setTimeout(onAgendaShown,60);
+  }
+  if(document.readyState!=='loading') setTimeout(start,0);
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+
+</script>
+<script>
+(function(){
+  var AGENDA_KEY='teovox_agenda', SET_KEY='teovox_agenda_notif', FIRED_KEY='teovox_agenda_fired';
+  var settings={ enabled:false, som:true, antes:10 };
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':String(s)); return d.innerHTML; }
+  function loadAgenda(){ try{ return JSON.parse(localStorage.getItem(AGENDA_KEY))||[]; }catch(e){ return []; } }
+  function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} }
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function loadFired(){ try{ return JSON.parse(localStorage.getItem(FIRED_KEY))||{}; }catch(e){ return {}; } }
+  function saveFired(o){ try{ localStorage.setItem(FIRED_KEY, JSON.stringify(o)); }catch(e){} }
+  function markFired(id){ var o=loadFired(), t=todayStr(); Object.keys(o).forEach(function(k){ if(k!==t) delete o[k]; }); o[t]=o[t]||[]; if(o[t].indexOf(id)<0) o[t].push(id); saveFired(o); }
+  function isFired(id){ var o=loadFired(), t=todayStr(); return (o[t]||[]).indexOf(id)>=0; }
+
+  function beep(){
+    if(!settings.som) return;
+    try{
+      var Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
+      var ctx=new Ctx();
+      function tone(freq,start,dur){
+        var o=ctx.createOscillator(), g=ctx.createGain();
+        o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
+        var t=ctx.currentTime+start;
+        g.gain.setValueAtTime(0.0001,t);
+        g.gain.exponentialRampToValueAtTime(0.28,t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+        o.start(t); o.stop(t+dur+0.03);
+      }
+      tone(880,0,0.18); tone(1174.66,0.16,0.30);
+      setTimeout(function(){ try{ ctx.close(); }catch(e){} }, 1400);
+    }catch(e){}
+  }
+
+  function popup(titulo, corpo){
+    var wrap=el('an-popups');
+    if(!wrap){ wrap=document.createElement('div'); wrap.id='an-popups'; document.body.appendChild(wrap); }
+    var card=document.createElement('div'); card.className='an-popup';
+    card.innerHTML='<button class="an-popup-x" title="Fechar">&#10005;</button>'+
+      '<div class="an-popup-t">&#128276; '+esc(titulo)+'</div>'+
+      '<div class="an-popup-b">'+esc(corpo)+'</div>';
+    card.querySelector('.an-popup-x').addEventListener('click', function(){ card.remove(); });
+    wrap.appendChild(card);
+    requestAnimationFrame(function(){ card.classList.add('show'); });
+    setTimeout(function(){ card.classList.remove('show'); setTimeout(function(){ card.remove(); }, 320); }, 20000);
+  }
+
+  function notify(ev){
+    var corpo=(ev.allDay?'Dia inteiro':((ev.horaInicio||'')+(ev.horaFim?'–'+ev.horaFim:'')))+(ev.local?' · '+ev.local:'');
+    try{
+      if(('Notification' in window) && Notification.permission==='granted'){
+        var n=new Notification('Agenda — '+ev.titulo, { body: corpo, tag: 'tvx-'+ev.id });
+        setTimeout(function(){ try{ n.close(); }catch(e){} }, 20000);
+      }
+    }catch(e){}
+    popup(ev.titulo, corpo);
+    beep();
+  }
+
+  function eventDateTime(ev){
+    var t=ev.allDay?'08:00':(ev.horaInicio||'08:00');
+    return new Date(ev.data+'T'+t+':00');
+  }
+  function tick(){
+    if(!settings.enabled) return;
+    var now=Date.now();
+    loadAgenda().forEach(function(ev){
+      if(!ev || !ev.data || !ev.id || isFired(ev.id)) return;
+      var dt=eventDateTime(ev).getTime() - (parseInt(settings.antes,10)||0)*60000;
+      if(now>=dt && now < dt+90000){ markFired(ev.id); notify(ev); }
+    });
+  }
+
+  function enable(){
+    var go=function(){ settings.enabled=true; saveSettings(); updateUI(); setTimeout(tick, 500); };
+    try{
+      if(('Notification' in window) && Notification.permission==='default'){
+        var r=Notification.requestPermission();
+        if(r && r.then){ r.then(go); return; }
+      }
+    }catch(e){}
+    go();
+  }
+  function disable(){ settings.enabled=false; saveSettings(); updateUI(); }
+
+  function updateUI(){
+    var btn=el('an-toggle'), st=el('an-status'), som=el('an-som'), antes=el('an-antes');
+    if(!btn) return;
+    btn.textContent = settings.enabled ? '\uD83D\uDD14 Notificações ativas' : '\uD83D\uDD14 Ativar notificações';
+    btn.classList.toggle('on', settings.enabled);
+    if(som) som.checked=!!settings.som;
+    if(antes) antes.value=String(settings.antes);
+    var perm=('Notification' in window)?Notification.permission:'unsupported';
+    if(st){
+      if(!settings.enabled){ st.textContent=''; }
+      else if(perm==='granted'){ st.textContent='Você será avisado a cada evento (com a aba aberta).'; }
+      else if(perm==='denied'){ st.textContent='Pop-up do sistema bloqueado no navegador — o aviso aparece dentro do app.'; }
+      else { st.textContent='Ativo — o aviso aparece dentro do app.'; }
+    }
+  }
+
+  function buildControls(){
+    var modes=el('agenda-modes');
+    if(!modes || el('agenda-notif')) { updateUI(); return; }
+    var bar=document.createElement('div'); bar.className='agenda-notif'; bar.id='agenda-notif';
+    bar.innerHTML=
+      '<button type="button" class="btn-secondary an-btn" id="an-toggle">\uD83D\uDD14 Ativar notificações</button>'+
+      '<label class="an-check"><input type="checkbox" id="an-som"> Som</label>'+
+      '<label class="an-check">Avisar '+
+        '<select id="an-antes">'+
+          '<option value="0">na hora</option>'+
+          '<option value="5">5 min antes</option>'+
+          '<option value="10">10 min antes</option>'+
+          '<option value="15">15 min antes</option>'+
+          '<option value="30">30 min antes</option>'+
+          '<option value="60">1h antes</option>'+
+        '</select></label>'+
+      '<button type="button" class="btn-secondary an-btn" id="an-test">Testar</button>'+
+      '<span id="an-status" class="an-status"></span>';
+    modes.parentNode.insertBefore(bar, modes.nextSibling);
+    el('an-toggle').addEventListener('click', function(){ settings.enabled ? disable() : enable(); });
+    el('an-som').addEventListener('change', function(e){ settings.som=e.target.checked; saveSettings(); });
+    el('an-antes').addEventListener('change', function(e){ settings.antes=parseInt(e.target.value,10)||0; saveSettings(); });
+    el('an-test').addEventListener('click', function(){ notify({ id:'teste', titulo:'Evento de teste', data:todayStr(), horaInicio:new Date().toTimeString().slice(0,5), local:'', allDay:false }); });
+    updateUI();
+  }
+
+  function start(){
+    try{ var sv=JSON.parse(localStorage.getItem(SET_KEY)); if(sv) settings=Object.assign(settings, sv); }catch(e){}
+    if(!el('an-popups')){ var w=document.createElement('div'); w.id='an-popups'; document.body.appendChild(w); }
+    buildControls();
+    window.addEventListener('hashchange', function(){ if(location.hash==='#/agenda') setTimeout(buildControls, 80); });
+    setInterval(tick, 30000);
+    setTimeout(tick, 3000);
   }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
