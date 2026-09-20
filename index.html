@@ -1518,18 +1518,6 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><circle cx="12" cy="9" r="2"></circle><path d="M9 14a3 3 0 0 1 6 0"></path></svg>
         Contatos
       </a>
-      <a href="https://mail.google.com/mail/u/0/?tab=rm&ogbl#inbox" target="_blank" rel="noopener">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 6l-10 7L2 6"></path></svg>
-        Gmail
-      </a>
-      <a href="https://www.nfse.gov.br/EmissorNacional/login" target="_blank" rel="noopener">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="8" y1="9" x2="10" y2="9"></line></svg>
-        Nota Fiscal
-      </a>
-      <a href="https://drive.google.com/drive/u/0/" target="_blank" rel="noopener">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-        Google Drive
-      </a>
     </nav>
     <div class="sidebar-label">Dados</div>
     <nav>
@@ -5682,7 +5670,10 @@
 (function(){
   var KEY='teovox_atalhos';
   var SEED=[
-    { id:'seed-propostas', nome:'Propostas Comerciais', desc:'Pasta de propostas no Google Drive.', url:'https://drive.google.com/drive/folders/1njesEmeQ0e3Xh4sVUifsFMRjTu3_Mqer?usp=drive_link' }
+    { id:'seed-propostas', nome:'Propostas Comerciais', desc:'Pasta de propostas no Google Drive.', url:'https://drive.google.com/drive/folders/1njesEmeQ0e3Xh4sVUifsFMRjTu3_Mqer?usp=drive_link' },
+    { id:'seed-gmail', nome:'Gmail', desc:'Abrir sua caixa de entrada do Gmail.', url:'https://mail.google.com/mail/u/0/?tab=rm&ogbl#inbox' },
+    { id:'seed-nfse', nome:'Nota Fiscal', desc:'Emissor Nacional de NFS-e.', url:'https://www.nfse.gov.br/EmissorNacional/login' },
+    { id:'seed-drive', nome:'Google Drive', desc:'Abrir seu Google Drive.', url:'https://drive.google.com/drive/u/0/' }
   ];
   function el(id){ return document.getElementById(id); }
   function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':String(s)); return d.innerHTML; }
@@ -5693,6 +5684,20 @@
     try{ var a=JSON.parse(raw); return Array.isArray(a)?a:[]; }catch(e){ return []; }
   }
   function save(list){ try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(e){} }
+
+  // migração única: adiciona os atalhos-semente que faltam (para quem já tinha a lista), sem re-adicionar após exclusão
+  function migrate(){
+    try{
+      if(localStorage.getItem('teovox_atalhos_seed_v2')) return;
+      var raw=localStorage.getItem(KEY);
+      if(raw!==null){
+        var list=JSON.parse(raw)||[];
+        SEED.forEach(function(sd){ if(!list.some(function(x){ return x.id===sd.id; })) list.push(sd); });
+        save(list);
+      }
+      localStorage.setItem('teovox_atalhos_seed_v2','1');
+    }catch(e){}
+  }
 
   function setActiveNav(tab){ document.querySelectorAll('.sidebar nav a').forEach(function(a){ a.classList.toggle('active', a.dataset.tab===tab); }); }
   function hideOtherViews(){ document.querySelectorAll('[id^="view-"]').forEach(function(v){ if(v.id!=='view-atalhos') v.style.display='none'; }); }
@@ -5759,7 +5764,7 @@
 
   function showAtalhos(){ hideOtherViews(); var v=el('view-atalhos'); if(v) v.style.display=''; setActiveNav('atalhos'); render(); }
   function handleRoute(){ if(location.hash==='#/atalhos') showAtalhos(); else { var v=el('view-atalhos'); if(v) v.style.display='none'; } }
-  function start(){ if(!el('view-atalhos')) return; wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
+  function start(){ if(!el('view-atalhos')) return; migrate(); wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
 })();
