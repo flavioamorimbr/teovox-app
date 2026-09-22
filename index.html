@@ -1270,9 +1270,9 @@
     box-shadow: 0 1px 2px rgba(11,31,58,0.06);
     position: relative;
   }
-  .prospect-card-title { font-weight: 700; color: var(--blue-900); margin-bottom: 0.2rem; }
+  .prospect-card-title { font-weight: 700; color: var(--blue-900); margin-bottom: 0.2rem; display:flex; align-items:center; gap:6px; }
   .prospect-card-desc { color: var(--lead-400); font-size: 0.8rem; white-space: pre-wrap; word-break: break-word; }
-  .prospect-desc-toggle { display:inline-flex; align-items:center; gap:4px; background:none; border:none; padding:2px 0; margin-top:2px; color: var(--blue-600); font-size:0.72rem; font-weight:600; cursor:pointer; }
+  .prospect-desc-toggle { display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; color: var(--blue-600); cursor:pointer; flex:0 0 auto; }
   .prospect-desc-toggle svg { transition: transform .15s; }
   .prospect-card .prospect-card-desc { display:none; }
   .prospect-card.desc-open .prospect-card-desc { display:block; margin-top:4px; }
@@ -1432,8 +1432,14 @@
   .fn-back{ background:none; border:none; color:#2169b8; font:inherit; font-size:13.5px; cursor:pointer; padding:0; margin-bottom:12px; }
   .fn-toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
   .fn-hint{ font-size:12.5px; color:#8a94a0; }
-  .fn-canvas-wrap{ border:1px solid #e6e9ee; border-radius:12px; background:#f7f9fb; overflow:hidden; height:calc(100vh - 170px); min-height:380px; position:relative; }
-  .fn-canvas{ position:relative; width:100%; height:100%; }
+  .fn-canvas-wrap{ border:1px solid #e6e9ee; border-radius:12px; background:#f7f9fb; overflow:hidden; height:calc(100vh - 190px); min-height:380px; position:relative; background-image:radial-gradient(#dfe6ee 1px, transparent 1px); background-size:26px 26px; }
+  .fn-canvas-wrap.can-pan{ cursor:grab; }
+  .fn-canvas-wrap.panning{ cursor:grabbing; }
+  .fn-canvas{ position:absolute; top:0; left:0; width:6000px; height:4000px; transform-origin:0 0; will-change:transform; }
+  .fn-zoom{ position:absolute; right:14px; bottom:14px; display:flex; gap:6px; z-index:6; }
+  .fn-zoom button{ width:34px; height:34px; border:1px solid #e2e6ea; background:#fff; border-radius:9px; cursor:pointer; color:#0b1f3a; font-size:17px; box-shadow:0 2px 8px rgba(11,31,58,.10); display:grid; place-items:center; }
+  .fn-zoom button:hover{ background:#f2f5f8; }
+  .fn-zoom .fn-zoom-lvl{ min-width:52px; font-size:12px; color:#5a6472; border:none; box-shadow:none; background:transparent; cursor:default; }
   .fn-svg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; }
   .fn-node.root{ border-color:#0b1f3a; background:#0b1f3a; color:#fff; }
@@ -1587,6 +1593,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><circle cx="12" cy="15" r="3"></circle><line x1="12" y1="13.5" x2="12" y2="15"></line><line x1="12" y1="15" x2="13" y2="15.5"></line></svg>
         Agenda
       </a>
+      <a href="#/financeiro" data-tab="financeiro">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        Gestão Financeira
+      </a>
       <a href="#/calendario" data-tab="calendario">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         Datas Comemorativas
@@ -1594,10 +1604,6 @@
       <a href="#/agentes" data-tab="agentes">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a2 2 0 0 1 2 2v1h3a2 2 0 0 1 2 2v3h1a2 2 0 0 1 0 4h-1v3a2 2 0 0 1-2 2h-3v-1a2 2 0 0 0-4 0v1H7a2 2 0 0 1-2-2v-3H4a2 2 0 0 1 0-4h1V7a2 2 0 0 1 2-2h3V4a2 2 0 0 1 2-2z"></path><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle></svg>
         Agentes IA
-      </a>
-      <a href="#/financeiro" data-tab="financeiro">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-        Gestão Financeira
       </a>
       <a href="#/contatos" data-tab="contatos">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><circle cx="12" cy="9" r="2"></circle><path d="M9 14a3 3 0 0 1 6 0"></path></svg>
@@ -2277,12 +2283,18 @@
           <div>
             <h1 id="fn-editor-title" style="font-size:20px;">Funil</h1>
             <p>Mapa mental — dê duplo clique no texto para editar</p>
-            <p class="fn-hint" style="margin-top:2px;">Arraste os nós para posicionar · use <b>+</b> para adicionar uma ramificação · duplo clique no texto para editar</p>
+            <p class="fn-hint" style="margin-top:2px;">Arraste os nós para posicionar · use <b>+</b> para ramificar · duplo clique para editar · segure <b>Espaço</b> e arraste para mover o mapa · use o zoom no canto</p>
           </div>
         </div>
         <div class="fn-canvas-wrap" id="fn-canvas-wrap">
           <div class="fn-canvas" id="fn-canvas">
             <svg class="fn-svg" id="fn-svg"></svg>
+          </div>
+          <div class="fn-zoom">
+            <button type="button" id="fn-zoom-out" title="Diminuir (zoom out)">−</button>
+            <button type="button" class="fn-zoom-lvl" id="fn-zoom-lvl">100%</button>
+            <button type="button" id="fn-zoom-in" title="Aumentar (zoom in)">+</button>
+            <button type="button" id="fn-zoom-reset" title="Centralizar" style="font-size:13px;">⌖</button>
           </div>
         </div>
       </div>
@@ -2343,9 +2355,17 @@
           <input type="hidden" id="fin-id">
           <input type="hidden" id="fin-tipo">
           <div class="field"><label for="fin-desc">Descrição</label><input type="text" id="fin-desc" autocomplete="off" placeholder="Ex: Mensalidade Clínica Vitta"></div>
+          <div class="field"><label for="fin-cliente">Cliente (opcional)</label>
+            <input type="text" id="fin-cliente" list="fin-cliente-list" autocomplete="off" placeholder="Digite ou escolha o cliente">
+            <datalist id="fin-cliente-list"></datalist>
+          </div>
+          <label class="fcheck" style="display:flex;align-items:center;gap:8px;font-size:13.5px;margin:2px 0 10px;cursor:pointer;">
+            <input type="checkbox" id="fin-mensalista" style="width:16px;height:16px;"> Mensalista (recorrente todo mês)
+          </label>
           <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div><label for="fin-valor">Valor (R$)</label><input type="text" id="fin-valor" autocomplete="off" placeholder="Ex: 2.500,00"></div>
-            <div><label for="fin-previsao">Previsão de pagamento</label><input type="date" id="fin-previsao"></div>
+            <div id="fin-previsao-wrap"><label for="fin-previsao">Previsão de pagamento</label><input type="date" id="fin-previsao"></div>
+            <div id="fin-diames-wrap" style="display:none;"><label for="fin-diames">Todo dia do mês</label><input type="number" id="fin-diames" min="1" max="31" placeholder="Ex: 10"></div>
           </div>
           <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div><label for="fin-categoria">Categoria (opcional)</label><input type="text" id="fin-categoria" autocomplete="off" placeholder="Ex: tráfego, imposto, design"></div>
@@ -4711,8 +4731,8 @@
         cardEl.dataset.cardId = card.id;
         cardEl.innerHTML = `<div class="board-card-inner">
           <div class="board-card-body">
-            <div class="prospect-card-title">${escapeHtml(card.titulo)}</div>
-            ${card.descricao ? `<button type="button" class="prospect-desc-toggle" title="Mostrar/ocultar descrição"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Descrição</span></button><div class="prospect-card-desc">${escapeHtml(card.descricao)}</div>` : ''}
+            <div class="prospect-card-title">${escapeHtml(card.titulo)}${card.descricao ? `<button type="button" class="prospect-desc-toggle" title="Mostrar/ocultar descrição"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>` : ''}</div>
+            ${card.descricao ? `<div class="prospect-card-desc">${escapeHtml(card.descricao)}</div>` : ''}
           </div>
           <button class="prospect-card-trash" title="Excluir" aria-label="Excluir">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
@@ -6010,6 +6030,12 @@
   function hideOtherViews(){ document.querySelectorAll('[id^="view-"]').forEach(function(v){ if(v.id!=='view-funil') v.style.display='none'; }); }
 
   var atual=null; // funil aberto no editor
+  var panX=0, panY=0, zoom=1, spaceDown=false, panning=false, panSX=0, panSY=0, panOX=0, panOY=0;
+  var WORLD_W=6000, WORLD_H=4000;
+  function applyTransform(){ var c=document.getElementById('fn-canvas'); if(c) c.style.transform='translate('+panX+'px,'+panY+'px) scale('+zoom+')'; var lv=document.getElementById('fn-zoom-lvl'); if(lv) lv.textContent=Math.round(zoom*100)+'%'; }
+  function wrapSize(){ var w=document.getElementById('fn-canvas-wrap'); return { w:(w&&w.clientWidth)||900, h:(w&&w.clientHeight)||500 }; }
+  function centralizarRoot(){ var b=wrapSize(); var root=atual&&atual.nos.find(function(n){ return n.pai===null; }); if(!root) return; panX=b.w/2 - root.x*zoom; panY=90 - root.y*zoom; applyTransform(); }
+  function setZoom(z, cx, cy){ var b=wrapSize(); if(cx==null){ cx=b.w/2; cy=b.h/2; } z=Math.min(2.4, Math.max(0.3, z)); var wx=(cx-panX)/zoom, wy=(cy-panY)/zoom; zoom=z; panX=cx-wx*zoom; panY=cy-wy*zoom; applyTransform(); }
 
   // ---------- Lista de funis ----------
   function renderList(){
@@ -6051,25 +6077,18 @@
   // ---------- Editor de mapa mental ----------
   function getFunil(id){ return load().find(function(f){ return f.id===id; }); }
   function saveFunil(f){ var list=load(); var i=list.findIndex(function(x){ return x.id===f.id; }); if(i>=0){ list[i]=f; save(list); } }
-  function bounds(){ var c=document.getElementById('fn-canvas'); var w=(c&&c.clientWidth)||900, h=(c&&c.clientHeight)||500; return { w:w, h:h }; }
-  function clampAll(b){ if(!atual) return; atual.nos.forEach(function(n){ n.x=Math.min(Math.max(70,n.x), b.w-70); n.y=Math.min(Math.max(60,n.y), b.h-50); }); }
-  function recenter(b){ if(!atual) return; var root=atual.nos.find(function(n){ return n.pai===null; }); if(!root) return; var dx=(b.w/2)-root.x, dy=90-root.y; atual.nos.forEach(function(n){ n.x+=dx; n.y+=dy; }); clampAll(b); saveFunil(atual); }
+
 
   function abrirEditor(id){
     atual=getFunil(id); if(!atual) return;
     if(!atual.nos || !atual.nos.length){
-      var _b=bounds(); atual.nos=[{ id:uid('n'), texto:atual.nome, x:Math.round(_b.w/2), y:90, pai:null }];
+      atual.nos=[{ id:uid('n'), texto:atual.nome, x:Math.round(WORLD_W/2), y:Math.round(WORLD_H/2)-500, pai:null }];
       saveFunil(atual);
     }
     el('fn-list').style.display='none';
     el('fn-editor').classList.add('open');
     el('fn-editor-title').textContent=atual.nome;
-    // reposiciona os nós dentro da área visível (sem scroll)
-    var b=bounds();
-    var root=atual.nos.find(function(n){ return n.pai===null; });
-    if(root && (root.x>b.w-40 || root.y>b.h-40 || root._recenter)){ recenter(b); }
-    clampAll(b);
-    renderMapa();
+    zoom=1; renderMapa(); applyTransform(); centralizarRoot();
   }
   function fecharEditor(){ el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); }
 
@@ -6119,7 +6138,7 @@
     // adicionar filho
     node.querySelector('.add').addEventListener('click', function(e){
       e.stopPropagation();
-      var _b=bounds(); var novo={ id:uid('n'), texto:'Nova etapa', x:Math.min(n.x+220,_b.w-80), y:Math.min(Math.max(70,n.y+(Math.random()*160-80)),_b.h-60), pai:n.id };
+      var novo={ id:uid('n'), texto:'Nova etapa', x:n.x+220, y:n.y+(Math.random()*180-90), pai:n.id };
       atual.nos.push(novo); saveFunil(atual); renderMapa();
     });
     var d=node.querySelector('.del');
@@ -6135,16 +6154,16 @@
     // arrastar
     var startX, startY, origX, origY, dragging=false;
     node.addEventListener('mousedown', function(e){
+      if(spaceDown) return; // com espaço, o arrasto é do ambiente (pan)
       if(e.target.closest('.fn-node-btn') || textEl.getAttribute('contenteditable')==='true') return;
       dragging=true; node.classList.add('dragging');
       startX=e.clientX; startY=e.clientY; origX=n.x; origY=n.y;
-      e.preventDefault();
+      e.stopPropagation(); e.preventDefault();
     });
     window.addEventListener('mousemove', function(e){
       if(!dragging) return;
-      var _b=bounds();
-      n.x=Math.min(Math.max(70, origX+(e.clientX-startX)), _b.w-70);
-      n.y=Math.min(Math.max(60, origY+(e.clientY-startY)), _b.h-50);
+      n.x=origX+(e.clientX-startX)/zoom;
+      n.y=origY+(e.clientY-startY)/zoom;
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
       renderLines();
     });
@@ -6181,6 +6200,40 @@
       save(list); closeModal(); renderList();
     });
     var back=el('fn-back'); if(back) back.addEventListener('click', fecharEditor);
+
+    // ----- PAN com barra de espaço -----
+    document.addEventListener('keydown', function(e){
+      if(e.code==='Space' && el('fn-editor') && el('fn-editor').classList.contains('open')){
+        var tag=(e.target && e.target.tagName)||''; var editing=e.target && e.target.getAttribute && e.target.getAttribute('contenteditable')==='true';
+        if(tag==='INPUT'||tag==='TEXTAREA'||editing) return;
+        spaceDown=true; var w=el('fn-canvas-wrap'); if(w) w.classList.add('can-pan'); e.preventDefault();
+      }
+    });
+    document.addEventListener('keyup', function(e){ if(e.code==='Space'){ spaceDown=false; var w=el('fn-canvas-wrap'); if(w){ w.classList.remove('can-pan'); w.classList.remove('panning'); } } });
+    var wrap=el('fn-canvas-wrap');
+    if(wrap){
+      wrap.addEventListener('mousedown', function(e){
+        if(!spaceDown) return;
+        panning=true; wrap.classList.add('panning');
+        panSX=e.clientX; panSY=e.clientY; panOX=panX; panOY=panY; e.preventDefault();
+      });
+      window.addEventListener('mousemove', function(e){
+        if(!panning) return;
+        panX=panOX+(e.clientX-panSX); panY=panOY+(e.clientY-panSY); applyTransform();
+      });
+      window.addEventListener('mouseup', function(){ if(panning){ panning=false; wrap.classList.remove('panning'); } });
+      // zoom com a roda (centrado no cursor)
+      wrap.addEventListener('wheel', function(e){
+        if(!el('fn-editor').classList.contains('open')) return;
+        e.preventDefault();
+        var rect=wrap.getBoundingClientRect();
+        setZoom(zoom * (e.deltaY<0?1.1:0.9), e.clientX-rect.left, e.clientY-rect.top);
+      }, { passive:false });
+    }
+    var zi=el('fn-zoom-in'), zo=el('fn-zoom-out'), zr=el('fn-zoom-reset');
+    if(zi) zi.addEventListener('click', function(){ setZoom(zoom*1.2); });
+    if(zo) zo.addEventListener('click', function(){ setZoom(zoom/1.2); });
+    if(zr) zr.addEventListener('click', function(){ zoom=1; centralizarRoot(); });
   }
 
   function showFunil(){ hideOtherViews(); var v=el('view-funil'); if(v) v.style.display=''; setActiveNav('funil'); el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; renderList(); }
@@ -6230,7 +6283,7 @@
 
   function statusEfetivo(r){
     if(r.status==='pago') return 'pago';
-    if(r.previsao && r.previsao<hoje()) return 'atrasado';
+    if(!r.mensalista && r.previsao && r.previsao<hoje()) return 'atrasado';
     return r.status||'previsto';
   }
 
@@ -6239,7 +6292,7 @@
     var entradas=manuais.filter(function(r){ return r.tipo==='entrada'; }).concat(faturamentoEntradas());
     var saidas=manuais.filter(function(r){ return r.tipo==='saida'; });
     if(filtroMes){
-      var f=function(r){ return (r.previsao||'').slice(0,7)===filtroMes; };
+      var f=function(r){ return r.mensalista || (r.previsao||'').slice(0,7)===filtroMes; };
       entradas=entradas.filter(f); saidas=saidas.filter(f);
     }
     return { entradas:entradas, saidas:saidas };
@@ -6269,7 +6322,7 @@
         '<div><div class="fin-rec-desc">'+esc(r.descricao)+(r.origem==='faturamento'?' <span class="fin-tag-orig">Faturamento</span>':'')+'</div>'+
           '<div class="fin-rec-sub">'+
             (r.cliente?'<span>'+esc(r.cliente)+'</span>':'')+
-            '<span>prev.: '+dataBR(r.previsao)+'</span>'+
+            (r.mensalista?'<span>Mensalista \u00b7 todo dia '+esc(r.diaMes||'?')+'</span>':'<span>prev.: '+dataBR(r.previsao)+'</span>')+
             (r.categoria?'<span>'+esc(r.categoria)+'</span>':'')+
             '<span class="fin-badge '+ef+'">'+(ef==='pago'?'Pago':ef==='atrasado'?'Atrasado':'Previsto')+'</span>'+
           '</div></div>'+
@@ -6328,16 +6381,30 @@
   }
 
   // ---- modal ----
+  function preencherClientes(){
+    var dl=el('fin-cliente-list'); if(!dl) return;
+    var cs=[]; try{ cs=JSON.parse(localStorage.getItem('teovox_clients'))||[]; }catch(e){}
+    dl.innerHTML=cs.map(function(c){ return '<option value="'+esc(c.nome)+'">'; }).join('');
+  }
+  function aplicarMensalista(on){
+    el('fin-previsao-wrap').style.display = on ? 'none' : '';
+    el('fin-diames-wrap').style.display = on ? '' : 'none';
+  }
   function openModal(tipo, item){
     var ov=el('fin-modal-overlay'); if(!ov) return;
+    preencherClientes();
     el('fin-modal-title').textContent=(item?'Editar ':'Nova ')+(tipo==='entrada'?'Entrada':'Saída');
     el('fin-tipo').value=tipo;
     el('fin-id').value=item?item.id:'';
     el('fin-desc').value=item?(item.descricao||''):'';
+    el('fin-cliente').value=item?(item.cliente||''):'';
     el('fin-valor').value=item?(item.valor!=null?String(item.valor).replace('.',','):''):'';
+    el('fin-mensalista').checked=item?!!item.mensalista:false;
     el('fin-previsao').value=item?(item.previsao||''):'';
+    el('fin-diames').value=item?(item.diaMes||''):'';
     el('fin-categoria').value=item?(item.categoria||''):'';
     el('fin-status').value=item?(item.status||'previsto'):'previsto';
+    aplicarMensalista(el('fin-mensalista').checked);
     ov.classList.add('open'); setTimeout(function(){ el('fin-desc').focus(); },30);
   }
   function closeModal(){ var ov=el('fin-modal-overlay'); if(ov) ov.classList.remove('open'); }
@@ -6348,11 +6415,17 @@
     el('fin-cancel').addEventListener('click', closeModal);
     var ov=el('fin-modal-overlay'); ov.addEventListener('click', function(e){ if(e.target===ov) closeModal(); });
     el('fin-month').addEventListener('change', function(e){ filtroMes=e.target.value; render(); });
+    el('fin-mensalista').addEventListener('change', function(e){ aplicarMensalista(e.target.checked); });
     el('fin-form').addEventListener('submit', function(e){
       e.preventDefault();
       var desc=el('fin-desc').value.trim(); if(!desc){ el('fin-desc').focus(); return; }
+      var mensalista=el('fin-mensalista').checked;
       var l=load(); var id=el('fin-id').value;
-      var dados={ tipo:el('fin-tipo').value, descricao:desc, valor:num(el('fin-valor').value), previsao:el('fin-previsao').value||'', categoria:el('fin-categoria').value.trim(), status:el('fin-status').value };
+      var dados={ tipo:el('fin-tipo').value, descricao:desc, cliente:el('fin-cliente').value.trim(),
+        valor:num(el('fin-valor').value), mensalista:mensalista,
+        previsao: mensalista ? '' : (el('fin-previsao').value||''),
+        diaMes: mensalista ? (parseInt(el('fin-diames').value,10)||'') : '',
+        categoria:el('fin-categoria').value.trim(), status:el('fin-status').value };
       if(id){ var it=l.find(function(x){ return x.id===id; }); if(it) Object.assign(it, dados); }
       else { dados.id=uid(); dados.criado=hoje(); l.push(dados); }
       save(l); closeModal(); render();
