@@ -1412,6 +1412,36 @@
   .at-actions{ position:absolute; top:12px; right:12px; display:flex; gap:4px; opacity:0; transition:opacity .12s; }
   .at-card:hover .at-actions{ opacity:1; }
 </style>
+<style>
+  .fn-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px; margin-top:4px; }
+  .fn-card{ background:#fff; border:1px solid #e6e9ee; border-radius:14px; padding:18px; cursor:pointer; transition:border-color .15s, box-shadow .15s, transform .12s; position:relative; }
+  .fn-card:hover{ border-color:#2169b8; box-shadow:0 8px 22px rgba(11,31,58,.10); transform:translateY(-2px); }
+  .fn-ic{ width:42px; height:42px; border-radius:11px; background:#eef5fd; color:#2169b8; display:grid; place-items:center; margin-bottom:11px; }
+  .fn-name{ font-weight:700; color:#0b1f3a; font-size:15.5px; }
+  .fn-desc{ font-size:13px; color:#6a7280; margin-top:4px; }
+  .fn-actions{ position:absolute; top:12px; right:12px; display:flex; gap:4px; opacity:0; transition:opacity .12s; }
+  .fn-card:hover .fn-actions{ opacity:1; }
+
+  .fn-editor{ display:none; }
+  .fn-editor.open{ display:block; }
+  .fn-back{ background:none; border:none; color:#2169b8; font:inherit; font-size:13.5px; cursor:pointer; padding:0; margin-bottom:12px; }
+  .fn-toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .fn-hint{ font-size:12.5px; color:#8a94a0; }
+  .fn-canvas-wrap{ border:1px solid #e6e9ee; border-radius:12px; background:#f7f9fb; overflow:auto; height:calc(100vh - 260px); min-height:420px; position:relative; }
+  .fn-canvas{ position:relative; width:2400px; height:1600px; }
+  .fn-svg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; }
+  .fn-node.root{ border-color:#0b1f3a; background:#0b1f3a; color:#fff; }
+  .fn-node.dragging{ cursor:grabbing; box-shadow:0 10px 24px rgba(11,31,58,.28); z-index:5; }
+  .fn-node-text{ font-size:13.5px; line-height:1.35; outline:none; word-break:break-word; white-space:pre-wrap; }
+  .fn-node.root .fn-node-text{ font-weight:700; }
+  .fn-node-btns{ display:flex; gap:4px; margin-top:8px; }
+  .fn-node-btn{ width:24px; height:24px; border:none; border-radius:6px; background:#eef2f7; color:#2169b8; cursor:pointer; display:grid; place-items:center; font-size:14px; line-height:1; }
+  .fn-node.root .fn-node-btn{ background:rgba(255,255,255,.15); color:#fff; }
+  .fn-node-btn:hover{ filter:brightness(.95); }
+  .fn-node-btn.del{ color:#dc2626; }
+  .fn-node.root .fn-node-btn.del{ color:#ffb4b4; }
+</style>
 </head>
 <body class="pre-auth">
 
@@ -1471,10 +1501,6 @@
     </nav>
     <div class="sidebar-label">Estágios</div>
     <nav>
-      <a href="#/prospeccao" data-tab="prospeccao">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        Prospecção
-      </a>
       <a href="#/solicitacao" data-tab="solicitacao">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
         Demanda
@@ -1490,6 +1516,17 @@
       <a href="#/areceber" data-tab="areceber">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
         Faturamento
+      </a>
+    </nav>
+    <div class="sidebar-label">Prospecção</div>
+    <nav>
+      <a href="#/prospeccao" data-tab="prospeccao">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Prospectar
+      </a>
+      <a href="#/funil" data-tab="funil">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"></path></svg>
+        Funil
       </a>
     </nav>
     <div class="sidebar-label">Recursos</div>
@@ -1811,7 +1848,7 @@
     <div id="view-prospeccao" style="display:none;">
       <div class="topbar">
         <div>
-          <h1>Prospecção</h1>
+          <h1>Prospectar</h1>
           <p>Acompanhamento de leads e oportunidades</p>
         </div>
         <button class="btn-primary" id="btn-new-prospect">
@@ -2162,6 +2199,57 @@
           </div>
           <div class="modal-actions">
             <button type="button" class="btn-secondary" id="atalho-cancel">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="view-funil" style="display:none;">
+      <!-- Lista de funis -->
+      <div class="fn-list" id="fn-list">
+        <div class="topbar">
+          <div>
+            <h1>Funil<span class="count-pill" id="fn-count-pill">0</span></h1>
+            <p>Construa o mapa mental de cada funil de captação</p>
+          </div>
+          <button class="btn-primary" id="btn-new-funil">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Novo funil
+          </button>
+        </div>
+        <div class="fn-grid" id="fn-grid"></div>
+        <div class="empty-state" id="fn-empty" style="display:none;"><p>Nenhum funil ainda. Clique em <b>+ Novo funil</b> (ex.: "Funil Psicanálise", "Funil Website").</p></div>
+      </div>
+
+      <!-- Editor de mapa mental -->
+      <div class="fn-editor" id="fn-editor">
+        <button class="fn-back" id="fn-back">‹ Voltar aos funis</button>
+        <div class="topbar" style="margin-bottom:10px;">
+          <div><h1 id="fn-editor-title" style="font-size:20px;">Funil</h1><p>Mapa mental — dê duplo clique no texto para editar</p></div>
+        </div>
+        <div class="fn-toolbar">
+          <span class="fn-hint">Arraste os nós para posicionar · use <b>+</b> para adicionar uma ramificação · duplo clique no texto para editar</span>
+        </div>
+        <div class="fn-canvas-wrap" id="fn-canvas-wrap">
+          <div class="fn-canvas" id="fn-canvas">
+            <svg class="fn-svg" id="fn-svg"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="funil-modal-overlay">
+      <div class="modal">
+        <h2 id="funil-modal-title">Novo Funil</h2>
+        <form id="funil-form" novalidate>
+          <input type="hidden" id="funil-id">
+          <div class="field">
+            <label for="funil-nome">Nome do funil</label>
+            <input type="text" id="funil-nome" autocomplete="off" placeholder="Ex: Funil Psicanálise">
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="funil-cancel">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar</button>
           </div>
         </form>
@@ -3408,7 +3496,9 @@
   }
   function saveAgenda(list) {
     localStorage.setItem(AGENDA_KEY, JSON.stringify(list));
+    try { window.dispatchEvent(new CustomEvent('tvx-agenda-changed')); } catch (e) {}
   }
+  window.__tvxOpenAgenda = function(ev){ openAgendaModal(ev); };
 
   const agendaTbody = document.getElementById('agenda-tbody');
   const agendaEmptyState = document.getElementById('agenda-empty-state');
@@ -3579,14 +3669,32 @@
       const isToday = key === todayKey;
       const cell = document.createElement('div');
       cell.className = 'calendar-cell ' + (dayEvents.length ? 'has-event' : 'plain') + (isToday ? ' today' : '');
-      const labels = dayEvents.slice(0, 2).map(ev => `<span class="calendar-event-label">${escapeHtml(ev.titulo)}</span>`).join('');
-      const more = dayEvents.length > 2 ? `<span class="calendar-event-more">+${dayEvents.length - 2}</span>` : '';
-      cell.innerHTML = `<span class="calendar-day-num">${day}</span>${labels}${more}`;
-      cell.addEventListener('click', () => {
-        if (dayEvents.length === 1) openAgendaModal(dayEvents[0]);
-        else if (dayEvents.length > 1) openAgendaModal(dayEvents[0]);
-        else openAgendaModal(null, key);
+      const numEl = document.createElement('span');
+      numEl.className = 'calendar-day-num';
+      numEl.textContent = day;
+      cell.appendChild(numEl);
+      dayEvents.slice(0, 3).forEach(ev => {
+        const lab = document.createElement('span');
+        lab.className = 'calendar-event-label';
+        lab.textContent = ev.titulo;
+        lab.title = ev.titulo;
+        lab.style.cursor = 'pointer';
+        lab.addEventListener('click', (e) => { e.stopPropagation(); openAgendaModal(ev); });
+        cell.appendChild(lab);
       });
+      if (dayEvents.length > 3) {
+        const more = document.createElement('span');
+        more.className = 'calendar-event-more';
+        more.textContent = '+' + (dayEvents.length - 3);
+        more.style.cursor = 'pointer';
+        more.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (window.__tvxAgendaDay) window.__tvxAgendaDay(key);
+          else openAgendaModal(dayEvents[3]);
+        });
+        cell.appendChild(more);
+      }
+      cell.addEventListener('click', () => { openAgendaModal(null, key); });
       agendaCalendarGrid.appendChild(cell);
     }
   }
@@ -5285,7 +5393,7 @@
   function evChip(e){
     var cls='ahg-ev'+(e.allDay?' allday':'');
     var hora=e.allDay?'':((e.horaInicio||'')+(e.horaFim?'–'+e.horaFim:'')+' ');
-    return '<div class="'+cls+'" title="'+esc(e.titulo)+(e.local?' · '+esc(e.local):'')+'"><b>'+esc(hora)+'</b>'+esc(e.titulo)+'</div>';
+    return '<div class="'+cls+'" data-evid="'+esc(e.id)+'" style="cursor:pointer" title="'+esc(e.titulo)+(e.local?' · '+esc(e.local):'')+' (clique para editar)"><b>'+esc(hora)+'</b>'+esc(e.titulo)+'</div>';
   }
 
   function renderGrid(){
@@ -5322,6 +5430,12 @@
       });
     }
     grid.innerHTML=html;
+    grid.querySelectorAll('.ahg-ev[data-evid]').forEach(function(c){
+      c.addEventListener('click', function(ev){ ev.stopPropagation();
+        var found=loadAgenda().find(function(x){ return x.id===c.getAttribute('data-evid'); });
+        if(found && window.__tvxOpenAgenda) window.__tvxOpenAgenda(found);
+      });
+    });
   }
 
   function shift(dir){
@@ -5350,10 +5464,12 @@
   }
 
   function onAgendaShown(){ if(mode!=='mes') applyMode(); }
+  window.__tvxAgendaDay=function(ds){ mode='dia'; try{ ref=new Date(ds+'T00:00:00'); }catch(e){} applyMode(); };
   function start(){
     if(!el('agenda-modes')) return;
     wire();
     window.addEventListener('hashchange', function(){ if(location.hash==='#/agenda') setTimeout(onAgendaShown,60); });
+    window.addEventListener('tvx-agenda-changed', function(){ if(mode!=='mes') renderGrid(); });
     if(location.hash==='#/agenda') setTimeout(onAgendaShown,60);
   }
   if(document.readyState!=='loading') setTimeout(start,0);
@@ -5765,6 +5881,193 @@
   function showAtalhos(){ hideOtherViews(); var v=el('view-atalhos'); if(v) v.style.display=''; setActiveNav('atalhos'); render(); }
   function handleRoute(){ if(location.hash==='#/atalhos') showAtalhos(); else { var v=el('view-atalhos'); if(v) v.style.display='none'; } }
   function start(){ if(!el('view-atalhos')) return; migrate(); wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
+  if(document.readyState!=='loading') setTimeout(start,0);
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+
+</script>
+<script>
+(function(){
+  var KEY='teovox_funis';
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':String(s)); return d.innerHTML; }
+  function uid(p){ return (p||'f')+Date.now()+Math.random().toString(16).slice(2,6); }
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ return []; } }
+  function save(list){ try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(e){} }
+
+  function setActiveNav(tab){ document.querySelectorAll('.sidebar nav a').forEach(function(a){ a.classList.toggle('active', a.dataset.tab===tab); }); }
+  function hideOtherViews(){ document.querySelectorAll('[id^="view-"]').forEach(function(v){ if(v.id!=='view-funil') v.style.display='none'; }); }
+
+  var atual=null; // funil aberto no editor
+
+  // ---------- Lista de funis ----------
+  function renderList(){
+    var grid=el('fn-grid'); if(!grid) return;
+    var list=load();
+    el('fn-count-pill').textContent=list.length;
+    el('fn-empty').style.display=list.length?'none':'block';
+    grid.innerHTML='';
+    list.forEach(function(f){
+      var card=document.createElement('div'); card.className='fn-card';
+      card.innerHTML=
+        '<div class="fn-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"></path></svg></div>'+
+        '<div class="fn-name">'+esc(f.nome)+'</div>'+
+        '<div class="fn-desc">'+((f.nos&&f.nos.length)?(f.nos.length+' etapa(s) no mapa'):'Mapa mental vazio')+'</div>'+
+        '<div class="fn-actions"></div>';
+      card.addEventListener('click', function(e){ if(e.target.closest('.fn-actions')) return; abrirEditor(f.id); });
+      var acts=card.querySelector('.fn-actions');
+      var bEdit=document.createElement('button'); bEdit.type='button'; bEdit.className='icon-btn'; bEdit.title='Renomear';
+      bEdit.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+      bEdit.addEventListener('click', function(e){ e.stopPropagation(); openModal(f); });
+      var bDel=document.createElement('button'); bDel.type='button'; bDel.className='icon-btn danger'; bDel.title='Excluir';
+      bDel.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>';
+      bDel.addEventListener('click', function(e){ e.stopPropagation(); if(confirm('Excluir o funil "'+(f.nome||'')+'" e seu mapa mental?')){ save(load().filter(function(x){ return x.id!==f.id; })); renderList(); } });
+      acts.appendChild(bEdit); acts.appendChild(bDel);
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- Modal novo/renomear ----------
+  function openModal(item){
+    var ov=el('funil-modal-overlay'); if(!ov) return;
+    el('funil-modal-title').textContent=item?'Renomear Funil':'Novo Funil';
+    el('funil-id').value=item?item.id:'';
+    el('funil-nome').value=item?(item.nome||''):'';
+    ov.classList.add('open'); setTimeout(function(){ el('funil-nome').focus(); },30);
+  }
+  function closeModal(){ var ov=el('funil-modal-overlay'); if(ov) ov.classList.remove('open'); }
+
+  // ---------- Editor de mapa mental ----------
+  function getFunil(id){ return load().find(function(f){ return f.id===id; }); }
+  function saveFunil(f){ var list=load(); var i=list.findIndex(function(x){ return x.id===f.id; }); if(i>=0){ list[i]=f; save(list); } }
+
+  function abrirEditor(id){
+    atual=getFunil(id); if(!atual) return;
+    if(!atual.nos || !atual.nos.length){
+      atual.nos=[{ id:uid('n'), texto:atual.nome, x:1200, y:300, pai:null }];
+      saveFunil(atual);
+    }
+    el('fn-list').style.display='none';
+    el('fn-editor').classList.add('open');
+    el('fn-editor-title').textContent=atual.nome;
+    renderMapa();
+    // centraliza a rolagem no topo
+    var wrap=el('fn-canvas-wrap'); if(wrap){ wrap.scrollLeft=1000; wrap.scrollTop=120; }
+  }
+  function fecharEditor(){ el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); }
+
+  function renderMapa(){
+    var canvas=el('fn-canvas'), svg=el('fn-svg'); if(!canvas||!atual) return;
+    // limpa nós (mantém o svg)
+    canvas.querySelectorAll('.fn-node').forEach(function(n){ n.remove(); });
+    svg.innerHTML='';
+    var byId={}; atual.nos.forEach(function(n){ byId[n.id]=n; });
+    // linhas
+    atual.nos.forEach(function(n){
+      if(n.pai && byId[n.pai]){
+        var p=byId[n.pai];
+        var line=document.createElementNS('http://www.w3.org/2000/svg','path');
+        var mx=(p.x+n.x)/2;
+        line.setAttribute('d','M '+p.x+' '+p.y+' C '+mx+' '+p.y+' '+mx+' '+n.y+' '+n.x+' '+n.y);
+        line.setAttribute('stroke','#9db4d0'); line.setAttribute('stroke-width','2'); line.setAttribute('fill','none');
+        svg.appendChild(line);
+      }
+    });
+    // nós
+    atual.nos.forEach(function(n){
+      var node=document.createElement('div');
+      node.className='fn-node'+(n.pai===null?' root':'');
+      node.style.left=n.x+'px'; node.style.top=n.y+'px';
+      node.innerHTML='<div class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+'</div>'+
+        '<div class="fn-node-btns"><button class="fn-node-btn add" title="Adicionar ramo">+</button>'+
+        (n.pai!==null?'<button class="fn-node-btn del" title="Excluir">\u2715</button>':'')+'</div>';
+      canvas.appendChild(node);
+      wireNode(node, n);
+    });
+  }
+
+  function wireNode(node, n){
+    var textEl=node.querySelector('.fn-node-text');
+    // editar texto: duplo clique
+    node.querySelector('.fn-node-text').addEventListener('dblclick', function(){
+      textEl.setAttribute('contenteditable','true'); textEl.focus();
+      document.execCommand && document.execCommand('selectAll', false, null);
+    });
+    textEl.addEventListener('blur', function(){
+      textEl.setAttribute('contenteditable','false');
+      n.texto=textEl.textContent.trim(); saveFunil(atual);
+      if(n.pai===null){ atual.nome=n.texto; saveFunil(atual); el('fn-editor-title').textContent=atual.nome; }
+    });
+    textEl.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); textEl.blur(); } });
+    // adicionar filho
+    node.querySelector('.add').addEventListener('click', function(e){
+      e.stopPropagation();
+      var novo={ id:uid('n'), texto:'Nova etapa', x:n.x+240, y:n.y+ (Math.random()*160-80), pai:n.id };
+      atual.nos.push(novo); saveFunil(atual); renderMapa();
+    });
+    var d=node.querySelector('.del');
+    if(d) d.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(!confirm('Excluir esta etapa e as ramificações dela?')) return;
+      // remove o nó e todos os descendentes
+      var remover={}; remover[n.id]=true; var mudou=true;
+      while(mudou){ mudou=false; atual.nos.forEach(function(x){ if(x.pai && remover[x.pai] && !remover[x.id]){ remover[x.id]=true; mudou=true; } }); }
+      atual.nos=atual.nos.filter(function(x){ return !remover[x.id]; });
+      saveFunil(atual); renderMapa();
+    });
+    // arrastar
+    var startX, startY, origX, origY, dragging=false;
+    node.addEventListener('mousedown', function(e){
+      if(e.target.closest('.fn-node-btn') || textEl.getAttribute('contenteditable')==='true') return;
+      dragging=true; node.classList.add('dragging');
+      startX=e.clientX; startY=e.clientY; origX=n.x; origY=n.y;
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', function(e){
+      if(!dragging) return;
+      n.x=Math.max(80, origX+(e.clientX-startX));
+      n.y=Math.max(60, origY+(e.clientY-startY));
+      node.style.left=n.x+'px'; node.style.top=n.y+'px';
+      renderLines();
+    });
+    window.addEventListener('mouseup', function(){ if(dragging){ dragging=false; node.classList.remove('dragging'); saveFunil(atual); } });
+  }
+  function renderLines(){
+    var svg=el('fn-svg'); if(!svg||!atual) return;
+    svg.innerHTML='';
+    var byId={}; atual.nos.forEach(function(n){ byId[n.id]=n; });
+    atual.nos.forEach(function(n){
+      if(n.pai && byId[n.pai]){
+        var p=byId[n.pai];
+        var line=document.createElementNS('http://www.w3.org/2000/svg','path');
+        var mx=(p.x+n.x)/2;
+        line.setAttribute('d','M '+p.x+' '+p.y+' C '+mx+' '+p.y+' '+mx+' '+n.y+' '+n.x+' '+n.y);
+        line.setAttribute('stroke','#9db4d0'); line.setAttribute('stroke-width','2'); line.setAttribute('fill','none');
+        svg.appendChild(line);
+      }
+    });
+  }
+
+  // ---------- Eventos gerais ----------
+  function wire(){
+    var nb=el('btn-new-funil'); if(nb) nb.addEventListener('click', function(){ openModal(null); });
+    var c=el('funil-cancel'); if(c) c.addEventListener('click', closeModal);
+    var ov=el('funil-modal-overlay'); if(ov) ov.addEventListener('click', function(e){ if(e.target===ov) closeModal(); });
+    var form=el('funil-form');
+    if(form) form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var nome=el('funil-nome').value.trim(); if(!nome){ el('funil-nome').focus(); return; }
+      var list=load(); var id=el('funil-id').value;
+      if(id){ var fx=list.find(function(x){ return x.id===id; }); if(fx){ fx.nome=nome; if(fx.nos&&fx.nos[0]) fx.nos[0].texto=nome; } }
+      else { list.push({ id:uid('f'), nome:nome, nos:[] }); }
+      save(list); closeModal(); renderList();
+    });
+    var back=el('fn-back'); if(back) back.addEventListener('click', fecharEditor);
+  }
+
+  function showFunil(){ hideOtherViews(); var v=el('view-funil'); if(v) v.style.display=''; setActiveNav('funil'); el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; renderList(); }
+  function handleRoute(){ if(location.hash==='#/funil') showFunil(); else { var v=el('view-funil'); if(v) v.style.display='none'; } }
+  function start(){ if(!el('view-funil')) return; wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
 })();
