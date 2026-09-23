@@ -1443,18 +1443,19 @@
   .fn-zoom button:hover{ background:#f2f5f8; }
   .fn-zoom .fn-zoom-lvl{ min-width:52px; font-size:12px; color:#5a6472; border:none; box-shadow:none; background:transparent; cursor:default; }
   .fn-svg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
-  .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; }
+  .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; transition:box-shadow .12s, border-color .12s; }
   .fn-node.root{ border-color:#0b1f3a; background:#0b1f3a; color:#fff; }
   .fn-node.dragging{ cursor:grabbing; box-shadow:0 10px 24px rgba(11,31,58,.28); z-index:5; }
-  .fn-node-text{ font-size:13.5px; line-height:1.35; outline:none; word-break:break-word; white-space:pre-wrap; }
+  .fn-node.selected{ box-shadow:0 0 0 3px #a3c8f0, 0 4px 12px rgba(11,31,58,.12); }
+  .fn-node.root.selected{ box-shadow:0 0 0 3px #6aaae4; }
+  .fn-node.drop-target{ border-color:#12a7f0; box-shadow:0 0 0 4px rgba(18,167,240,.30); transform:translate(-50%,-50%) scale(1.05); }
+  .fn-node-level{ display:block; font-size:9.5px; font-weight:700; letter-spacing:.08em; color:#6aaae4; margin-bottom:3px; text-transform:uppercase; }
+  .fn-node.root .fn-node-level{ color:#a3c8f0; }
+  .fn-node-chevron{ display:inline-block; width:11px; color:#9db4d0; font-size:11px; }
+  .fn-node.root .fn-node-chevron{ color:#a3c8f0; }
+  .fn-node-text{ font-size:13.5px; line-height:1.35; outline:none; word-break:break-word; white-space:pre-wrap; display:inline; }
   .fn-node.root .fn-node-text{ font-weight:700; }
-  .fn-node-btns{ display:flex; gap:4px; margin-top:8px; }
-  .fn-node-btn{ width:24px; height:24px; border:none; border-radius:6px; background:#eef2f7; color:#2169b8; cursor:pointer; display:grid; place-items:center; font-size:14px; line-height:1; }
-  .fn-node.root .fn-node-btn{ background:rgba(255,255,255,.15); color:#fff; }
-  .fn-node-btn:hover{ filter:brightness(.95); }
-  .fn-node-btn.del{ color:#dc2626; }
-  .fn-node.root .fn-node-btn.del{ color:#ffb4b4; }
-  .fn-node-btn.toggle{ font-size:15px; font-weight:700; }
+  .fn-node-text[contenteditable="true"]{ cursor:text; }
   .fn-node.collapsed{ border-style:dashed; }
   .fn-node-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:20px; background:#2169b8; color:#fff; font-size:10px; font-weight:700; vertical-align:middle; }
   .fn-node.root .fn-node-badge{ background:#fff; color:#0b1f3a; }
@@ -2300,7 +2301,7 @@
           <div>
             <h1 id="fn-editor-title" style="font-size:20px;">Funil</h1>
             <p>Mapa mental — dê duplo clique no texto para editar</p>
-            <p class="fn-hint" style="margin-top:2px;">Arraste os nós para posicionar · use <b>+</b> para ramificar · duplo clique para editar · segure <b>Espaço</b> e arraste para mover o mapa · use o zoom no canto</p>
+            <p class="fn-hint" style="margin-top:2px;">Clique para selecionar/recolher · duplo clique para editar · <b>Tab</b> cria a próxima etapa · <b>Delete</b> exclui a selecionada · arraste uma etapa perto de outra para conectar · segure <b>Espaço</b> para mover o mapa · zoom no canto</p>
           </div>
         </div>
         <div class="fn-canvas-wrap" id="fn-canvas-wrap">
@@ -6008,6 +6009,7 @@
   function hideOtherViews(){ document.querySelectorAll('[id^="view-"]').forEach(function(v){ if(v.id!=='view-funil') v.style.display='none'; }); }
 
   var atual=null; // funil aberto no editor
+  var selecionado=null; // id do nó selecionado (para Tab/Delete)
   var panX=0, panY=0, zoom=1, spaceDown=false, panning=false, panSX=0, panSY=0, panOX=0, panOY=0;
   var WORLD_W=6000, WORLD_H=4000;
   function applyTransform(){ var c=document.getElementById('fn-canvas'); if(c) c.style.transform='translate('+panX+'px,'+panY+'px) scale('+zoom+')'; var lv=document.getElementById('fn-zoom-lvl'); if(lv) lv.textContent=Math.round(zoom*100)+'%'; }
@@ -6066,13 +6068,14 @@
       atual.nos=[{ id:uid('n'), texto:atual.nome, x:Math.round(WORLD_W/2), y:Math.round(WORLD_H/2)-500, pai:null }];
       saveFunil(atual);
     }
+    selecionado=null;
     el('fn-list').style.display='none';
     el('fn-editor').classList.add('open');
     el('fn-editor-title').textContent=atual.nome;
     zoom=1; renderMapa(); applyTransform(); centralizarRoot();
     scrollTop();
   }
-  function fecharEditor(){ el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); scrollTop(); }
+  function fecharEditor(){ selecionado=null; el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); scrollTop(); }
 
   function renderMapa(){
     var canvas=el('fn-canvas'), svg=el('fn-svg'); if(!canvas||!atual) return;
@@ -6092,6 +6095,11 @@
       while(fila.length){ var x=fila.shift(); total++; if(filhosDe[x]) fila=fila.concat(filhosDe[x]); }
       return total;
     }
+    function nivelDe(n){
+      var d=0, p=n;
+      while(p && p.pai!=null){ d++; p=byId[p.pai]; }
+      return d;
+    }
     function visivel(n){ return !ancestralColapsado(n); }
     // linhas (só entre nós visíveis)
     atual.nos.forEach(function(n){
@@ -6108,69 +6116,150 @@
     atual.nos.forEach(function(n){
       if(!visivel(n)) return;
       var comFilhos=temFilhos(n.id);
+      var nivel=nivelDe(n);
       var node=document.createElement('div');
-      node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'');
+      node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'')+(selecionado===n.id?' selected':'');
+      node.dataset.nodeId=n.id;
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
-      var toggleBtn = comFilhos
-        ? '<button class="fn-node-btn toggle" title="'+(n.colapsado?'Expandir':'Recolher')+'">'+(n.colapsado?'\u203a':'\u2039')+'</button>'
-        : '';
+      var nivelLbl = nivel>0 ? '<span class="fn-node-level">Nível '+String(nivel).padStart(2,'0')+'</span>' : '';
+      var chevron = comFilhos ? '<span class="fn-node-chevron">'+(n.colapsado?'\u25b8':'\u25be')+'</span>' : '';
       var badge = (comFilhos && n.colapsado) ? '<span class="fn-node-badge">'+contarDescendentes(n.id)+'</span>' : '';
-      node.innerHTML='<div class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+badge+'</div>'+
-        '<div class="fn-node-btns">'+toggleBtn+'<button class="fn-node-btn add" title="Adicionar ramo">+</button>'+
-        (n.pai!==null?'<button class="fn-node-btn del" title="Excluir">\u2715</button>':'')+'</div>';
+      node.innerHTML = nivelLbl+'<div>'+chevron+'<span class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+'</span>'+badge+'</div>';
       canvas.appendChild(node);
-      wireNode(node, n);
-      var tgl=node.querySelector('.toggle');
-      if(tgl) tgl.addEventListener('click', function(e){ e.stopPropagation(); n.colapsado=!n.colapsado; saveFunil(atual); renderMapa(); });
+      wireNode(node, n, temFilhos, filhosDe);
     });
   }
 
-  function wireNode(node, n){
+  function nodeEl(id){ return document.querySelector('.fn-node[data-node-id="'+id+'"]'); }
+
+  function descendentesDe(id){
+    var filhosDe={}; atual.nos.forEach(function(x){ if(x.pai!=null){ (filhosDe[x.pai]=filhosDe[x.pai]||[]).push(x.id); } });
+    var out=[], fila=(filhosDe[id]||[]).slice();
+    while(fila.length){ var x=fila.shift(); out.push(x); if(filhosDe[x]) fila=fila.concat(filhosDe[x]); }
+    return out;
+  }
+
+  function criarFilho(paiNode){
+    var novo={ id:uid('n'), texto:'', x:paiNode.x+230, y:paiNode.y+(Math.random()*140-70), pai:paiNode.id };
+    atual.nos.push(novo);
+    selecionado=novo.id;
+    saveFunil(atual);
+    renderMapa();
+    var elNovo=nodeEl(novo.id);
+    if(elNovo){ var t=elNovo.querySelector('.fn-node-text'); if(t){ t.setAttribute('contenteditable','true'); t.focus(); } }
+    return novo;
+  }
+
+  function excluirNo(id, pedirConfirmacao){
+    var alvo=atual.nos.find(function(x){ return x.id===id; });
+    if(!alvo || alvo.pai===null) return; // a raiz não pode ser excluída
+    var remover={}; remover[id]=true;
+    descendentesDe(id).forEach(function(x){ remover[x]=true; });
+    var temFilhos=Object.keys(remover).length>1;
+    if(pedirConfirmacao){
+      var msg = temFilhos ? 'Excluir esta etapa e as ramificações dela?' : 'Excluir esta etapa?';
+      if(!confirm(msg)) return;
+    }
+    atual.nos=atual.nos.filter(function(x){ return !remover[x.id]; });
+    if(remover[selecionado]) selecionado=null;
+    saveFunil(atual); renderMapa();
+  }
+
+  function wireNode(node, n, temFilhosFn){
     var textEl=node.querySelector('.fn-node-text');
-    // editar texto: duplo clique
-    node.querySelector('.fn-node-text').addEventListener('dblclick', function(){
+
+    function commitEdit(){
+      textEl.setAttribute('contenteditable','false');
+      var novoTexto=textEl.textContent.trim();
+      n.texto=novoTexto; saveFunil(atual);
+      if(n.pai===null){ atual.nome=novoTexto; saveFunil(atual); el('fn-editor-title').textContent=atual.nome; }
+    }
+
+    // duplo clique: editar texto
+    textEl.addEventListener('dblclick', function(e){
+      e.stopPropagation();
       textEl.setAttribute('contenteditable','true'); textEl.focus();
       document.execCommand && document.execCommand('selectAll', false, null);
     });
-    textEl.addEventListener('blur', function(){
-      textEl.setAttribute('contenteditable','false');
-      n.texto=textEl.textContent.trim(); saveFunil(atual);
-      if(n.pai===null){ atual.nome=n.texto; saveFunil(atual); el('fn-editor-title').textContent=atual.nome; }
+    textEl.addEventListener('blur', commitEdit);
+    textEl.addEventListener('keydown', function(e){
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); textEl.blur(); }
+      else if(e.key==='Escape'){ e.preventDefault(); textEl.blur(); }
+      else if(e.key==='Tab'){ e.preventDefault(); commitEdit(); criarFilho(n); }
     });
-    textEl.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); textEl.blur(); } });
-    // adicionar filho
-    node.querySelector('.add').addEventListener('click', function(e){
-      e.stopPropagation();
-      var novo={ id:uid('n'), texto:'Nova etapa', x:n.x+220, y:n.y+(Math.random()*180-90), pai:n.id };
-      atual.nos.push(novo); saveFunil(atual); renderMapa();
+    // colar lista/numeração -> perguntar se quer 1 etapa por item
+    textEl.addEventListener('paste', function(e){
+      var cd=e.clipboardData||window.clipboardData; if(!cd) return;
+      var texto=cd.getData('text/plain')||'';
+      var linhas=texto.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+      if(linhas.length<2) return;
+      var marcador=/^(?:[-*\u2022\u2023\u25e6]|\d+[.)]|[a-zA-Z][.)])\s+/;
+      var comMarcador=linhas.filter(function(l){ return marcador.test(l); }).length;
+      var pareceLista = (comMarcador/linhas.length)>=0.5 || linhas.every(function(l){ return l.length<=70; });
+      if(!pareceLista) return;
+      e.preventDefault();
+      if(confirm('O texto colado parece uma lista com '+linhas.length+' itens. Criar uma etapa nova para cada item, dentro desta etapa?')){
+        var limpo=linhas.map(function(l){ return l.replace(marcador,'').trim(); }).filter(Boolean);
+        var baseY=n.y-((limpo.length-1)*70)/2;
+        limpo.forEach(function(txt,i){ atual.nos.push({ id:uid('n'), texto:txt, x:n.x+230, y:baseY+i*70, pai:n.id }); });
+        commitEdit();
+        saveFunil(atual);
+        renderMapa();
+      } else {
+        document.execCommand && document.execCommand('insertText', false, texto);
+      }
     });
-    var d=node.querySelector('.del');
-    if(d) d.addEventListener('click', function(e){
-      e.stopPropagation();
-      if(!confirm('Excluir esta etapa e as ramificações dela?')) return;
-      // remove o nó e todos os descendentes
-      var remover={}; remover[n.id]=true; var mudou=true;
-      while(mudou){ mudou=false; atual.nos.forEach(function(x){ if(x.pai && remover[x.pai] && !remover[x.id]){ remover[x.id]=true; mudou=true; } }); }
-      atual.nos=atual.nos.filter(function(x){ return !remover[x.id]; });
-      saveFunil(atual); renderMapa();
-    });
-    // arrastar
-    var startX, startY, origX, origY, dragging=false;
+
+    // clique (seleciona/recolhe) e arraste (reposiciona ou conecta)
+    var startX, startY, origX, origY, dragging=false, movedPx=0, dropTargetId=null;
     node.addEventListener('mousedown', function(e){
-      if(spaceDown) return; // com espaço, o arrasto é do ambiente (pan)
-      if(e.target.closest('.fn-node-btn') || textEl.getAttribute('contenteditable')==='true') return;
-      dragging=true; node.classList.add('dragging');
+      if(spaceDown) return;
+      if(textEl.getAttribute('contenteditable')==='true') return;
+      dragging=true; movedPx=0; dropTargetId=null;
       startX=e.clientX; startY=e.clientY; origX=n.x; origY=n.y;
       e.stopPropagation(); e.preventDefault();
     });
     window.addEventListener('mousemove', function(e){
       if(!dragging) return;
+      movedPx=Math.max(Math.abs(e.clientX-startX), Math.abs(e.clientY-startY));
+      if(movedPx<=4) return;
+      node.classList.add('dragging');
       n.x=origX+(e.clientX-startX)/zoom;
       n.y=origY+(e.clientY-startY)/zoom;
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
       renderLines();
+      // procura o nó mais próximo para conectar (nunca ele mesmo ou um descendente seu)
+      var proibidos=descendentesDe(n.id); proibidos.push(n.id);
+      var melhor=null, melhorDist=110;
+      atual.nos.forEach(function(o){
+        if(proibidos.indexOf(o.id)>=0) return;
+        var dist=Math.hypot(o.x-n.x, o.y-n.y);
+        if(dist<melhorDist){ melhorDist=dist; melhor=o; }
+      });
+      document.querySelectorAll('.fn-node.drop-target').forEach(function(x){ x.classList.remove('drop-target'); });
+      dropTargetId = melhor ? melhor.id : null;
+      if(melhor){ var alvoEl=nodeEl(melhor.id); if(alvoEl) alvoEl.classList.add('drop-target'); }
     });
-    window.addEventListener('mouseup', function(){ if(dragging){ dragging=false; node.classList.remove('dragging'); saveFunil(atual); } });
+    window.addEventListener('mouseup', function(){
+      if(!dragging) return;
+      dragging=false; node.classList.remove('dragging');
+      document.querySelectorAll('.fn-node.drop-target').forEach(function(x){ x.classList.remove('drop-target'); });
+      if(movedPx<=4){
+        // 1º clique: seleciona. 2º clique no mesmo nó (já selecionado) com ramificações: recolhe/expande.
+        var jaSelecionado = (selecionado===n.id);
+        selecionado=n.id;
+        if(jaSelecionado && temFilhosFn(n.id)){
+          n.colapsado=!n.colapsado; saveFunil(atual); renderMapa();
+        } else {
+          document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+          node.classList.add('selected');
+        }
+        return;
+      }
+      // foi um arrasto: conecta ao alvo se houver, senão só salva a nova posição
+      if(dropTargetId && n.pai!==null){ n.pai=dropTargetId; }
+      saveFunil(atual);
+    });
   }
   function renderLines(){
     var svg=el('fn-svg'); if(!svg||!atual) return;
@@ -6209,6 +6298,20 @@
     });
     var back=el('fn-back'); if(back) back.addEventListener('click', fecharEditor);
 
+    // ----- Tab (criar próxima etapa) / Delete (excluir) quando uma etapa está selecionada -----
+    document.addEventListener('keydown', function(e){
+      if(!(el('fn-editor') && el('fn-editor').classList.contains('open'))) return;
+      var ativo=document.activeElement;
+      var editandoTexto = ativo && ativo.classList && ativo.classList.contains('fn-node-text') && ativo.getAttribute('contenteditable')==='true';
+      if(editandoTexto) return; // o próprio campo de texto já trata Tab/Enter/Escape
+      if(!selecionado || !atual) return;
+      var alvo=atual.nos.find(function(x){ return x.id===selecionado; });
+      if(!alvo) return;
+      if(e.key==='Tab'){ e.preventDefault(); criarFilho(alvo); }
+      else if(e.key==='Delete' || e.key==='Backspace'){ e.preventDefault(); excluirNo(alvo.id, true); }
+      else if(e.key==='Escape'){ selecionado=null; document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); }); }
+    });
+
     // ----- PAN com barra de espaço -----
     document.addEventListener('keydown', function(e){
       if(e.code==='Space' && el('fn-editor') && el('fn-editor').classList.contains('open')){
@@ -6221,6 +6324,10 @@
     var wrap=el('fn-canvas-wrap');
     if(wrap){
       wrap.addEventListener('mousedown', function(e){
+        if(e.target===wrap || e.target===el('fn-canvas')){
+          selecionado=null;
+          document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+        }
         if(!spaceDown) return;
         panning=true; wrap.classList.add('panning');
         panSX=e.clientX; panSY=e.clientY; panOX=panX; panOY=panY; e.preventDefault();
