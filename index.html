@@ -1348,8 +1348,10 @@
   .ahg-daytop small{ display:block; font-weight:400; color:#8a94a0; }
   .ahg-daytop.is-today{ color:#2169b8; }
   .ahg-hourlabel{ padding:6px 8px; font-size:11px; color:#8a94a0; border-right:1px solid #eef0f3; border-bottom:1px solid #f3f5f7; text-align:right; white-space:nowrap; }
-  .ahg-cell{ border-right:1px solid #f3f5f7; border-bottom:1px solid #f3f5f7; min-height:44px; padding:3px; position:relative; }
-  .ahg-cell.is-today{ background:#f5faff; }
+  .ahg-cell{ border-right:1px solid #f3f5f7; border-bottom:1px solid #f3f5f7; min-height:44px; padding:3px; position:relative; cursor:pointer; }
+  .ahg-cell:hover{ background:#f0f6fc; }
+  .ahg-cell[data-today="1"]{ background:#f5faff; }
+  .ahg-cell.ahg-selecting{ background:#d6e8f9; }
   .ahg-ev{ background:#d6e8f9; border-left:3px solid #2169b8; border-radius:5px; padding:3px 6px; font-size:11.5px; color:#12345a; margin-bottom:3px; line-height:1.25; }
   .ahg-ev.allday{ background:#fff3cd; border-left-color:#c99a00; }
   .ahg-ev b{ font-weight:600; }
@@ -1457,6 +1459,13 @@
   .fin-toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .fin-toolbar .fin-filter{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:#5a6472; margin-right:auto; }
   .fin-toolbar select{ border:1px solid #d8d8d8; border-radius:8px; padding:7px 9px; font:inherit; }
+  .fin-alerta{ background:#fff3cd; border:1px solid #f3d98b; color:#8a5a00; border-radius:10px; padding:11px 15px; font-size:13.5px; margin:10px 0; display:flex; align-items:center; gap:8px; }
+  .fin-alerta b{ font-weight:700; }
+  .fin-fixos-resumo{ margin:10px 12px 0; background:#fdf6f1; border:1px solid #f3e3d6; border-radius:10px; padding:10px 13px; font-size:12.5px; color:#8a5a2e; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .fin-fixos-resumo b{ color:#c0392b; font-size:14px; }
+  .fin-rec.pausado{ opacity:.55; }
+  .fin-badge.pausado{ background:#f2f2f2; color:#8a94a0; }
+  .fin-mini.on-pause{ border-color:#f3c98b; color:#8a5a00; background:#fff8ec; }
   .fin-two{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; align-items:start; }
   .fin-block{ background:#fff; border:1px solid #e6e9ee; border-radius:14px; overflow:hidden; }
   .fin-block-head{ display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid #f0f2f5; }
@@ -1468,6 +1477,8 @@
   .fin-rec{ border:1px solid #eceff3; border-radius:10px; padding:11px 12px; }
   .fin-rec-top{ display:flex; align-items:flex-start; gap:10px; }
   .fin-rec-desc{ font-weight:600; color:#0b1f3a; font-size:14px; }
+  .fin-rec-desc-btn{ background:none; border:none; padding:0; text-align:left; font:inherit; cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; }
+  .fin-rec-desc-btn:hover{ color:#2169b8; }
   .fin-rec-sub{ font-size:12px; color:#8a94a0; margin-top:2px; display:flex; gap:8px; flex-wrap:wrap; }
   .fin-rec-val{ margin-left:auto; font-weight:700; font-size:14.5px; white-space:nowrap; }
   .fin-entrada .fin-rec-val{ color:#0f766e; } .fin-saida .fin-rec-val{ color:#c0392b; }
@@ -2180,40 +2191,42 @@
     <div id="view-agentes" style="display:none;">
       <div class="topbar">
         <div>
-          <h1>Agentes IA</h1>
-          <p>Especialistas de IA para acelerar seu trabalho — proposta, copy, headlines e mais</p>
+          <h1>Agentes IA<span class="count-pill" id="agentes-count-pill">0</span></h1>
+          <p>Seus agentes de IA — cada botão abre o chat certo para a tarefa</p>
         </div>
+        <button class="btn-primary" id="btn-new-agente">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Novo agente
+        </button>
       </div>
-
-      <div id="ag-cloudwarn" class="ag-warn" style="display:none;">
-        Para usar os Agentes, conecte-se à nuvem em <b>Perfil → Conta na nuvem</b>. É por lá que o app fala com a IA de forma segura.
+      <div class="at-grid" id="ag-grid"></div>
+      <div class="empty-state" id="agentes-empty" style="display:none;">
+        <p>Nenhum agente ainda. Clique em <b>+ Novo agente</b> para criar o primeiro (ex.: "Proposta Comercial", "Headlines", o seu Gandalf do Prompt).</p>
       </div>
+    </div>
 
-      <div class="ag-list" id="ag-list">
-        <div class="ag-grid" id="ag-grid"></div>
-      </div>
-
-      <div class="ag-panel" id="ag-panel">
-        <button class="ag-back" id="ag-back">‹ Voltar aos agentes</button>
-        <div class="topbar" style="margin-bottom:14px;">
-          <div>
-            <h1 id="ag-panel-title" style="font-size:20px;">Agente</h1>
-            <p id="ag-panel-desc"></p>
+    <div class="modal-overlay" id="agente-modal-overlay">
+      <div class="modal">
+        <h2 id="agente-modal-title">Novo Agente</h2>
+        <form id="agente-form" novalidate>
+          <input type="hidden" id="agente-id">
+          <div class="field">
+            <label for="agente-nome">Nome</label>
+            <input type="text" id="agente-nome" autocomplete="off" placeholder="Ex: Proposta Comercial">
           </div>
-        </div>
-        <div class="ag-two">
-          <form class="ag-form" id="ag-form" novalidate>
-            <div id="ag-fields"></div>
-            <button type="submit" class="btn-primary ag-gen" id="ag-generate">Gerar</button>
-          </form>
-          <div class="ag-out-wrap">
-            <div class="ag-out-head">
-              <span class="ag-out-title">Resultado</span>
-              <button type="button" class="btn-secondary ag-copy" id="ag-copy" style="display:none;">Copiar</button>
-            </div>
-            <div class="ag-out" id="ag-out"><span class="ag-placeholder">Preencha os campos e clique em <b>Gerar</b>. O texto aparece aqui.</span></div>
+          <div class="field">
+            <label for="agente-url">Link do chat (URL)</label>
+            <input type="url" id="agente-url" autocomplete="off" placeholder="https://chat.openai.com/g/...">
           </div>
-        </div>
+          <div class="field">
+            <label for="agente-desc">Descrição (opcional)</label>
+            <input type="text" id="agente-desc" autocomplete="off" placeholder="Ex: Gandalf do Prompt — gera propostas de alta performance">
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="agente-cancel">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -2325,10 +2338,13 @@
         </div>
         <div class="fin-toolbar">
           <span class="fin-filter">Mês: <select id="fin-month"></select></span>
+          <span class="fin-filter" style="margin-right:0;">Alertar se custos fixos passarem de <input type="number" id="fin-alerta-pct" min="1" max="100" style="width:56px;border:1px solid #d8d8d8;border-radius:8px;padding:6px 7px;font:inherit;">% das entradas</span>
           <button class="btn-secondary" id="btn-fin-entrada">+ Entrada</button>
           <button class="btn-secondary" id="btn-fin-saida">+ Saída</button>
         </div>
       </div>
+
+      <div id="fin-alerta-banner" class="fin-alerta" style="display:none;"></div>
 
       <div class="fin-two">
         <div class="fin-block fin-entrada">
@@ -2337,6 +2353,7 @@
         </div>
         <div class="fin-block fin-saida">
           <div class="fin-block-head"><h3>Saída</h3><span class="fin-block-total" id="fin-total-saida">R$ 0,00</span></div>
+          <div class="fin-fixos-resumo" id="fin-fixos-resumo"></div>
           <div class="fin-list" id="fin-list-saida"></div>
         </div>
       </div>
@@ -2360,7 +2377,7 @@
             <datalist id="fin-cliente-list"></datalist>
           </div>
           <label class="fcheck" style="display:flex;align-items:center;gap:8px;font-size:13.5px;margin:2px 0 10px;cursor:pointer;">
-            <input type="checkbox" id="fin-mensalista" style="width:16px;height:16px;"> Mensalista (recorrente todo mês)
+            <input type="checkbox" id="fin-mensalista" style="width:16px;height:16px;"> <span id="fin-mensalista-label">Mensalista (recorrente todo mês)</span>
           </label>
           <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div><label for="fin-valor">Valor (R$)</label><input type="text" id="fin-valor" autocomplete="off" placeholder="Ex: 2.500,00"></div>
@@ -3007,6 +3024,7 @@
 
   function saveBoard(clientId, board) {
     localStorage.setItem(boardStorageKey(clientId), JSON.stringify(board));
+    try { window.dispatchEvent(new CustomEvent('tvx-board-changed', { detail: { clientId } })); } catch (e) {}
   }
 
   const viewClients = document.getElementById('view-clients');
@@ -3622,6 +3640,11 @@
     try { window.dispatchEvent(new CustomEvent('tvx-agenda-changed')); } catch (e) {}
   }
   window.__tvxOpenAgenda = function(ev){ openAgendaModal(ev); };
+  window.__tvxOpenAgendaNew = function(dateStr, hStartStr, hEndStr){
+    openAgendaModal(null, dateStr);
+    if (hStartStr) agendaInputHoraInicio.value = hStartStr;
+    if (hEndStr) agendaInputHoraFim.value = hEndStr;
+  };
 
   const agendaTbody = document.getElementById('agenda-tbody');
   const agendaEmptyState = document.getElementById('agenda-empty-state');
@@ -5557,15 +5580,53 @@
       html+='<div class="ahg-hourlabel">'+String(h).padStart(2,'0')+':00</div>';
       days.forEach(function(d){
         var evs=eventsByDay(ymd(d)).filter(function(e){ return !e.allDay && parseHour(e.horaInicio)===h; });
-        html+='<div class="ahg-cell'+(sameDay(d)?' is-today':'')+'">'+evs.map(evChip).join('')+'</div>';
+        html+='<div class="ahg-cell" data-day="'+ymd(d)+'" data-hour="'+h+'"'+(sameDay(d)?' data-today="1"':'')+'>'+evs.map(evChip).join('')+'</div>';
       });
     }
     grid.innerHTML=html;
+    wireCells(grid);
     grid.querySelectorAll('.ahg-ev[data-evid]').forEach(function(c){
       c.addEventListener('click', function(ev){ ev.stopPropagation();
         var found=loadAgenda().find(function(x){ return x.id===c.getAttribute('data-evid'); });
         if(found && window.__tvxOpenAgenda) window.__tvxOpenAgenda(found);
       });
+    });
+  }
+
+  function wireCells(grid){
+    var selecting=false, startCell=null, cells=[];
+    function clearSel(){ cells.forEach(function(c){ c.classList.remove('ahg-selecting'); }); cells=[]; }
+    function cellsBetween(day, h1, h2){
+      var lo=Math.min(h1,h2), hi=Math.max(h1,h2);
+      return [].slice.call(grid.querySelectorAll('.ahg-cell[data-day="'+day+'"]')).filter(function(c){
+        var h=parseInt(c.getAttribute('data-hour'),10); return h>=lo && h<=hi;
+      });
+    }
+    grid.querySelectorAll('.ahg-cell[data-day]').forEach(function(cell){
+      cell.addEventListener('mousedown', function(e){
+        if(e.target.closest('.ahg-ev')) return; // clique num evento existente não inicia seleção
+        selecting=true; startCell=cell;
+        cells=cellsBetween(cell.getAttribute('data-day'), parseInt(cell.getAttribute('data-hour'),10), parseInt(cell.getAttribute('data-hour'),10));
+        cells.forEach(function(c){ c.classList.add('ahg-selecting'); });
+        e.preventDefault();
+      });
+      cell.addEventListener('mouseenter', function(){
+        if(!selecting || cell.getAttribute('data-day')!==startCell.getAttribute('data-day')) return;
+        clearSel();
+        cells=cellsBetween(startCell.getAttribute('data-day'), parseInt(startCell.getAttribute('data-hour'),10), parseInt(cell.getAttribute('data-hour'),10));
+        cells.forEach(function(c){ c.classList.add('ahg-selecting'); });
+      });
+    });
+    window.addEventListener('mouseup', function(){
+      if(!selecting) return;
+      selecting=false;
+      var day=startCell.getAttribute('data-day');
+      var hs=cells.map(function(c){ return parseInt(c.getAttribute('data-hour'),10); });
+      var lo=Math.min.apply(null,hs), hi=Math.max.apply(null,hs);
+      clearSel();
+      if(window.__tvxOpenAgendaNew){
+        window.__tvxOpenAgendaNew(day, String(lo).padStart(2,'0')+':00', String(hi+1).padStart(2,'0')+':00');
+      }
     });
   }
 
@@ -5749,165 +5810,78 @@
 </script>
 <script>
 (function(){
-  var SUPABASE_URL='https://ainyemjuwkbzhwyuqfqj.supabase.co';
-  var SUPABASE_ANON_KEY='sb_publishable_A37OjzjIDahMEhixccb3lg_I5YM_-0u';
-  var sb=null;
-  function getSb(){
-    if(sb) return sb;
-    if(window.supabase && window.supabase.createClient){ sb=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
-    return sb;
-  }
-
+  var KEY='teovox_agentes';
   function el(id){ return document.getElementById(id); }
   function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':String(s)); return d.innerHTML; }
-
-  // ---- Agentes: cada um com campos e um prompt de especialista ----
-  var AGENTES=[
-    {
-      id:'proposta', nome:'Proposta Comercial', desc:'Gera uma proposta persuasiva e estruturada para fechar clientes.',
-      icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8M8 17h8"></path>',
-      campos:[
-        {k:'cliente', l:'Cliente / empresa', t:'input', ph:'Ex: Clínica Vitta'},
-        {k:'servico', l:'Serviço oferecido', t:'input', ph:'Ex: Gestão de social media + tráfego'},
-        {k:'objetivo', l:'Objetivo do cliente', t:'textarea', ph:'Ex: Atrair mais pacientes e lotar a agenda'},
-        {k:'diferenciais', l:'Diferenciais da Teovox', t:'textarea', ph:'Ex: método próprio, atendimento próximo, resultados comprovados'},
-        {k:'investimento', l:'Investimento (opcional)', t:'input', ph:'Ex: R$ 2.500/mês'},
-        {k:'tom', l:'Tom', t:'select', opts:['Profissional e confiante','Próximo e caloroso','Direto e objetivo','Sofisticado e premium']}
-      ],
-      system:'Você é um redator sênior especializado em propostas comerciais de agências de marketing no Brasil. Escreve propostas persuasivas, claras e orientadas a resultado, com estrutura profissional e português impecável. Evita jargão vazio; foca no valor e na transformação para o cliente.',
-      montar:function(v){
-        return 'Crie uma proposta comercial completa e persuasiva em português do Brasil.\n\n'+
-          '- Cliente: '+v.cliente+'\n- Serviço oferecido: '+v.servico+'\n- Objetivo do cliente: '+v.objetivo+'\n- Diferenciais da agência (Teovox): '+v.diferenciais+
-          (v.investimento?'\n- Investimento: '+v.investimento:'')+'\n- Tom desejado: '+v.tom+'\n\n'+
-          'Estruture assim: (1) Abertura personalizada citando a dor/objetivo; (2) O que propomos (escopo em tópicos claros); (3) Como isso gera resultado; (4) Por que a Teovox; (5) '+(v.investimento?'Investimento e ':'')+'próximo passo com chamada para ação. Seja específico, evite clichês e mantенha um tamanho enxuto e escaneável.'
-      }
-    },
-    {
-      id:'copy', nome:'Copywriter', desc:'Cria textos de venda para anúncios, páginas e posts.',
-      icon:'<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"></path>',
-      campos:[
-        {k:'produto', l:'Produto / serviço', t:'input', ph:'Ex: Consultoria de branding'},
-        {k:'publico', l:'Público-alvo', t:'input', ph:'Ex: donos de clínicas de estética'},
-        {k:'formato', l:'Formato do texto', t:'select', opts:['Anúncio (Meta/Google)','Legenda de post','Página de vendas (seção)','E-mail de vendas','Story com CTA']},
-        {k:'dor', l:'Principal dor/desejo', t:'textarea', ph:'Ex: não conseguem se diferenciar da concorrência'},
-        {k:'oferta', l:'Oferta / diferencial', t:'textarea', ph:'Ex: identidade visual + posicionamento em 30 dias'},
-        {k:'tom', l:'Tom', t:'select', opts:['Persuasivo e urgente','Inspirador','Educativo','Descontraído']}
-      ],
-      system:'Você é um copywriter de resposta direta de alto nível, especialista no mercado brasileiro. Escreve textos de venda que prendem a atenção na primeira linha, geram desejo e terminam com uma chamada para ação clara. Usa gatilhos mentais com naturalidade, sem soar apelativo.',
-      montar:function(v){
-        return 'Escreva um texto de venda em português do Brasil no formato "'+v.formato+'".\n\n'+
-          '- Produto/serviço: '+v.produto+'\n- Público-alvo: '+v.publico+'\n- Dor/desejo principal: '+v.dor+'\n- Oferta/diferencial: '+v.oferta+'\n- Tom: '+v.tom+'\n\n'+
-          'Comece com um gancho forte, desenvolva o desejo conectando com a dor, apresente a oferta e finalize com uma CTA clara. Entregue pronto para usar. Se o formato pedir, ofereça 2 variações.'
-      }
-    },
-    {
-      id:'headlines', nome:'Headlines', desc:'Gera títulos e chamadas magnéticas em lote.',
-      icon:'<path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"></path><path d="M9 20h6"></path><path d="M12 4v16"></path>',
-      campos:[
-        {k:'tema', l:'Tema / produto', t:'input', ph:'Ex: gestão de tráfego para clínicas'},
-        {k:'publico', l:'Público-alvo', t:'input', ph:'Ex: médicos e donos de clínica'},
-        {k:'canal', l:'Onde vai usar', t:'select', opts:['Anúncio','Post de Instagram','Título de site/landing','Assunto de e-mail','Thumbnail de vídeo']},
-        {k:'quantidade', l:'Quantas headlines', t:'select', opts:['10','15','20']},
-        {k:'angulo', l:'Ângulo (opcional)', t:'input', ph:'Ex: autoridade, prova, urgência, curiosidade'}
-      ],
-      system:'Você é um especialista em headlines e chamadas publicitárias para o mercado brasileiro. Cria títulos curtos, magnéticos e variados em ângulo (curiosidade, benefício, prova, urgência, dor), sempre em português natural e persuasivo.',
-      montar:function(v){
-        return 'Gere '+v.quantidade+' headlines em português do Brasil para usar em "'+v.canal+'".\n\n'+
-          '- Tema/produto: '+v.tema+'\n- Público: '+v.publico+(v.angulo?'\n- Ângulo preferido: '+v.angulo:'')+'\n\n'+
-          'Regras: variedade de ângulos (benefício, curiosidade, prova, urgência, dor/solução), frases curtas e impactantes. Entregue como uma lista numerada, sem explicações.'
-      }
-    }
-  ];
-
-  var atual=null;
+  function uid(){ return 'ag'+Date.now()+Math.random().toString(16).slice(2,6); }
+  function load(){ try{ var a=JSON.parse(localStorage.getItem(KEY)); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  function save(list){ try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(e){} }
 
   function setActiveNav(tab){ document.querySelectorAll('.sidebar nav a').forEach(function(a){ a.classList.toggle('active', a.dataset.tab===tab); }); }
   function hideOtherViews(){ document.querySelectorAll('[id^="view-"]').forEach(function(v){ if(v.id!=='view-agentes') v.style.display='none'; }); }
+  function normalizeUrl(u){ if(!u) return ''; return /^https?:\/\//i.test(u) ? u : 'https://'+u; }
 
-  function temSessao(){
-    // supabase-js guarda a sessão no localStorage: sb-<ref>-auth-token
-    try{
-      for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k) && localStorage.getItem(k)) return true; }
-    }catch(e){}
-    return false;
-  }
-
-  function renderGrid(){
+  function render(){
     var grid=el('ag-grid'); if(!grid) return;
-    grid.innerHTML=AGENTES.map(function(a){
-      return '<div class="ag-card" data-ag="'+a.id+'">'+
-        '<div class="ag-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+a.icon+'</svg></div>'+
-        '<div class="ag-name">'+esc(a.nome)+'</div><div class="ag-desc">'+esc(a.desc)+'</div></div>';
-    }).join('');
-    grid.querySelectorAll('[data-ag]').forEach(function(c){ c.addEventListener('click', function(){ abrir(c.dataset.ag); }); });
+    var list=load();
+    el('agentes-count-pill').textContent=list.length;
+    el('agentes-empty').style.display=list.length?'none':'block';
+    grid.innerHTML='';
+    list.forEach(function(a){
+      var card=document.createElement('div'); card.className='at-card'; card.style.position='relative';
+      card.innerHTML=
+        '<div class="at-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a2 2 0 0 1 2 2v1h3a2 2 0 0 1 2 2v3h1a2 2 0 0 1 0 4h-1v3a2 2 0 0 1-2 2h-3v-1a2 2 0 0 0-4 0v1H7a2 2 0 0 1-2-2v-3H4a2 2 0 0 1 0-4h1V7a2 2 0 0 1 2-2h3V4a2 2 0 0 1 2-2z"></path><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle></svg></div>'+
+        '<div class="at-name">'+esc(a.nome)+'</div>'+
+        '<div class="at-desc">'+esc(a.desc||a.url||'')+'</div>'+
+        '<span class="at-ext">Abrir <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></span>'+
+        '<div class="at-actions"></div>';
+      card.addEventListener('click', function(e){ if(e.target.closest('.at-actions')) return; if(a.url) window.open(normalizeUrl(a.url), '_blank', 'noopener'); });
+      var acts=card.querySelector('.at-actions');
+      var bEdit=document.createElement('button'); bEdit.type='button'; bEdit.className='icon-btn'; bEdit.title='Editar';
+      bEdit.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+      bEdit.addEventListener('click', function(e){ e.stopPropagation(); openModal(a); });
+      var bDel=document.createElement('button'); bDel.type='button'; bDel.className='icon-btn danger'; bDel.title='Excluir';
+      bDel.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>';
+      bDel.addEventListener('click', function(e){ e.stopPropagation(); if(confirm('Excluir o agente "'+(a.nome||'')+'"?')){ save(load().filter(function(x){ return x.id!==a.id; })); render(); } });
+      acts.appendChild(bEdit); acts.appendChild(bDel);
+      grid.appendChild(card);
+    });
   }
 
-  function abrir(id){
-    atual=AGENTES.find(function(a){ return a.id===id; }); if(!atual) return;
-    el('ag-list').style.display='none';
-    el('ag-panel').classList.add('open');
-    el('ag-panel-title').textContent=atual.nome;
-    el('ag-panel-desc').textContent=atual.desc;
-    el('ag-fields').innerHTML=atual.campos.map(function(f){
-      var inner;
-      if(f.t==='textarea') inner='<textarea id="agf-'+f.k+'" placeholder="'+esc(f.ph||'')+'"></textarea>';
-      else if(f.t==='select') inner='<select id="agf-'+f.k+'">'+f.opts.map(function(o){ return '<option>'+esc(o)+'</option>'; }).join('')+'</select>';
-      else inner='<input type="text" id="agf-'+f.k+'" placeholder="'+esc(f.ph||'')+'" autocomplete="off">';
-      return '<div class="field"><label>'+esc(f.l)+'</label>'+inner+'</div>';
-    }).join('');
-    el('ag-out').innerHTML='<span class="ag-placeholder">Preencha os campos e clique em <b>Gerar</b>.</span>';
-    el('ag-copy').style.display='none';
+  function openModal(item){
+    var ov=el('agente-modal-overlay'); if(!ov) return;
+    el('agente-modal-title').textContent = item ? 'Editar Agente' : 'Novo Agente';
+    el('agente-id').value = item ? item.id : '';
+    el('agente-nome').value = item ? (item.nome||'') : '';
+    el('agente-url').value = item ? (item.url||'') : '';
+    el('agente-desc').value = item ? (item.desc||'') : '';
+    ov.classList.add('open');
+    setTimeout(function(){ el('agente-nome').focus(); }, 30);
   }
-  function voltar(){ el('ag-panel').classList.remove('open'); el('ag-list').style.display=''; atual=null; }
+  function closeModal(){ var ov=el('agente-modal-overlay'); if(ov) ov.classList.remove('open'); }
 
-  async function gerar(){
-    if(!atual) return;
-    if(!temSessao()){ var _cw=el('ag-cloudwarn'); _cw.style.display=''; if(_cw.scrollIntoView) _cw.scrollIntoView({behavior:'smooth',block:'center'}); return; }
-    var v={};
-    atual.campos.forEach(function(f){ var e=el('agf-'+f.k); v[f.k]=e?e.value.trim():''; });
-    var faltando=atual.campos.filter(function(f){ return f.t!=='select' && !(f.l.indexOf('opcional')>=0) && !v[f.k]; });
-    if(faltando.length){ var first=el('agf-'+faltando[0].k); if(first) first.focus(); return; }
-
-    var out=el('ag-out'), gen=el('ag-generate'), copy=el('ag-copy');
-    copy.style.display='none';
-    out.innerHTML='<div class="ag-loading"><span class="ag-spin"></span> Gerando com IA…</div>';
-    gen.disabled=true; gen.textContent='Gerando…';
-    try{
-      var client=getSb();
-      if(!client) throw new Error('Cliente Supabase indisponível. Recarregue a página.');
-      var resp=await client.functions.invoke('agente-ia', { body:{ system:atual.system, prompt:atual.montar(v) } });
-      if(resp.error) throw new Error(resp.error.message||'Falha ao chamar a IA.');
-      var data=resp.data||{};
-      if(data.error) throw new Error(data.error);
-      var texto=(data.text||'').trim();
-      if(!texto) throw new Error('A IA não retornou texto. Tente novamente.');
-      out.textContent=texto;
-      copy.style.display='';
-      copy.onclick=function(){ navigator.clipboard.writeText(texto).then(function(){ copy.textContent='Copiado!'; setTimeout(function(){ copy.textContent='Copiar'; },1500); }); };
-    }catch(e){
-      out.innerHTML='<span class="ag-err">'+esc(e.message||'Erro ao gerar.')+'</span><br><span class="ag-placeholder" style="font-size:12.5px">Verifique se a chave GEMINI_API_KEY foi salva nos segredos do Supabase e se você está conectado à nuvem.</span>';
-    }finally{
-      gen.disabled=false; gen.textContent='Gerar';
-    }
+  function wire(){
+    var b=el('btn-new-agente'); if(b) b.addEventListener('click', function(){ openModal(null); });
+    var c=el('agente-cancel'); if(c) c.addEventListener('click', closeModal);
+    var ov=el('agente-modal-overlay'); if(ov) ov.addEventListener('click', function(e){ if(e.target===ov) closeModal(); });
+    var form=el('agente-form');
+    if(form) form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var nome=el('agente-nome').value.trim();
+      var url=el('agente-url').value.trim();
+      if(!nome){ el('agente-nome').focus(); return; }
+      if(!url){ el('agente-url').focus(); return; }
+      var list=load(); var id=el('agente-id').value;
+      var dados={ nome:nome, url:normalizeUrl(url), desc:el('agente-desc').value.trim() };
+      if(id){ var i=list.findIndex(function(x){ return x.id===id; }); if(i>=0) list[i]=Object.assign(list[i], dados); }
+      else { dados.id=uid(); list.push(dados); }
+      save(list); closeModal(); render();
+    });
   }
 
-  function showAgentes(){
-    hideOtherViews();
-    var v=el('view-agentes'); if(v) v.style.display='';
-    setActiveNav('agentes');
-    el('ag-cloudwarn').style.display = temSessao() ? 'none' : '';
-    renderGrid();
-    voltar();
-  }
+  function showAgentes(){ hideOtherViews(); var v=el('view-agentes'); if(v) v.style.display=''; setActiveNav('agentes'); render(); }
   function handleRoute(){ if(location.hash==='#/agentes') showAgentes(); else { var v=el('view-agentes'); if(v) v.style.display='none'; } }
-
-  function start(){
-    if(!el('view-agentes')) return;
-    var b=el('ag-back'); if(b) b.addEventListener('click', voltar);
-    var f=el('ag-form'); if(f) f.addEventListener('submit', function(e){ e.preventDefault(); gerar(); });
-    window.addEventListener('hashchange', handleRoute);
-    handleRoute();
-  }
+  function start(){ if(!el('view-agentes')) return; wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
 })();
@@ -6079,6 +6053,9 @@
   function saveFunil(f){ var list=load(); var i=list.findIndex(function(x){ return x.id===f.id; }); if(i>=0){ list[i]=f; save(list); } }
 
 
+  function scrollTop(){
+    try{ window.scrollTo(0,0); document.documentElement.scrollTop=0; document.body.scrollTop=0; var m=document.querySelector('.main'); if(m) m.scrollTop=0; }catch(e){}
+  }
   function abrirEditor(id){
     atual=getFunil(id); if(!atual) return;
     if(!atual.nos || !atual.nos.length){
@@ -6089,8 +6066,9 @@
     el('fn-editor').classList.add('open');
     el('fn-editor-title').textContent=atual.nome;
     zoom=1; renderMapa(); applyTransform(); centralizarRoot();
+    scrollTop();
   }
-  function fecharEditor(){ el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); }
+  function fecharEditor(){ el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); scrollTop(); }
 
   function renderMapa(){
     var canvas=el('fn-canvas'), svg=el('fn-svg'); if(!canvas||!atual) return;
@@ -6236,7 +6214,7 @@
     if(zr) zr.addEventListener('click', function(){ zoom=1; centralizarRoot(); });
   }
 
-  function showFunil(){ hideOtherViews(); var v=el('view-funil'); if(v) v.style.display=''; setActiveNav('funil'); el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; renderList(); }
+  function showFunil(){ hideOtherViews(); var v=el('view-funil'); if(v) v.style.display=''; setActiveNav('funil'); el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; renderList(); scrollTop(); }
   function handleRoute(){ if(location.hash==='#/funil') showFunil(); else { var v=el('view-funil'); if(v) v.style.display='none'; } }
   function start(){ if(!el('view-funil')) return; wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
   if(document.readyState!=='loading') setTimeout(start,0);
@@ -6272,8 +6250,8 @@
       var board=null; try{ board=JSON.parse(localStorage.getItem('teovox_board_'+cli.id)); }catch(e){}
       var arec=(board&&board.areceber)||[];
       arec.forEach(function(card){
-        out.push({ id:'fat:'+card.id, origem:'faturamento', cliente:cli.nome, descricao:card.text||'(sem título)',
-          valor:num(card.valor), previsao:card.dataPagamento||'', status: st[card.id]||'previsto' });
+        out.push({ id:'fat:'+card.id, origem:'faturamento', clientId:cli.id, clienteCard:card, cliente:cli.nome, descricao:card.text||'(sem título)',
+          valor:num(card.valor), previsao:card.dataPagamento||'', mensalista:!!card.mensalista, status: st[card.id]||'previsto' });
       });
     });
     return out;
@@ -6282,9 +6260,14 @@
   var filtroMes=''; // '' = todos, ou 'YYYY-MM'
 
   function statusEfetivo(r){
+    if(r.pausado) return 'pausado';
     if(r.status==='pago') return 'pago';
     if(!r.mensalista && r.previsao && r.previsao<hoje()) return 'atrasado';
     return r.status||'previsto';
+  }
+  function limiarAlerta(){ var v=parseFloat(localStorage.getItem('teovox_financeiro_alerta_pct')); return isNaN(v)?40:v; }
+  function custosFixosAtivos(){
+    return load().filter(function(r){ return r.tipo==='saida' && r.mensalista && !r.pausado; });
   }
 
   function coletar(){
@@ -6316,28 +6299,45 @@
 
   function recCard(r){
     var ef=statusEfetivo(r);
-    var card=document.createElement('div'); card.className='fin-rec';
+    var card=document.createElement('div'); card.className='fin-rec'+(r.pausado?' pausado':'');
+    var descHtml = (r.origem==='faturamento')
+      ? '<button type="button" class="fin-rec-desc fin-rec-desc-btn" title="Editar no Faturamento">'+esc(r.descricao)+'</button> <span class="fin-tag-orig">Faturamento</span>'
+      : '<span class="fin-rec-desc">'+esc(r.descricao)+'</span>';
     card.innerHTML=
       '<div class="fin-rec-top">'+
-        '<div><div class="fin-rec-desc">'+esc(r.descricao)+(r.origem==='faturamento'?' <span class="fin-tag-orig">Faturamento</span>':'')+'</div>'+
+        '<div><div>'+descHtml+'</div>'+
           '<div class="fin-rec-sub">'+
             (r.cliente?'<span>'+esc(r.cliente)+'</span>':'')+
-            (r.mensalista?'<span>Mensalista \u00b7 todo dia '+esc(r.diaMes||'?')+'</span>':'<span>prev.: '+dataBR(r.previsao)+'</span>')+
+            (r.mensalista?'<span>'+(r.tipo==='saida'?'Custo Fixo':'Mensalista')+' \u00b7 todo dia '+esc(r.diaMes||'?')+'</span>':'<span>prev.: '+dataBR(r.previsao)+'</span>')+
             (r.categoria?'<span>'+esc(r.categoria)+'</span>':'')+
-            '<span class="fin-badge '+ef+'">'+(ef==='pago'?'Pago':ef==='atrasado'?'Atrasado':'Previsto')+'</span>'+
+            '<span class="fin-badge '+ef+'">'+(ef==='pausado'?'Pausado':ef==='pago'?'Pago':ef==='atrasado'?'Atrasado':'Previsto')+'</span>'+
           '</div></div>'+
         '<div class="fin-rec-val">'+brl(r.valor)+'</div>'+
       '</div>'+
       '<div class="fin-rec-acts"></div>';
+    var titleBtn=card.querySelector('.fin-rec-desc-btn');
+    if(titleBtn) titleBtn.addEventListener('click', function(){
+      if(window.openClientCardModal && r.clientId) window.openClientCardModal(r.clientId, 'areceber', r.clienteCard);
+    });
     var acts=card.querySelector('.fin-rec-acts');
     function mkStatus(lbl, val, cls){
       var b=document.createElement('button'); b.type='button'; b.className='fin-mini'+((r.status===val)?(' '+cls):''); b.textContent=lbl;
       b.addEventListener('click', function(){ setStatus(r, val); });
       return b;
     }
-    acts.appendChild(mkStatus('Pago','pago','on-pago'));
-    acts.appendChild(mkStatus('Atrasado','atrasado','on-atras'));
-    acts.appendChild(mkStatus('Previsto','previsto',''));
+    if(!r.pausado){
+      acts.appendChild(mkStatus('Pago','pago','on-pago'));
+      acts.appendChild(mkStatus('Atrasado','atrasado','on-atras'));
+      acts.appendChild(mkStatus('Previsto','previsto',''));
+    }
+    if(r.mensalista && r.origem!=='faturamento'){
+      var pause=document.createElement('button'); pause.type='button'; pause.className='fin-mini'+(r.pausado?' on-pause':''); pause.textContent=r.pausado?'Retomar':'Pausar';
+      pause.title=r.pausado?'Retomar este custo fixo/mensalista':'Pausar sem excluir (some dos totais até retomar)';
+      pause.addEventListener('click', function(){
+        var l=load(); var it=l.find(function(x){ return x.id===r.id; }); if(it){ it.pausado=!it.pausado; save(l); } render();
+      });
+      acts.appendChild(pause);
+    }
     if(r.origem==='faturamento'){
       var note=document.createElement('span'); note.className='fin-rec-sub'; note.style.marginLeft='auto'; note.style.alignSelf='center';
       note.innerHTML='<span title="Gerencie/exclua na aba Faturamento">gerenciado no Faturamento</span>';
@@ -6371,13 +6371,36 @@
     else dados.entradas.forEach(function(r){ le.appendChild(recCard(r)); });
     if(!dados.saidas.length) ls.innerHTML='<div class="fin-empty">Sem saídas. Use "+ Saída".</div>';
     else dados.saidas.forEach(function(r){ ls.appendChild(recCard(r)); });
-    var totE=dados.entradas.reduce(function(s,r){ return s+num(r.valor); },0);
-    var totS=dados.saidas.reduce(function(s,r){ return s+num(r.valor); },0);
+    var totE=dados.entradas.filter(function(r){ return !r.pausado; }).reduce(function(s,r){ return s+num(r.valor); },0);
+    var totS=dados.saidas.filter(function(r){ return !r.pausado; }).reduce(function(s,r){ return s+num(r.valor); },0);
     el('fin-total-entrada').textContent=brl(totE);
     el('fin-total-saida').textContent=brl(totS);
     el('fin-foot-entrada').textContent=brl(totE);
     el('fin-foot-saida').textContent=brl(totS);
     el('fin-foot-saldo').textContent=brl(totE-totS);
+
+    // Resumo de custos fixos mensais (independe do filtro de mês — são recorrentes)
+    var fixos=custosFixosAtivos();
+    var totFixos=fixos.reduce(function(s,r){ return s+num(r.valor); },0);
+    var resumo=el('fin-fixos-resumo');
+    if(resumo){
+      resumo.innerHTML = fixos.length
+        ? '<span>Custos fixos ativos este mês: <b>'+fixos.length+'</b> despesa(s)</span><b>'+brl(totFixos)+'</b>'
+        : '<span>Nenhum custo fixo ativo no momento.</span>';
+    }
+
+    // Alerta de crescimento: custos fixos vs. total de entradas do período
+    var banner=el('fin-alerta-banner');
+    var pct=limiarAlerta();
+    if(banner){
+      if(totE>0 && totFixos>0){
+        var razao=(totFixos/totE)*100;
+        if(razao>=pct){
+          banner.style.display='';
+          banner.innerHTML='\u26a0\ufe0f Seus custos fixos (<b>'+brl(totFixos)+'</b>) já representam <b>'+razao.toFixed(0)+'%</b> das entradas deste período — acima do limite de '+pct+'% que você definiu.';
+        } else { banner.style.display='none'; }
+      } else { banner.style.display='none'; }
+    }
   }
 
   // ---- modal ----
@@ -6394,6 +6417,7 @@
     var ov=el('fin-modal-overlay'); if(!ov) return;
     preencherClientes();
     el('fin-modal-title').textContent=(item?'Editar ':'Nova ')+(tipo==='entrada'?'Entrada':'Saída');
+    el('fin-mensalista-label').textContent = tipo==='saida' ? 'Custo Fixo (despesa recorrente todo mês)' : 'Mensalista (recorrente todo mês)';
     el('fin-tipo').value=tipo;
     el('fin-id').value=item?item.id:'';
     el('fin-desc').value=item?(item.descricao||''):'';
@@ -6415,6 +6439,15 @@
     el('fin-cancel').addEventListener('click', closeModal);
     var ov=el('fin-modal-overlay'); ov.addEventListener('click', function(e){ if(e.target===ov) closeModal(); });
     el('fin-month').addEventListener('change', function(e){ filtroMes=e.target.value; render(); });
+    var alertaInput=el('fin-alerta-pct');
+    if(alertaInput){
+      alertaInput.value=limiarAlerta();
+      alertaInput.addEventListener('change', function(e){
+        var v=parseFloat(e.target.value); if(isNaN(v)||v<=0) v=40;
+        localStorage.setItem('teovox_financeiro_alerta_pct', String(v));
+        render();
+      });
+    }
     el('fin-mensalista').addEventListener('change', function(e){ aplicarMensalista(e.target.checked); });
     el('fin-form').addEventListener('submit', function(e){
       e.preventDefault();
@@ -6434,7 +6467,13 @@
 
   function showFin(){ hideOtherViews(); var v=el('view-financeiro'); if(v) v.style.display=''; setActiveNav('financeiro'); render(); }
   function handleRoute(){ if(location.hash==='#/financeiro') showFin(); else { var v=el('view-financeiro'); if(v) v.style.display='none'; } }
-  function start(){ if(!el('view-financeiro')) return; wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
+  function start(){
+    if(!el('view-financeiro')) return;
+    wire();
+    window.addEventListener('hashchange', handleRoute);
+    window.addEventListener('tvx-board-changed', function(){ if(location.hash==='#/financeiro') render(); });
+    handleRoute();
+  }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
 })();
