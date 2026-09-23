@@ -6112,12 +6112,12 @@
       node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'');
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
       var toggleBtn = comFilhos
-        ? '<button class="fn-node-btn toggle" title="'+(n.colapsado?'Expandir':'Recolher')+'">'+(n.colapsado?'\\u203a':'\\u2039')+'</button>'
+        ? '<button class="fn-node-btn toggle" title="'+(n.colapsado?'Expandir':'Recolher')+'">'+(n.colapsado?'\u203a':'\u2039')+'</button>'
         : '';
       var badge = (comFilhos && n.colapsado) ? '<span class="fn-node-badge">'+contarDescendentes(n.id)+'</span>' : '';
       node.innerHTML='<div class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+badge+'</div>'+
         '<div class="fn-node-btns">'+toggleBtn+'<button class="fn-node-btn add" title="Adicionar ramo">+</button>'+
-        (n.pai!==null?'<button class="fn-node-btn del" title="Excluir">\\u2715</button>':'')+'</div>';
+        (n.pai!==null?'<button class="fn-node-btn del" title="Excluir">\u2715</button>':'')+'</div>';
       canvas.appendChild(node);
       wireNode(node, n);
       var tgl=node.querySelector('.toggle');
