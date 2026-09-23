@@ -1454,6 +1454,10 @@
   .fn-node-btn:hover{ filter:brightness(.95); }
   .fn-node-btn.del{ color:#dc2626; }
   .fn-node.root .fn-node-btn.del{ color:#ffb4b4; }
+  .fn-node-btn.toggle{ font-size:15px; font-weight:700; }
+  .fn-node.collapsed{ border-style:dashed; }
+  .fn-node-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:20px; background:#2169b8; color:#fff; font-size:10px; font-weight:700; vertical-align:middle; }
+  .fn-node.root .fn-node-badge{ background:#fff; color:#0b1f3a; }
 </style>
 <style>
   .fin-toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -6076,9 +6080,22 @@
     canvas.querySelectorAll('.fn-node').forEach(function(n){ n.remove(); });
     svg.innerHTML='';
     var byId={}; atual.nos.forEach(function(n){ byId[n.id]=n; });
-    // linhas
+    var filhosDe={}; atual.nos.forEach(function(n){ if(n.pai!=null){ (filhosDe[n.pai]=filhosDe[n.pai]||[]).push(n.id); } });
+    function temFilhos(id){ return !!(filhosDe[id] && filhosDe[id].length); }
+    function ancestralColapsado(n){
+      var p=n.pai!=null?byId[n.pai]:null;
+      while(p){ if(p.colapsado) return true; p=p.pai!=null?byId[p.pai]:null; }
+      return false;
+    }
+    function contarDescendentes(id){
+      var total=0, fila=(filhosDe[id]||[]).slice();
+      while(fila.length){ var x=fila.shift(); total++; if(filhosDe[x]) fila=fila.concat(filhosDe[x]); }
+      return total;
+    }
+    function visivel(n){ return !ancestralColapsado(n); }
+    // linhas (só entre nós visíveis)
     atual.nos.forEach(function(n){
-      if(n.pai && byId[n.pai]){
+      if(n.pai && byId[n.pai] && visivel(n)){
         var p=byId[n.pai];
         var line=document.createElementNS('http://www.w3.org/2000/svg','path');
         var mx=(p.x+n.x)/2;
@@ -6089,14 +6106,22 @@
     });
     // nós
     atual.nos.forEach(function(n){
+      if(!visivel(n)) return;
+      var comFilhos=temFilhos(n.id);
       var node=document.createElement('div');
-      node.className='fn-node'+(n.pai===null?' root':'');
+      node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'');
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
-      node.innerHTML='<div class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+'</div>'+
-        '<div class="fn-node-btns"><button class="fn-node-btn add" title="Adicionar ramo">+</button>'+
-        (n.pai!==null?'<button class="fn-node-btn del" title="Excluir">\u2715</button>':'')+'</div>';
+      var toggleBtn = comFilhos
+        ? '<button class="fn-node-btn toggle" title="'+(n.colapsado?'Expandir':'Recolher')+'">'+(n.colapsado?'\\u203a':'\\u2039')+'</button>'
+        : '';
+      var badge = (comFilhos && n.colapsado) ? '<span class="fn-node-badge">'+contarDescendentes(n.id)+'</span>' : '';
+      node.innerHTML='<div class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+badge+'</div>'+
+        '<div class="fn-node-btns">'+toggleBtn+'<button class="fn-node-btn add" title="Adicionar ramo">+</button>'+
+        (n.pai!==null?'<button class="fn-node-btn del" title="Excluir">\\u2715</button>':'')+'</div>';
       canvas.appendChild(node);
       wireNode(node, n);
+      var tgl=node.querySelector('.toggle');
+      if(tgl) tgl.addEventListener('click', function(e){ e.stopPropagation(); n.colapsado=!n.colapsado; saveFunil(atual); renderMapa(); });
     });
   }
 
@@ -6151,8 +6176,13 @@
     var svg=el('fn-svg'); if(!svg||!atual) return;
     svg.innerHTML='';
     var byId={}; atual.nos.forEach(function(n){ byId[n.id]=n; });
+    function ancestralColapsado(n){
+      var p=n.pai!=null?byId[n.pai]:null;
+      while(p){ if(p.colapsado) return true; p=p.pai!=null?byId[p.pai]:null; }
+      return false;
+    }
     atual.nos.forEach(function(n){
-      if(n.pai && byId[n.pai]){
+      if(n.pai && byId[n.pai] && !ancestralColapsado(n)){
         var p=byId[n.pai];
         var line=document.createElementNS('http://www.w3.org/2000/svg','path');
         var mx=(p.x+n.x)/2;
