@@ -1457,6 +1457,7 @@
   .fn-node.root .fn-node-text{ font-weight:700; }
   .fn-node-text[contenteditable="true"]{ cursor:text; }
   .fn-node.collapsed{ border-style:dashed; }
+  .fn-node.pendente{ border-style:dashed; border-color:#6aaae4; opacity:.85; }
   .fn-node-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:20px; background:#2169b8; color:#fff; font-size:10px; font-weight:700; vertical-align:middle; }
   .fn-node.root .fn-node-badge{ background:#fff; color:#0b1f3a; }
 </style>
@@ -6118,7 +6119,7 @@
       var comFilhos=temFilhos(n.id);
       var nivel=nivelDe(n);
       var node=document.createElement('div');
-      node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'')+(selecionado===n.id?' selected':'');
+      node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'')+(selecionado===n.id?' selected':'')+(n._pendente?' pendente':'');
       node.dataset.nodeId=n.id;
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
       var nivelLbl = nivel>0 ? '<span class="fn-node-level">Nível '+String(nivel).padStart(2,'0')+'</span>' : '';
@@ -6139,15 +6140,35 @@
     return out;
   }
 
+  function posicaoLivre(paiNode){
+    var x=paiNode.x+230;
+    var candidatosY=[paiNode.y];
+    for(var i=1;i<=10;i++){ candidatosY.push(paiNode.y - i*90); candidatosY.push(paiNode.y + i*90); }
+    var MIN_DIST=72;
+    for(var c=0;c<candidatosY.length;c++){
+      var y=candidatosY[c];
+      var colide=atual.nos.some(function(o){ return Math.abs(o.x-x)<150 && Math.abs(o.y-y)<MIN_DIST; });
+      if(!colide) return { x:x, y:y };
+    }
+    return { x:x, y:paiNode.y+(atual.nos.length*40) };
+  }
+
   function criarFilho(paiNode){
-    var novo={ id:uid('n'), texto:'', x:paiNode.x+230, y:paiNode.y+(Math.random()*140-70), pai:paiNode.id };
-    atual.nos.push(novo);
+    var pos=posicaoLivre(paiNode);
+    var novo={ id:uid('n'), texto:'', x:pos.x, y:pos.y, pai:paiNode.id, _pendente:true };
+    atual.nos.push(novo);            // ainda NÃO é salvo — só ao confirmar com ENTER
     selecionado=novo.id;
-    saveFunil(atual);
     renderMapa();
     var elNovo=nodeEl(novo.id);
     if(elNovo){ var t=elNovo.querySelector('.fn-node-text'); if(t){ t.setAttribute('contenteditable','true'); t.focus(); } }
     return novo;
+  }
+
+  function abortarPendente(n){
+    if(!n || !n._pendente) return;
+    atual.nos=atual.nos.filter(function(x){ return x.id!==n.id; });
+    if(selecionado===n.id) selecionado=n.pai;
+    renderMapa();
   }
 
   function excluirNo(id, pedirConfirmacao){
@@ -6175,17 +6196,42 @@
       if(n.pai===null){ atual.nome=novoTexto; saveFunil(atual); el('fn-editor-title').textContent=atual.nome; }
     }
 
-    // duplo clique: editar texto
+    function confirmarPendente(){
+      var texto=textEl.textContent.trim();
+      if(!texto){ abortarPendente(n); return; }
+      delete n._pendente;
+      n.texto=texto;
+      selecionado=n.id;
+      saveFunil(atual);
+      renderMapa();
+    }
+
+    // duplo clique: editar texto (cancela a decisão de seleção/recolher pendente do clique único)
     textEl.addEventListener('dblclick', function(e){
       e.stopPropagation();
+      if(pendingClick){ clearTimeout(pendingClick); pendingClick=null; }
       textEl.setAttribute('contenteditable','true'); textEl.focus();
       document.execCommand && document.execCommand('selectAll', false, null);
     });
-    textEl.addEventListener('blur', commitEdit);
+    textEl.addEventListener('blur', function(){
+      if(n._pendente){ abortarPendente(n); return; }
+      commitEdit();
+    });
     textEl.addEventListener('keydown', function(e){
-      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); textEl.blur(); }
-      else if(e.key==='Escape'){ e.preventDefault(); textEl.blur(); }
-      else if(e.key==='Tab'){ e.preventDefault(); commitEdit(); criarFilho(n); }
+      if(e.key==='Enter' && !e.shiftKey){
+        e.preventDefault();
+        if(n._pendente) confirmarPendente();
+        else textEl.blur();
+      } else if(e.key==='Escape'){
+        e.preventDefault();
+        if(n._pendente) abortarPendente(n);
+        else textEl.blur();
+      } else if(e.key==='Tab'){
+        e.preventDefault();
+        if(n._pendente) return; // precisa confirmar com ENTER antes de criar outra etapa
+        commitEdit();
+        criarFilho(n);
+      }
     });
     // colar lista/numeração -> perguntar se quer 1 etapa por item
     textEl.addEventListener('paste', function(e){
@@ -6200,8 +6246,8 @@
       e.preventDefault();
       if(confirm('O texto colado parece uma lista com '+linhas.length+' itens. Criar uma etapa nova para cada item, dentro desta etapa?')){
         var limpo=linhas.map(function(l){ return l.replace(marcador,'').trim(); }).filter(Boolean);
-        var baseY=n.y-((limpo.length-1)*70)/2;
-        limpo.forEach(function(txt,i){ atual.nos.push({ id:uid('n'), texto:txt, x:n.x+230, y:baseY+i*70, pai:n.id }); });
+        limpo.forEach(function(txt){ var pos=posicaoLivre(n); atual.nos.push({ id:uid('n'), texto:txt, x:pos.x, y:pos.y, pai:n.id }); });
+        if(n._pendente) delete n._pendente;
         commitEdit();
         saveFunil(atual);
         renderMapa();
@@ -6211,7 +6257,7 @@
     });
 
     // clique (seleciona/recolhe) e arraste (reposiciona ou conecta)
-    var startX, startY, origX, origY, dragging=false, movedPx=0, dropTargetId=null;
+    var startX, startY, origX, origY, dragging=false, movedPx=0, dropTargetId=null, pendingClick=null;
     node.addEventListener('mousedown', function(e){
       if(spaceDown) return;
       if(textEl.getAttribute('contenteditable')==='true') return;
@@ -6245,15 +6291,19 @@
       dragging=false; node.classList.remove('dragging');
       document.querySelectorAll('.fn-node.drop-target').forEach(function(x){ x.classList.remove('drop-target'); });
       if(movedPx<=4){
-        // 1º clique: seleciona. 2º clique no mesmo nó (já selecionado) com ramificações: recolhe/expande.
-        var jaSelecionado = (selecionado===n.id);
-        selecionado=n.id;
-        if(jaSelecionado && temFilhosFn(n.id)){
-          n.colapsado=!n.colapsado; saveFunil(atual); renderMapa();
-        } else {
-          document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
-          node.classList.add('selected');
-        }
+        // clique único: adia a decisão ~260ms — se virar um duplo clique (editar), essa decisão é cancelada
+        if(pendingClick) clearTimeout(pendingClick);
+        pendingClick=setTimeout(function(){
+          pendingClick=null;
+          var jaSelecionado=(selecionado===n.id);
+          selecionado=n.id;
+          if(jaSelecionado && temFilhosFn(n.id)){
+            n.colapsado=!n.colapsado; saveFunil(atual); renderMapa();
+          } else {
+            document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+            var atual_el=nodeEl(n.id); if(atual_el) atual_el.classList.add('selected');
+          }
+        }, 260);
         return;
       }
       // foi um arrasto: conecta ao alvo se houver, senão só salva a nova posição
