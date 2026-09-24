@@ -1446,7 +1446,27 @@
   .fn-zoom button:hover{ background:#f2f5f8; }
   .fn-zoom .fn-zoom-lvl{ min-width:52px; font-size:12px; color:#5a6472; border:none; box-shadow:none; background:transparent; cursor:default; }
   .fn-svg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
-  .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; transition:box-shadow .12s, border-color .12s; }
+  .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; transition:box-shadow .12s, border-color .12s; overflow:auto; }
+  .fn-resize{ position:absolute; z-index:4; }
+  .fn-resize.rz-t, .fn-resize.rz-b{ left:10px; right:10px; height:8px; cursor:ns-resize; }
+  .fn-resize.rz-t{ top:-4px; } .fn-resize.rz-b{ bottom:-4px; }
+  .fn-resize.rz-l, .fn-resize.rz-r{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
+  .fn-resize.rz-l{ left:-4px; } .fn-resize.rz-r{ right:-4px; }
+  .fn-resize:hover{ background:rgba(33,105,184,.25); border-radius:3px; }
+  .fn-style-bar{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:#fff; border:1px solid #e6e9ee; border-radius:12px; padding:9px 14px; margin-bottom:10px; }
+  .fn-style-title{ font-weight:700; color:#0b1f3a; font-size:13px; padding-right:4px; border-right:1px solid #eef0f3; }
+  .fn-style-group{ display:flex; align-items:center; gap:7px; }
+  .fn-style-lbl{ font-size:12px; color:#8a94a0; }
+  .fn-swatches{ display:flex; gap:4px; }
+  .fn-swatch{ width:20px; height:20px; border-radius:6px; border:1.5px solid rgba(0,0,0,.12); cursor:pointer; padding:0; }
+  .fn-swatch:hover{ transform:scale(1.12); }
+  .fn-swatch.on{ box-shadow:0 0 0 2px #2169b8; }
+  #fn-color-fundo-custom, #fn-color-texto-custom{ width:24px; height:24px; border:none; border-radius:6px; padding:0; cursor:pointer; background:none; }
+  .fn-font-btn{ width:28px; height:26px; border:1px solid #e2e6ea; background:#fff; border-radius:7px; cursor:pointer; color:#0b1f3a; font-size:13px; }
+  .fn-font-btn.on{ background:#0b1f3a; color:#fff; border-color:#0b1f3a; }
+  .fn-style-reset{ border:1px solid #e2e6ea; background:#fff; border-radius:8px; padding:6px 11px; font-size:12.5px; color:#5a6472; cursor:pointer; }
+  .fn-style-reset:hover{ background:#f2f5f8; }
+  .fn-style-close{ margin-left:auto; border:none; background:none; color:#8a94a0; cursor:pointer; font-size:13px; }
   .fn-node.root{ border-color:#0b1f3a; background:#0b1f3a; color:#fff; }
   .fn-node.dragging{ cursor:grabbing; box-shadow:0 10px 24px rgba(11,31,58,.28); z-index:5; }
   .fn-node.selected{ box-shadow:0 0 0 3px #a3c8f0, 0 4px 12px rgba(11,31,58,.12); }
@@ -2305,8 +2325,37 @@
           <div>
             <h1 id="fn-editor-title" style="font-size:20px;">Funil</h1>
             <p>Mapa mental — dê duplo clique no texto para editar</p>
-            <p class="fn-hint" style="margin-top:2px;">Clique abre/fecha a etapa · duplo clique edita o texto · <b>Tab</b> cria a próxima etapa (confirme com <b>Enter</b>) · arraste no vazio para selecionar várias etapas (arraste juntas ou <b>Delete</b> para excluir) · arraste uma etapa perto de outra para conectar · segure <b>Espaço</b> para mover o mapa</p>
+            <p class="fn-hint" style="margin-top:2px;">Clique abre/fecha a etapa · duplo clique edita o texto · <b>Tab</b> cria a próxima etapa (confirme com <b>Enter</b> ou clicando fora) · arraste no vazio para selecionar várias etapas (arraste juntas ou <b>Delete</b> para excluir) · arraste uma etapa perto de outra para conectar · arraste a borda para redimensionar · clique no "NÍVEL" para colorir o nível inteiro · segure <b>Espaço</b> para mover o mapa</p>
           </div>
+        </div>
+
+        <div class="fn-style-bar" id="fn-style-bar" style="display:none;">
+          <span class="fn-style-title" id="fn-style-title">Etapa</span>
+          <div class="fn-style-group">
+            <span class="fn-style-lbl">Fundo</span>
+            <div class="fn-swatches" id="fn-sw-fundo" data-target="fundo"></div>
+            <input type="color" id="fn-color-fundo-custom" title="Cor personalizada de fundo">
+          </div>
+          <div class="fn-style-group">
+            <span class="fn-style-lbl">Letra</span>
+            <div class="fn-swatches" id="fn-sw-texto" data-target="texto"></div>
+            <input type="color" id="fn-color-texto-custom" title="Cor personalizada da letra">
+          </div>
+          <div class="fn-style-group" id="fn-font-group">
+            <span class="fn-style-lbl">Fonte</span>
+            <select id="fn-font-family">
+              <option value="">Padrão</option>
+              <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+              <option value="'Times New Roman', Times, serif">Times New Roman</option>
+              <option value="'Courier New', Courier, monospace">Courier New</option>
+              <option value="Verdana, Geneva, sans-serif">Verdana</option>
+              <option value="'Comic Sans MS', 'Comic Sans', cursive">Comic Sans</option>
+            </select>
+            <button type="button" class="fn-font-btn" id="fn-font-bold" title="Negrito"><b>B</b></button>
+            <button type="button" class="fn-font-btn" id="fn-font-italic" title="Itálico"><i>I</i></button>
+          </div>
+          <button type="button" class="fn-style-reset" id="fn-style-reset">Limpar estilo</button>
+          <button type="button" class="fn-style-close" id="fn-style-close" title="Fechar">✕</button>
         </div>
         <div class="fn-canvas-wrap" id="fn-canvas-wrap">
           <div class="fn-canvas" id="fn-canvas">
@@ -6019,6 +6068,9 @@
   var atual=null; // funil aberto no editor
   var selecionado=null; // id do nó selecionado (para Tab/Delete)
   var selecionadosGrupo=[]; // ids selecionados por laço (arrastar juntos / excluir juntos)
+  var estiloAlvo=null; // {tipo:'no', id} ou {tipo:'nivel', nivel}
+  var PALETA_FUNDO=['#ffffff','#eef5fd','#0b1f3a','#2169b8','#12a7f0','#0f766e','#c0392b','#f39c12','#8e44ad'];
+  var PALETA_TEXTO=['#0b1f3a','#243244','#ffffff','#2169b8','#0f766e','#c0392b','#f39c12','#8a94a0'];
   var marqueeAtivo=false, marqueeSX=0, marqueeSY=0;
   var panX=0, panY=0, zoom=1, spaceDown=false, panning=false, panSX=0, panSY=0, panOX=0, panOY=0;
   var WORLD_W=6000, WORLD_H=4000;
@@ -6078,14 +6130,14 @@
       atual.nos=[{ id:uid('n'), texto:atual.nome, x:Math.round(WORLD_W/2), y:Math.round(WORLD_H/2)-500, pai:null }];
       saveFunil(atual);
     }
-    selecionado=null; selecionadosGrupo=[];
+    selecionado=null; selecionadosGrupo=[]; estiloAlvo=null;
     el('fn-list').style.display='none';
     el('fn-editor').classList.add('open');
     el('fn-editor-title').textContent=atual.nome;
     zoom=1; renderMapa(); applyTransform(); centralizarRoot();
     scrollTop();
   }
-  function fecharEditor(){ selecionado=null; selecionadosGrupo=[]; el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); scrollTop(); }
+  function fecharEditor(){ selecionado=null; selecionadosGrupo=[]; fecharBarraEstilo(); el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); scrollTop(); }
 
   function renderMapa(){
     var canvas=el('fn-canvas'), svg=el('fn-svg'); if(!canvas||!atual) return;
@@ -6134,9 +6186,24 @@
       var nivelLbl = nivel>0 ? '<span class="fn-node-level">Nível '+String(nivel).padStart(2,'0')+'</span>' : '';
       var chevron = comFilhos ? '<span class="fn-node-chevron">'+(n.colapsado?'\u25b8':'\u25be')+'</span>' : '';
       var badge = (comFilhos && n.colapsado) ? '<span class="fn-node-badge">'+contarDescendentes(n.id)+'</span>' : '';
-      node.innerHTML = nivelLbl+'<div>'+chevron+'<span class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+'</span>'+badge+'</div>';
+      node.innerHTML = nivelLbl+'<div>'+chevron+'<span class="fn-node-text" contenteditable="false">'+esc(n.texto||'')+'</span>'+badge+'</div>'+
+        '<div class="fn-resize rz-t" data-rz="t"></div><div class="fn-resize rz-b" data-rz="b"></div>'+
+        '<div class="fn-resize rz-l" data-rz="l"></div><div class="fn-resize rz-r" data-rz="r"></div>';
+      if(n.w){ node.style.width=n.w+'px'; node.style.maxWidth='none'; }
+      if(n.h){ node.style.height=n.h+'px'; }
+      var nivelCor=(atual.coresNivel && atual.coresNivel[String(nivel)])||null;
+      var corFundo = n.corFundo || (nivelCor && nivelCor.fundo) || null;
+      var corTexto = n.corTexto || (nivelCor && nivelCor.texto) || null;
+      if(corFundo){ node.style.background=corFundo; node.style.borderColor=corFundo; }
+      if(corTexto){ node.style.color=corTexto; }
+      if(n.fonte){ node.style.fontFamily=n.fonte; }
+      var txtSpan=node.querySelector('.fn-node-text');
+      if(txtSpan){
+        if(n.negrito) txtSpan.style.fontWeight='700';
+        if(n.italico) txtSpan.style.fontStyle='italic';
+      }
       canvas.appendChild(node);
-      wireNode(node, n, temFilhos, filhosDe);
+      wireNode(node, n, temFilhos, filhosDe, nivel);
     });
   }
 
@@ -6163,6 +6230,98 @@
     if(remover[selecionado]) selecionado=null;
     limparSelecaoGrupo();
     saveFunil(atual); renderMapa();
+  }
+
+  // ---------- Barra de estilo (cor de fundo/letra, fonte, negrito/itálico) ----------
+  function objEstiloNo(){ return atual.nos.find(function(x){ return x.id===estiloAlvo.id; }); }
+  function objEstiloNivel(){
+    atual.coresNivel = atual.coresNivel || {};
+    var k=String(estiloAlvo.nivel);
+    atual.coresNivel[k] = atual.coresNivel[k] || {};
+    return atual.coresNivel[k];
+  }
+  function estiloAtual(){ return estiloAlvo.tipo==='no' ? objEstiloNo() : objEstiloNivel(); }
+
+  function montarSwatches(container, cores, prop, alvo){
+    if(!container) return;
+    container.innerHTML='';
+    cores.forEach(function(cor){
+      var b=document.createElement('button'); b.type='button'; b.className='fn-swatch'; b.style.background=cor;
+      if(alvo && alvo[prop]===cor) b.classList.add('on');
+      b.addEventListener('click', function(){
+        var obj=estiloAtual(); if(!obj) return;
+        obj[prop]=cor; saveFunil(atual); renderMapa(); mostrarBarraEstilo();
+      });
+      container.appendChild(b);
+    });
+  }
+
+  function mostrarBarraEstilo(){
+    var bar=el('fn-style-bar'); if(!bar || !estiloAlvo) return;
+    var obj=estiloAtual(); if(!obj){ fecharBarraEstilo(); return; }
+    var propFundo = estiloAlvo.tipo==='no' ? 'corFundo' : 'fundo';
+    var propTexto = estiloAlvo.tipo==='no' ? 'corTexto' : 'texto';
+    el('fn-style-title').textContent = estiloAlvo.tipo==='no' ? 'Etapa selecionada' : 'Nível '+String(estiloAlvo.nivel).padStart(2,'0');
+    montarSwatches(el('fn-sw-fundo'), PALETA_FUNDO, propFundo, obj);
+    montarSwatches(el('fn-sw-texto'), PALETA_TEXTO, propTexto, obj);
+    el('fn-color-fundo-custom').value = obj[propFundo] || '#ffffff';
+    el('fn-color-texto-custom').value = obj[propTexto] || '#0b1f3a';
+    var fg=el('fn-font-group');
+    if(fg) fg.style.display = estiloAlvo.tipo==='no' ? '' : 'none';
+    if(estiloAlvo.tipo==='no'){
+      el('fn-font-family').value = obj.fonte || '';
+      el('fn-font-bold').classList.toggle('on', !!obj.negrito);
+      el('fn-font-italic').classList.toggle('on', !!obj.italico);
+    }
+    bar.style.display='flex';
+  }
+
+  function abrirEstiloNo(id){ estiloAlvo={ tipo:'no', id:id }; mostrarBarraEstilo(); }
+  function abrirEstiloNivel(nivel){ estiloAlvo={ tipo:'nivel', nivel:nivel }; mostrarBarraEstilo(); }
+  function fecharBarraEstilo(){ estiloAlvo=null; var bar=el('fn-style-bar'); if(bar) bar.style.display='none'; }
+
+  function wireBarraEstilo(){
+    var fundoCustom=el('fn-color-fundo-custom'), textoCustom=el('fn-color-texto-custom');
+    if(fundoCustom) fundoCustom.addEventListener('input', function(e){
+      var obj=estiloAtual(); if(!obj) return;
+      var prop = estiloAlvo.tipo==='no' ? 'corFundo' : 'fundo';
+      obj[prop]=e.target.value; saveFunil(atual); renderMapa(); mostrarBarraEstilo();
+    });
+    if(textoCustom) textoCustom.addEventListener('input', function(e){
+      var obj=estiloAtual(); if(!obj) return;
+      var prop = estiloAlvo.tipo==='no' ? 'corTexto' : 'texto';
+      obj[prop]=e.target.value; saveFunil(atual); renderMapa(); mostrarBarraEstilo();
+    });
+    var ff=el('fn-font-family');
+    if(ff) ff.addEventListener('change', function(e){
+      if(!estiloAlvo || estiloAlvo.tipo!=='no') return;
+      var no=objEstiloNo(); if(!no) return;
+      no.fonte=e.target.value||''; saveFunil(atual); renderMapa(); mostrarBarraEstilo();
+    });
+    var fb=el('fn-font-bold');
+    if(fb) fb.addEventListener('click', function(){
+      if(!estiloAlvo || estiloAlvo.tipo!=='no') return;
+      var no=objEstiloNo(); if(!no) return;
+      no.negrito=!no.negrito; saveFunil(atual); renderMapa(); mostrarBarraEstilo();
+    });
+    var fi=el('fn-font-italic');
+    if(fi) fi.addEventListener('click', function(){
+      if(!estiloAlvo || estiloAlvo.tipo!=='no') return;
+      var no=objEstiloNo(); if(!no) return;
+      no.italico=!no.italico; saveFunil(atual); renderMapa(); mostrarBarraEstilo();
+    });
+    var rs=el('fn-style-reset');
+    if(rs) rs.addEventListener('click', function(){
+      if(!estiloAlvo) return;
+      if(estiloAlvo.tipo==='no'){
+        var no=objEstiloNo(); if(no){ delete no.corFundo; delete no.corTexto; delete no.fonte; delete no.negrito; delete no.italico; }
+      } else {
+        if(atual.coresNivel) delete atual.coresNivel[String(estiloAlvo.nivel)];
+      }
+      saveFunil(atual); renderMapa(); mostrarBarraEstilo();
+    });
+    var cl=el('fn-style-close');
+    if(cl) cl.addEventListener('click', fecharBarraEstilo);
   }
 
   function nodeEl(id){ return document.querySelector('.fn-node[data-node-id="'+id+'"]'); }
@@ -6210,6 +6369,7 @@
 
   function abortarPendente(n){
     if(!n || !n._pendente) return;
+    n._pendente=false;
     atual.nos=atual.nos.filter(function(x){ return x.id!==n.id; });
     if(selecionado===n.id) selecionado=n.pai;
     renderMapa();
@@ -6227,11 +6387,47 @@
     }
     atual.nos=atual.nos.filter(function(x){ return !remover[x.id]; });
     if(remover[selecionado]) selecionado=null;
+    if(estiloAlvo && estiloAlvo.tipo==='no' && remover[estiloAlvo.id]) fecharBarraEstilo();
     saveFunil(atual); renderMapa();
   }
 
-  function wireNode(node, n, temFilhosFn){
+  function wireNode(node, n, temFilhosFn, filhosDeMap, nivelAtual){
     var textEl=node.querySelector('.fn-node-text');
+
+    var lvlLbl=node.querySelector('.fn-node-level');
+    if(lvlLbl){
+      lvlLbl.style.cursor='pointer';
+      lvlLbl.title='Clique para mudar a cor deste nível';
+      lvlLbl.addEventListener('click', function(e){ e.stopPropagation(); abrirEstiloNivel(nivelAtual); });
+    }
+
+    // redimensionar pelas bordas (aparece ao passar o mouse)
+    ['t','b','l','r'].forEach(function(dir){
+      var handle=node.querySelector('.rz-'+dir); if(!handle) return;
+      var rzStartX, rzStartY, rzOrigW, rzOrigH, rzOrigX, rzOrigY, rz=false;
+      handle.addEventListener('mousedown', function(e){
+        e.stopPropagation(); e.preventDefault();
+        rz=true;
+        rzStartX=e.clientX; rzStartY=e.clientY;
+        rzOrigW=n.w || node.offsetWidth || 160;
+        rzOrigH=n.h || node.offsetHeight || 60;
+        rzOrigX=n.x; rzOrigY=n.y;
+      });
+      window.addEventListener('mousemove', function(e){
+        if(!rz) return;
+        var dx=(e.clientX-rzStartX)/zoom, dy=(e.clientY-rzStartY)/zoom;
+        var w=rzOrigW, h=rzOrigH, x=rzOrigX, y=rzOrigY;
+        if(dir==='r'){ w=Math.max(110, rzOrigW+dx); x=rzOrigX+(w-rzOrigW)/2; }
+        else if(dir==='l'){ w=Math.max(110, rzOrigW-dx); x=rzOrigX+(w-rzOrigW)/2; }
+        else if(dir==='b'){ h=Math.max(50, rzOrigH+dy); y=rzOrigY+(h-rzOrigH)/2; }
+        else if(dir==='t'){ h=Math.max(50, rzOrigH-dy); y=rzOrigY+(h-rzOrigH)/2; }
+        n.w=w; n.h=h; n.x=x; n.y=y;
+        node.style.width=w+'px'; node.style.maxWidth='none'; node.style.height=h+'px';
+        node.style.left=x+'px'; node.style.top=y+'px';
+        renderLines();
+      });
+      window.addEventListener('mouseup', function(){ if(rz){ rz=false; saveFunil(atual); } });
+    });
 
     function commitEdit(){
       textEl.setAttribute('contenteditable','false');
@@ -6259,7 +6455,11 @@
       document.execCommand && document.execCommand('selectAll', false, null);
     });
     textEl.addEventListener('blur', function(){
-      if(n._pendente){ abortarPendente(n); return; }
+      if(n._pendente){
+        var texto=textEl.textContent.trim();
+        if(texto) confirmarPendente(); else abortarPendente(n);
+        return;
+      }
       commitEdit();
     });
     textEl.addEventListener('keydown', function(e){
@@ -6363,6 +6563,7 @@
           selecionado=n.id;
           document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
           var selEl=nodeEl(n.id); if(selEl) selEl.classList.add('selected');
+          abrirEstiloNo(n.id);
           textEl.setAttribute('contenteditable','true'); textEl.focus();
           return;
         }
@@ -6371,6 +6572,7 @@
           pendingClick=null;
           selecionado=n.id;
           document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+          abrirEstiloNo(n.id);
           if(temFilhosFn(n.id)){
             // clicou em cima: se está aberta, fecha; se está fechada, abre — sempre, de imediato
             n.colapsado=!n.colapsado; saveFunil(atual); renderMapa();
@@ -6504,7 +6706,7 @@
         var m=el('fn-marquee'); if(m) m.style.display='none';
         if(!marqueeMoved){
           // clique simples em área vazia: só desseleciona
-          selecionado=null; limparSelecaoGrupo();
+          selecionado=null; limparSelecaoGrupo(); fecharBarraEstilo();
           document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
           return;
         }
@@ -6523,9 +6725,11 @@
         selecionado=null;
         if(dentro.length>=2){
           selecionadosGrupo=dentro;
+          fecharBarraEstilo();
           renderMapa();
         } else if(dentro.length===1){
           selecionado=dentro[0];
+          abrirEstiloNo(dentro[0]);
           renderMapa();
         }
       });
@@ -6570,7 +6774,7 @@
 
   function showFunil(){ hideOtherViews(); var v=el('view-funil'); if(v) v.style.display=''; setActiveNav('funil'); el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; renderList(); scrollTop(); }
   function handleRoute(){ if(location.hash==='#/funil') showFunil(); else { var v=el('view-funil'); if(v) v.style.display='none'; } }
-  function start(){ if(!el('view-funil')) return; wire(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
+  function start(){ if(!el('view-funil')) return; wire(); wireBarraEstilo(); window.addEventListener('hashchange', handleRoute); handleRoute(); }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded', start);
 })();
