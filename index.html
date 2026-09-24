@@ -6167,6 +6167,12 @@
 
   function nodeEl(id){ return document.querySelector('.fn-node[data-node-id="'+id+'"]'); }
 
+  function blurOutrosEditaveis(exceto){
+    document.querySelectorAll('.fn-node-text[contenteditable="true"]').forEach(function(t){
+      if(t!==exceto) t.blur();
+    });
+  }
+
   function descendentesDe(id){
     var filhosDe={}; atual.nos.forEach(function(x){ if(x.pai!=null){ (filhosDe[x.pai]=filhosDe[x.pai]||[]).push(x.id); } });
     var out=[], fila=(filhosDe[id]||[]).slice();
@@ -6296,6 +6302,7 @@
     node.addEventListener('mousedown', function(e){
       if(spaceDown) return;
       if(textEl.getAttribute('contenteditable')==='true') return;
+      blurOutrosEditaveis(textEl); // garante que outra etapa em edição seja confirmada/abortada antes deste clique
       dragging=true; movedPx=0; dropTargetId=null;
       startX=e.clientX; startY=e.clientY; origX=n.x; origY=n.y;
       if(selecionadosGrupo.length>1 && selecionadosGrupo.indexOf(n.id)>=0){
@@ -6345,6 +6352,16 @@
       if(movedPx<=4){
         // clique único num nó fora do grupo (ou sem arrasto real): comportamento normal de seleção individual
         if(grupoOrigens) limparSelecaoGrupo();
+        var semTexto = !(n.texto && n.texto.trim());
+        if(semTexto){
+          // etapa sem texto: já oferece a digitação direto, sem precisar de duplo clique
+          if(pendingClick){ clearTimeout(pendingClick); pendingClick=null; }
+          selecionado=n.id;
+          document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+          var selEl=nodeEl(n.id); if(selEl) selEl.classList.add('selected');
+          textEl.setAttribute('contenteditable','true'); textEl.focus();
+          return;
+        }
         if(pendingClick) clearTimeout(pendingClick);
         pendingClick=setTimeout(function(){
           pendingClick=null;
@@ -6444,6 +6461,7 @@
           return;
         }
         if(e.target===wrap || e.target===el('fn-canvas')){
+          blurOutrosEditaveis(null);
           // clicar e arrastar em área vazia: inicia laço de seleção (marquee)
           marqueeAtivo=true; marqueeMoved=false;
           var rect=wrap.getBoundingClientRect();
