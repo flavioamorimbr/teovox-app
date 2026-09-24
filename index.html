@@ -1446,22 +1446,32 @@
   .fn-zoom button:hover{ background:#f2f5f8; }
   .fn-zoom .fn-zoom-lvl{ min-width:52px; font-size:12px; color:#5a6472; border:none; box-shadow:none; background:transparent; cursor:default; }
   .fn-svg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
-  .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; transition:box-shadow .12s, border-color .12s; overflow:auto; }
+  .fn-node{ position:absolute; transform:translate(-50%,-50%); background:#fff; border:2px solid #2169b8; border-radius:12px; padding:10px 12px; min-width:120px; max-width:220px; box-shadow:0 4px 12px rgba(11,31,58,.12); cursor:grab; user-select:none; transition:box-shadow .12s, border-color .12s; }
   .fn-resize{ position:absolute; z-index:4; }
   .fn-resize.rz-t, .fn-resize.rz-b{ left:10px; right:10px; height:8px; cursor:ns-resize; }
   .fn-resize.rz-t{ top:-4px; } .fn-resize.rz-b{ bottom:-4px; }
   .fn-resize.rz-l, .fn-resize.rz-r{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
   .fn-resize.rz-l{ left:-4px; } .fn-resize.rz-r{ right:-4px; }
   .fn-resize:hover{ background:rgba(33,105,184,.25); border-radius:3px; }
-  .fn-style-bar{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:#fff; border:1px solid #e6e9ee; border-radius:12px; padding:9px 14px; margin-bottom:10px; }
-  .fn-style-title{ font-weight:700; color:#0b1f3a; font-size:13px; padding-right:4px; border-right:1px solid #eef0f3; }
+  .fn-help-btn{ width:22px; height:22px; border-radius:50%; border:1.5px solid #cfd8e3; background:#fff; color:#5a6472; font-size:12px; font-weight:700; cursor:pointer; display:grid; place-items:center; flex:0 0 auto; }
+  .fn-help-btn:hover{ background:#f2f5f8; border-color:#2169b8; color:#2169b8; }
+  .fn-help-pop{ position:relative; background:#fff; border:1px solid #e6e9ee; border-radius:12px; padding:14px 16px; margin-bottom:10px; box-shadow:0 8px 24px rgba(11,31,58,.10); }
+  .fn-help-pop p{ font-size:12.5px; color:#5a6472; margin:0 0 6px; line-height:1.5; }
+  .fn-help-pop p:last-child{ margin-bottom:0; }
+  .fn-help-close{ position:absolute; top:10px; right:12px; border:none; background:none; color:#8a94a0; cursor:pointer; font-size:13px; }
+  .fn-style-bar{ display:flex; flex-direction:column; gap:10px; background:#fff; border:1px solid #e6e9ee; border-radius:12px; padding:10px 14px; margin-bottom:10px; }
+  .fn-style-row{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .fn-style-row-top{ padding-bottom:9px; border-bottom:1px solid #f0f2f5; }
+  .fn-style-title{ font-weight:700; color:#0b1f3a; font-size:13px; }
   .fn-style-group{ display:flex; align-items:center; gap:7px; }
-  .fn-style-lbl{ font-size:12px; color:#8a94a0; }
+  .fn-style-lbl{ font-size:12px; color:#8a94a0; min-width:38px; }
   .fn-swatches{ display:flex; gap:4px; }
   .fn-swatch{ width:20px; height:20px; border-radius:6px; border:1.5px solid rgba(0,0,0,.12); cursor:pointer; padding:0; }
   .fn-swatch:hover{ transform:scale(1.12); }
   .fn-swatch.on{ box-shadow:0 0 0 2px #2169b8; }
   #fn-color-fundo-custom, #fn-color-texto-custom{ width:24px; height:24px; border:none; border-radius:6px; padding:0; cursor:pointer; background:none; }
+  .fn-select{ padding:7px 10px; border:1px solid var(--lead-100); border-radius:8px; font-family:var(--font-body); font-size:0.85rem; color:var(--lead-900); background:#fff; cursor:pointer; transition:border-color .15s; }
+  .fn-select:focus{ outline:none; border-color:var(--blue-400); }
   .fn-font-btn{ width:28px; height:26px; border:1px solid #e2e6ea; background:#fff; border-radius:7px; cursor:pointer; color:#0b1f3a; font-size:13px; }
   .fn-font-btn.on{ background:#0b1f3a; color:#fff; border-color:#0b1f3a; }
   .fn-style-reset{ border:1px solid #e2e6ea; background:#fff; border-radius:8px; padding:6px 11px; font-size:12.5px; color:#5a6472; cursor:pointer; }
@@ -2322,40 +2332,51 @@
       <div class="fn-editor" id="fn-editor">
         <button class="fn-back" id="fn-back">‹ Voltar aos funis</button>
         <div class="topbar" style="margin-bottom:8px;">
-          <div>
-            <h1 id="fn-editor-title" style="font-size:20px;">Funil</h1>
-            <p>Mapa mental — dê duplo clique no texto para editar</p>
-            <p class="fn-hint" style="margin-top:2px;">Clique abre/fecha a etapa · duplo clique edita o texto · <b>Tab</b> cria a próxima etapa (confirme com <b>Enter</b> ou clicando fora) · arraste no vazio para selecionar várias etapas (arraste juntas ou <b>Delete</b> para excluir) · arraste uma etapa perto de outra para conectar · arraste a borda para redimensionar · clique no "NÍVEL" para colorir o nível inteiro · segure <b>Espaço</b> para mover o mapa</p>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <h1 id="fn-editor-title" style="font-size:20px;margin:0;">Funil</h1>
+            <button type="button" id="fn-help-btn" class="fn-help-btn" title="Como usar">?</button>
           </div>
+        </div>
+        <div class="fn-help-pop" id="fn-help-pop" style="display:none;">
+          <button type="button" class="fn-help-close" id="fn-help-close">✕</button>
+          <p><b>Clique</b> abre/fecha a etapa · <b>duplo clique</b> edita o texto</p>
+          <p><b>Tab</b> cria a próxima etapa (confirme com <b>Enter</b> ou clicando fora)</p>
+          <p>Arraste no vazio para selecionar várias etapas (arraste juntas ou <b>Delete</b> para excluir)</p>
+          <p>Arraste uma etapa perto de outra para conectar · arraste a borda para redimensionar</p>
+          <p>Clique no "NÍVEL" para colorir o nível inteiro · segure <b>Espaço</b> para mover o mapa</p>
         </div>
 
         <div class="fn-style-bar" id="fn-style-bar" style="display:none;">
-          <span class="fn-style-title" id="fn-style-title">Etapa</span>
-          <div class="fn-style-group">
-            <span class="fn-style-lbl">Fundo</span>
-            <div class="fn-swatches" id="fn-sw-fundo" data-target="fundo"></div>
-            <input type="color" id="fn-color-fundo-custom" title="Cor personalizada de fundo">
+          <div class="fn-style-row fn-style-row-top">
+            <span class="fn-style-title" id="fn-style-title">Etapa</span>
+            <div class="fn-style-group" id="fn-font-group">
+              <span class="fn-style-lbl">Fonte</span>
+              <select id="fn-font-family" class="fn-select">
+                <option value="">Padrão</option>
+                <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+                <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                <option value="'Comic Sans MS', 'Comic Sans', cursive">Comic Sans</option>
+              </select>
+              <button type="button" class="fn-font-btn" id="fn-font-bold" title="Negrito"><b>B</b></button>
+              <button type="button" class="fn-font-btn" id="fn-font-italic" title="Itálico"><i>I</i></button>
+            </div>
+            <button type="button" class="fn-style-reset" id="fn-style-reset">Limpar estilo</button>
+            <button type="button" class="fn-style-close" id="fn-style-close" title="Fechar">✕</button>
           </div>
-          <div class="fn-style-group">
-            <span class="fn-style-lbl">Letra</span>
-            <div class="fn-swatches" id="fn-sw-texto" data-target="texto"></div>
-            <input type="color" id="fn-color-texto-custom" title="Cor personalizada da letra">
+          <div class="fn-style-row">
+            <div class="fn-style-group">
+              <span class="fn-style-lbl">Fundo</span>
+              <div class="fn-swatches" id="fn-sw-fundo" data-target="fundo"></div>
+              <input type="color" id="fn-color-fundo-custom" title="Cor personalizada de fundo">
+            </div>
+            <div class="fn-style-group">
+              <span class="fn-style-lbl">Letra</span>
+              <div class="fn-swatches" id="fn-sw-texto" data-target="texto"></div>
+              <input type="color" id="fn-color-texto-custom" title="Cor personalizada da letra">
+            </div>
           </div>
-          <div class="fn-style-group" id="fn-font-group">
-            <span class="fn-style-lbl">Fonte</span>
-            <select id="fn-font-family">
-              <option value="">Padrão</option>
-              <option value="Georgia, 'Times New Roman', serif">Georgia</option>
-              <option value="'Times New Roman', Times, serif">Times New Roman</option>
-              <option value="'Courier New', Courier, monospace">Courier New</option>
-              <option value="Verdana, Geneva, sans-serif">Verdana</option>
-              <option value="'Comic Sans MS', 'Comic Sans', cursive">Comic Sans</option>
-            </select>
-            <button type="button" class="fn-font-btn" id="fn-font-bold" title="Negrito"><b>B</b></button>
-            <button type="button" class="fn-font-btn" id="fn-font-italic" title="Itálico"><i>I</i></button>
-          </div>
-          <button type="button" class="fn-style-reset" id="fn-style-reset">Limpar estilo</button>
-          <button type="button" class="fn-style-close" id="fn-style-close" title="Fechar">✕</button>
         </div>
         <div class="fn-canvas-wrap" id="fn-canvas-wrap">
           <div class="fn-canvas" id="fn-canvas">
@@ -6629,6 +6650,9 @@
       save(list); closeModal(); renderList();
     });
     var back=el('fn-back'); if(back) back.addEventListener('click', fecharEditor);
+    var helpBtn=el('fn-help-btn'), helpPop=el('fn-help-pop'), helpClose=el('fn-help-close');
+    if(helpBtn) helpBtn.addEventListener('click', function(){ if(helpPop) helpPop.style.display = (helpPop.style.display==='none') ? 'block' : 'none'; });
+    if(helpClose) helpClose.addEventListener('click', function(){ if(helpPop) helpPop.style.display='none'; });
 
     // ----- Tab (criar próxima etapa) / Delete (excluir) quando uma etapa está selecionada -----
     document.addEventListener('keydown', function(e){
