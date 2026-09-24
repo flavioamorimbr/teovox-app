@@ -2305,7 +2305,7 @@
           <div>
             <h1 id="fn-editor-title" style="font-size:20px;">Funil</h1>
             <p>Mapa mental — dê duplo clique no texto para editar</p>
-            <p class="fn-hint" style="margin-top:2px;">Clique para selecionar/recolher · duplo clique para editar · <b>Tab</b> cria a próxima etapa (confirme com <b>Enter</b>) · arraste no vazio para selecionar várias etapas (arraste juntas ou <b>Delete</b> para excluir) · arraste uma etapa perto de outra para conectar · segure <b>Espaço</b> para mover o mapa</p>
+            <p class="fn-hint" style="margin-top:2px;">Clique abre/fecha a etapa · duplo clique edita o texto · <b>Tab</b> cria a próxima etapa (confirme com <b>Enter</b>) · arraste no vazio para selecionar várias etapas (arraste juntas ou <b>Delete</b> para excluir) · arraste uma etapa perto de outra para conectar · segure <b>Espaço</b> para mover o mapa</p>
           </div>
         </div>
         <div class="fn-canvas-wrap" id="fn-canvas-wrap">
@@ -6180,6 +6180,8 @@
     return out;
   }
 
+  function existePendente(){ return !!(atual && atual.nos.some(function(x){ return x._pendente; })); }
+
   function posicaoLivre(paiNode){
     var x=paiNode.x+230;
     var candidatosY=[paiNode.y];
@@ -6194,6 +6196,8 @@
   }
 
   function criarFilho(paiNode){
+    if(existePendente()) return null; // já existe uma etapa não confirmada — não cria outra
+    if(paiNode.colapsado) paiNode.colapsado=false; // expande o pai pra o novo filho não nascer escondido
     var pos=posicaoLivre(paiNode);
     var novo={ id:uid('n'), texto:'', x:pos.x, y:pos.y, pai:paiNode.id, _pendente:true };
     atual.nos.push(novo);            // ainda NÃO é salvo — só ao confirmar com ENTER
@@ -6269,7 +6273,7 @@
         else textEl.blur();
       } else if(e.key==='Tab'){
         e.preventDefault();
-        if(n._pendente) return; // precisa confirmar com ENTER antes de criar outra etapa
+        if(n._pendente || existePendente()) return; // precisa confirmar com ENTER antes de criar outra etapa
         commitEdit();
         criarFilho(n);
       }
@@ -6365,12 +6369,12 @@
         if(pendingClick) clearTimeout(pendingClick);
         pendingClick=setTimeout(function(){
           pendingClick=null;
-          var jaSelecionado=(selecionado===n.id);
           selecionado=n.id;
-          if(jaSelecionado && temFilhosFn(n.id)){
+          document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+          if(temFilhosFn(n.id)){
+            // clicou em cima: se está aberta, fecha; se está fechada, abre — sempre, de imediato
             n.colapsado=!n.colapsado; saveFunil(atual); renderMapa();
           } else {
-            document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
             var atual_el=nodeEl(n.id); if(atual_el) atual_el.classList.add('selected');
           }
         }, 260);
@@ -6437,7 +6441,7 @@
       if(!selecionado || !atual) return;
       var alvo=atual.nos.find(function(x){ return x.id===selecionado; });
       if(!alvo) return;
-      if(e.key==='Tab'){ e.preventDefault(); criarFilho(alvo); }
+      if(e.key==='Tab'){ e.preventDefault(); if(existePendente()) return; criarFilho(alvo); }
       else if(e.key==='Delete' || e.key==='Backspace'){ e.preventDefault(); excluirNo(alvo.id, true); }
       else if(e.key==='Escape'){ selecionado=null; document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); }); }
     });
