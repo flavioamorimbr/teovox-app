@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1438,7 +1437,11 @@
   .fn-canvas-wrap.can-pan{ cursor:grab; }
   .fn-canvas-wrap.panning{ cursor:grabbing; }
   .fn-canvas{ position:absolute; top:0; left:0; width:6000px; height:4000px; transform-origin:0 0; will-change:transform; }
+  .fn-canvas-wrap:fullscreen, .fn-canvas-wrap:-webkit-full-screen{ width:100vw; height:100vh; border-radius:0; }
   .fn-zoom{ position:absolute; right:14px; bottom:14px; display:flex; gap:6px; z-index:6; }
+  .fn-marquee{ position:absolute; border:1.5px dashed #2169b8; background:rgba(33,105,184,.08); pointer-events:none; z-index:8; display:none; }
+  .fn-node.grupo{ box-shadow:0 0 0 3px #12a7f0, 0 4px 12px rgba(11,31,58,.12); }
+  .fn-node.root.grupo{ box-shadow:0 0 0 3px #6aaae4; }
   .fn-zoom button{ width:34px; height:34px; border:1px solid #e2e6ea; background:#fff; border-radius:9px; cursor:pointer; color:#0b1f3a; font-size:17px; box-shadow:0 2px 8px rgba(11,31,58,.10); display:grid; place-items:center; }
   .fn-zoom button:hover{ background:#f2f5f8; }
   .fn-zoom .fn-zoom-lvl{ min-width:52px; font-size:12px; color:#5a6472; border:none; box-shadow:none; background:transparent; cursor:default; }
@@ -2302,18 +2305,22 @@
           <div>
             <h1 id="fn-editor-title" style="font-size:20px;">Funil</h1>
             <p>Mapa mental — dê duplo clique no texto para editar</p>
-            <p class="fn-hint" style="margin-top:2px;">Clique para selecionar/recolher · duplo clique para editar · <b>Tab</b> cria a próxima etapa · <b>Delete</b> exclui a selecionada · arraste uma etapa perto de outra para conectar · segure <b>Espaço</b> para mover o mapa · zoom no canto</p>
+            <p class="fn-hint" style="margin-top:2px;">Clique para selecionar/recolher · duplo clique para editar · <b>Tab</b> cria a próxima etapa (confirme com <b>Enter</b>) · arraste no vazio para selecionar várias etapas (arraste juntas ou <b>Delete</b> para excluir) · arraste uma etapa perto de outra para conectar · segure <b>Espaço</b> para mover o mapa</p>
           </div>
         </div>
         <div class="fn-canvas-wrap" id="fn-canvas-wrap">
           <div class="fn-canvas" id="fn-canvas">
             <svg class="fn-svg" id="fn-svg"></svg>
           </div>
+          <div class="fn-marquee" id="fn-marquee"></div>
           <div class="fn-zoom">
             <button type="button" id="fn-zoom-out" title="Diminuir (zoom out)">−</button>
             <button type="button" class="fn-zoom-lvl" id="fn-zoom-lvl">100%</button>
             <button type="button" id="fn-zoom-in" title="Aumentar (zoom in)">+</button>
-            <button type="button" id="fn-zoom-reset" title="Centralizar" style="font-size:13px;">⌖</button>
+            <button type="button" id="fn-zoom-reset" title="Centralizar" style="font-size:19px;">⌖</button>
+            <button type="button" id="fn-fullscreen" title="Tela cheia">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -6011,6 +6018,8 @@
 
   var atual=null; // funil aberto no editor
   var selecionado=null; // id do nó selecionado (para Tab/Delete)
+  var selecionadosGrupo=[]; // ids selecionados por laço (arrastar juntos / excluir juntos)
+  var marqueeAtivo=false, marqueeSX=0, marqueeSY=0;
   var panX=0, panY=0, zoom=1, spaceDown=false, panning=false, panSX=0, panSY=0, panOX=0, panOY=0;
   var WORLD_W=6000, WORLD_H=4000;
   function applyTransform(){ var c=document.getElementById('fn-canvas'); if(c) c.style.transform='translate('+panX+'px,'+panY+'px) scale('+zoom+')'; var lv=document.getElementById('fn-zoom-lvl'); if(lv) lv.textContent=Math.round(zoom*100)+'%'; }
@@ -6069,14 +6078,14 @@
       atual.nos=[{ id:uid('n'), texto:atual.nome, x:Math.round(WORLD_W/2), y:Math.round(WORLD_H/2)-500, pai:null }];
       saveFunil(atual);
     }
-    selecionado=null;
+    selecionado=null; selecionadosGrupo=[];
     el('fn-list').style.display='none';
     el('fn-editor').classList.add('open');
     el('fn-editor-title').textContent=atual.nome;
     zoom=1; renderMapa(); applyTransform(); centralizarRoot();
     scrollTop();
   }
-  function fecharEditor(){ selecionado=null; el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); scrollTop(); }
+  function fecharEditor(){ selecionado=null; selecionadosGrupo=[]; el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; atual=null; renderList(); scrollTop(); }
 
   function renderMapa(){
     var canvas=el('fn-canvas'), svg=el('fn-svg'); if(!canvas||!atual) return;
@@ -6119,7 +6128,7 @@
       var comFilhos=temFilhos(n.id);
       var nivel=nivelDe(n);
       var node=document.createElement('div');
-      node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'')+(selecionado===n.id?' selected':'')+(n._pendente?' pendente':'');
+      node.className='fn-node'+(n.pai===null?' root':'')+(n.colapsado?' collapsed':'')+(selecionado===n.id?' selected':'')+(n._pendente?' pendente':'')+(selecionadosGrupo.indexOf(n.id)>=0?' grupo':'');
       node.dataset.nodeId=n.id;
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
       var nivelLbl = nivel>0 ? '<span class="fn-node-level">Nível '+String(nivel).padStart(2,'0')+'</span>' : '';
@@ -6129,6 +6138,31 @@
       canvas.appendChild(node);
       wireNode(node, n, temFilhos, filhosDe);
     });
+  }
+
+  function limparSelecaoGrupo(){
+    if(!selecionadosGrupo.length) return;
+    selecionadosGrupo=[];
+    document.querySelectorAll('.fn-node.grupo').forEach(function(x){ x.classList.remove('grupo'); });
+  }
+
+  function excluirGrupo(ids){
+    if(!ids || ids.length<2) return;
+    var root=atual.nos.find(function(x){ return x.pai===null; });
+    var remover={};
+    ids.forEach(function(id){
+      if(root && id===root.id) return; // a raiz nunca é excluída, mesmo em grupo
+      remover[id]=true;
+      descendentesDe(id).forEach(function(x){ remover[x]=true; });
+    });
+    var qtd=Object.keys(remover).length;
+    if(!qtd) return;
+    var extra = qtd>ids.length ? ' (incluindo ramificações)' : '';
+    if(!confirm('Excluir '+qtd+' etapa(s) selecionada(s)'+extra+'?')) return;
+    atual.nos=atual.nos.filter(function(x){ return !remover[x.id]; });
+    if(remover[selecionado]) selecionado=null;
+    limparSelecaoGrupo();
+    saveFunil(atual); renderMapa();
   }
 
   function nodeEl(id){ return document.querySelector('.fn-node[data-node-id="'+id+'"]'); }
@@ -6210,6 +6244,7 @@
     textEl.addEventListener('dblclick', function(e){
       e.stopPropagation();
       if(pendingClick){ clearTimeout(pendingClick); pendingClick=null; }
+      limparSelecaoGrupo();
       textEl.setAttribute('contenteditable','true'); textEl.focus();
       document.execCommand && document.execCommand('selectAll', false, null);
     });
@@ -6257,12 +6292,18 @@
     });
 
     // clique (seleciona/recolhe) e arraste (reposiciona ou conecta)
-    var startX, startY, origX, origY, dragging=false, movedPx=0, dropTargetId=null, pendingClick=null;
+    var startX, startY, origX, origY, dragging=false, movedPx=0, dropTargetId=null, pendingClick=null, grupoOrigens=null;
     node.addEventListener('mousedown', function(e){
       if(spaceDown) return;
       if(textEl.getAttribute('contenteditable')==='true') return;
       dragging=true; movedPx=0; dropTargetId=null;
       startX=e.clientX; startY=e.clientY; origX=n.x; origY=n.y;
+      if(selecionadosGrupo.length>1 && selecionadosGrupo.indexOf(n.id)>=0){
+        grupoOrigens={};
+        selecionadosGrupo.forEach(function(id){ var no=atual.nos.find(function(x){ return x.id===id; }); if(no) grupoOrigens[id]={x:no.x,y:no.y}; });
+      } else {
+        grupoOrigens=null;
+      }
       e.stopPropagation(); e.preventDefault();
     });
     window.addEventListener('mousemove', function(e){
@@ -6270,8 +6311,19 @@
       movedPx=Math.max(Math.abs(e.clientX-startX), Math.abs(e.clientY-startY));
       if(movedPx<=4) return;
       node.classList.add('dragging');
-      n.x=origX+(e.clientX-startX)/zoom;
-      n.y=origY+(e.clientY-startY)/zoom;
+      var dx=(e.clientX-startX)/zoom, dy=(e.clientY-startY)/zoom;
+      if(grupoOrigens){
+        // arrasta TODAS as etapas selecionadas juntas, mantendo a posição relativa entre elas
+        Object.keys(grupoOrigens).forEach(function(id){
+          var no=atual.nos.find(function(x){ return x.id===id; });
+          if(!no) return;
+          no.x=grupoOrigens[id].x+dx; no.y=grupoOrigens[id].y+dy;
+          var elx=nodeEl(id); if(elx){ elx.style.left=no.x+'px'; elx.style.top=no.y+'px'; }
+        });
+        renderLines();
+        return; // arrasto em grupo não tenta reconectar (evita ambiguidade)
+      }
+      n.x=origX+dx; n.y=origY+dy;
       node.style.left=n.x+'px'; node.style.top=n.y+'px';
       renderLines();
       // procura o nó mais próximo para conectar (nunca ele mesmo ou um descendente seu)
@@ -6291,7 +6343,8 @@
       dragging=false; node.classList.remove('dragging');
       document.querySelectorAll('.fn-node.drop-target').forEach(function(x){ x.classList.remove('drop-target'); });
       if(movedPx<=4){
-        // clique único: adia a decisão ~260ms — se virar um duplo clique (editar), essa decisão é cancelada
+        // clique único num nó fora do grupo (ou sem arrasto real): comportamento normal de seleção individual
+        if(grupoOrigens) limparSelecaoGrupo();
         if(pendingClick) clearTimeout(pendingClick);
         pendingClick=setTimeout(function(){
           pendingClick=null;
@@ -6304,6 +6357,12 @@
             var atual_el=nodeEl(n.id); if(atual_el) atual_el.classList.add('selected');
           }
         }, 260);
+        return;
+      }
+      if(grupoOrigens){
+        // arrasto em grupo concluído: só salva as novas posições
+        grupoOrigens=null;
+        saveFunil(atual);
         return;
       }
       // foi um arrasto: conecta ao alvo se houver, senão só salva a nova posição
@@ -6354,6 +6413,10 @@
       var ativo=document.activeElement;
       var editandoTexto = ativo && ativo.classList && ativo.classList.contains('fn-node-text') && ativo.getAttribute('contenteditable')==='true';
       if(editandoTexto) return; // o próprio campo de texto já trata Tab/Enter/Escape
+      if((e.key==='Delete' || e.key==='Backspace') && selecionadosGrupo.length>1){
+        e.preventDefault(); excluirGrupo(selecionadosGrupo.slice()); return;
+      }
+      if(e.key==='Escape' && selecionadosGrupo.length){ limparSelecaoGrupo(); }
       if(!selecionado || !atual) return;
       var alvo=atual.nos.find(function(x){ return x.id===selecionado; });
       if(!alvo) return;
@@ -6373,20 +6436,77 @@
     document.addEventListener('keyup', function(e){ if(e.code==='Space'){ spaceDown=false; var w=el('fn-canvas-wrap'); if(w){ w.classList.remove('can-pan'); w.classList.remove('panning'); } } });
     var wrap=el('fn-canvas-wrap');
     if(wrap){
+      var marqueeMoved=false;
       wrap.addEventListener('mousedown', function(e){
-        if(e.target===wrap || e.target===el('fn-canvas')){
-          selecionado=null;
-          document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+        if(spaceDown){
+          panning=true; wrap.classList.add('panning');
+          panSX=e.clientX; panSY=e.clientY; panOX=panX; panOY=panY; e.preventDefault();
+          return;
         }
-        if(!spaceDown) return;
-        panning=true; wrap.classList.add('panning');
-        panSX=e.clientX; panSY=e.clientY; panOX=panX; panOY=panY; e.preventDefault();
+        if(e.target===wrap || e.target===el('fn-canvas')){
+          // clicar e arrastar em área vazia: inicia laço de seleção (marquee)
+          marqueeAtivo=true; marqueeMoved=false;
+          var rect=wrap.getBoundingClientRect();
+          marqueeSX=e.clientX-rect.left; marqueeSY=e.clientY-rect.top;
+          var m=el('fn-marquee');
+          if(m){ m.style.display='block'; m.style.left=marqueeSX+'px'; m.style.top=marqueeSY+'px'; m.style.width='0px'; m.style.height='0px'; }
+          e.preventDefault();
+        }
       });
       window.addEventListener('mousemove', function(e){
-        if(!panning) return;
-        panX=panOX+(e.clientX-panSX); panY=panOY+(e.clientY-panSY); applyTransform();
+        if(panning){ panX=panOX+(e.clientX-panSX); panY=panOY+(e.clientY-panSY); applyTransform(); return; }
+        if(!marqueeAtivo) return;
+        var rect=wrap.getBoundingClientRect();
+        var cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+        if(Math.abs(cx-marqueeSX)>4 || Math.abs(cy-marqueeSY)>4) marqueeMoved=true;
+        var x1=Math.min(marqueeSX,cx), x2=Math.max(marqueeSX,cx);
+        var y1=Math.min(marqueeSY,cy), y2=Math.max(marqueeSY,cy);
+        var m=el('fn-marquee');
+        if(m){ m.style.left=x1+'px'; m.style.top=y1+'px'; m.style.width=(x2-x1)+'px'; m.style.height=(y2-y1)+'px'; }
+        // destaca em tempo real quem está dentro do laço
+        if(atual){
+          var dentro=[];
+          atual.nos.forEach(function(n){
+            var sx=panX+n.x*zoom, sy=panY+n.y*zoom;
+            if(sx>=x1 && sx<=x2 && sy>=y1 && sy<=y2) dentro.push(n.id);
+          });
+          document.querySelectorAll('.fn-node').forEach(function(elx){
+            elx.classList.toggle('grupo', dentro.indexOf(elx.dataset.nodeId)>=0);
+          });
+        }
       });
-      window.addEventListener('mouseup', function(){ if(panning){ panning=false; wrap.classList.remove('panning'); } });
+      window.addEventListener('mouseup', function(e){
+        if(panning){ panning=false; wrap.classList.remove('panning'); return; }
+        if(!marqueeAtivo) return;
+        marqueeAtivo=false;
+        var m=el('fn-marquee'); if(m) m.style.display='none';
+        if(!marqueeMoved){
+          // clique simples em área vazia: só desseleciona
+          selecionado=null; limparSelecaoGrupo();
+          document.querySelectorAll('.fn-node.selected').forEach(function(x){ x.classList.remove('selected'); });
+          return;
+        }
+        var rect=wrap.getBoundingClientRect();
+        var cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+        var x1=Math.min(marqueeSX,cx), x2=Math.max(marqueeSX,cx);
+        var y1=Math.min(marqueeSY,cy), y2=Math.max(marqueeSY,cy);
+        var dentro=[];
+        if(atual){
+          atual.nos.forEach(function(n){
+            var sx=panX+n.x*zoom, sy=panY+n.y*zoom;
+            if(sx>=x1 && sx<=x2 && sy>=y1 && sy<=y2) dentro.push(n.id);
+          });
+        }
+        limparSelecaoGrupo();
+        selecionado=null;
+        if(dentro.length>=2){
+          selecionadosGrupo=dentro;
+          renderMapa();
+        } else if(dentro.length===1){
+          selecionado=dentro[0];
+          renderMapa();
+        }
+      });
       // zoom com a roda (centrado no cursor)
       wrap.addEventListener('wheel', function(e){
         if(!el('fn-editor').classList.contains('open')) return;
@@ -6399,6 +6519,31 @@
     if(zi) zi.addEventListener('click', function(){ setZoom(zoom*1.2); });
     if(zo) zo.addEventListener('click', function(){ setZoom(zoom/1.2); });
     if(zr) zr.addEventListener('click', function(){ zoom=1; centralizarRoot(); });
+
+    // ----- Tela cheia -----
+    var fsBtn=el('fn-fullscreen');
+    function fsAtivo(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function atualizarIconeFs(){
+      if(!fsBtn) return;
+      fsBtn.title = fsAtivo() ? 'Sair da tela cheia' : 'Tela cheia';
+      fsBtn.innerHTML = fsAtivo()
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"></path><path d="M21 8h-3a2 2 0 0 1-2-2V3"></path><path d="M3 16h3a2 2 0 0 1 2 2v3"></path><path d="M16 21v-3a2 2 0 0 1 2-2h3"></path></svg>'
+        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>';
+    }
+    if(fsBtn){
+      fsBtn.addEventListener('click', function(){
+        var alvo=el('fn-canvas-wrap');
+        if(!fsAtivo()){
+          if(alvo.requestFullscreen) alvo.requestFullscreen();
+          else if(alvo.webkitRequestFullscreen) alvo.webkitRequestFullscreen();
+        } else {
+          if(document.exitFullscreen) document.exitFullscreen();
+          else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+      });
+      document.addEventListener('fullscreenchange', atualizarIconeFs);
+      document.addEventListener('webkitfullscreenchange', atualizarIconeFs);
+    }
   }
 
   function showFunil(){ hideOtherViews(); var v=el('view-funil'); if(v) v.style.display=''; setActiveNav('funil'); el('fn-editor').classList.remove('open'); el('fn-list').style.display=''; renderList(); scrollTop(); }
