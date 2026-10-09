@@ -1073,6 +1073,10 @@
   .ideas-num-col { width: 44px; font-variant-numeric: tabular-nums; }
   #ideas-tbody td:first-child { font-variant-numeric: tabular-nums; color: var(--lead-400); font-weight: 700; vertical-align: top; padding-top: 1rem; }
   #ideas-tbody td { vertical-align: top; }
+  .client-nicho { font-size: 0.78rem; color: var(--text-muted, #6b7280); margin-top: 2px; }
+  .client-nicho-vazio { cursor: pointer; font-style: italic; opacity: 0.75; }
+  .client-nicho-vazio:hover { opacity: 1; text-decoration: underline; }
+  .idea-nicho-tag { display: inline-block; font-size: 0.72rem; margin-top: 4px; padding: 1px 8px; border-radius: 999px; background: rgba(120,120,160,0.14); }
   .idea-title { font-family: var(--font-display); font-weight: 700; color: var(--lead-900); margin-bottom: 0.25rem; }
   .idea-desc { color: var(--lead-500); font-size: 0.85rem; line-height: 1.5; max-width: 34ch; }
   .idea-no-client { color: var(--lead-300); font-style: italic; font-size: 0.82rem; }
@@ -1980,17 +1984,7 @@
   }
   @media (max-width:560px){ #ia-prospeccao .ia-btn{ margin-left:0; width:100%; } }
 </style>
-      <div class="card" id="ia-prospeccao">
-        <div class="ia-head">
-          <div class="ia-avatar">✦</div>
-          <div>
-            <div class="ia-title">Assistente de Prospecção</div>
-            <div class="ia-sub">Sua dica de hoje para conquistar novos clientes</div>
-          </div>
-          <button type="button" class="btn-secondary ia-btn" id="ia-new-tip">Gerar nova dica</button>
-        </div>
-        <p class="ia-tip" id="ia-tip">…</p>
-      </div>
+      <div id="ideias-teovox"></div>
       <div class="board" id="prospeccao-board"></div>
     </div>
 
@@ -2640,6 +2634,18 @@
           <input type="email" id="input-email" autocomplete="off" placeholder="cliente@empresa.com">
           <div class="error">Informe um email válido.</div>
         </div>
+        <div class="field" id="field-nicho">
+          <label for="input-nicho">Nicho</label>
+          <input type="text" id="input-nicho" autocomplete="off" placeholder="Ex.: clínica de estética, escritório de advocacia trabalhista, pet shop">
+        </div>
+        <div class="field" id="field-publico">
+          <label for="input-publico">Público-alvo</label>
+          <input type="text" id="input-publico" autocomplete="off" placeholder="Ex.: mulheres de 30 a 50 anos, classe A/B, moradoras de Cuiabá">
+        </div>
+        <div class="field" id="field-produtos">
+          <label for="input-produtos">Principais produtos / serviços</label>
+          <input type="text" id="input-produtos" autocomplete="off" placeholder="Ex.: harmonização facial, limpeza de pele, depilação a laser">
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn-secondary" id="btn-cancel">Cancelar</button>
           <button type="submit" class="btn-primary">Cadastrar</button>
@@ -2937,7 +2943,9 @@
     filtered.forEach(client => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><a class="client-name" href="#/cliente/${client.id}">${escapeHtml(client.nome)}</a></td>
+        <td><a class="client-name" href="#/cliente/${client.id}">${escapeHtml(client.nome)}</a>${client.nicho
+          ? `<div class="client-nicho">${escapeHtml(client.nicho)}</div>`
+          : `<div class="client-nicho client-nicho-vazio" data-edit="${client.id}" title="Clique para informar o nicho">+ informar nicho</div>`}</td>
         <td class="actions-col">
           <button class="icon-btn" data-edit="${client.id}" title="Editar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -2958,6 +2966,9 @@
   const inputNome = document.getElementById('input-nome');
   const inputTelefone = document.getElementById('input-telefone');
   const inputEmail = document.getElementById('input-email');
+  const inputNicho = document.getElementById('input-nicho');
+  const inputPublico = document.getElementById('input-publico');
+  const inputProdutos = document.getElementById('input-produtos');
 
   function openModal(client) {
     form.reset();
@@ -2968,6 +2979,9 @@
       inputNome.value = client.nome;
       inputTelefone.value = client.telefone;
       inputEmail.value = client.email;
+      inputNicho.value = client.nicho || '';
+      inputPublico.value = client.publico || '';
+      inputProdutos.value = client.produtos || '';
     } else {
       modalTitle.textContent = 'Novo Cliente';
       inputId.value = '';
@@ -3014,6 +3028,9 @@
     const nome = inputNome.value.trim();
     const telefone = inputTelefone.value.trim();
     const email = inputEmail.value.trim();
+    const nicho = inputNicho.value.trim();
+    const publico = inputPublico.value.trim();
+    const produtos = inputProdutos.value.trim();
 
     let valid = true;
     setInvalid('field-nome', !nome); if (!nome) valid = false;
@@ -3024,9 +3041,9 @@
     const clients = loadClients();
     if (inputId.value) {
       const idx = clients.findIndex(c => c.id === inputId.value);
-      if (idx !== -1) clients[idx] = { ...clients[idx], nome, telefone, email };
+      if (idx !== -1) clients[idx] = { ...clients[idx], nome, telefone, email, nicho, publico, produtos };
     } else {
-      clients.push({ id: crypto.randomUUID(), nome, telefone, email });
+      clients.push({ id: crypto.randomUUID(), nome, telefone, email, nicho, publico, produtos });
     }
     saveClients(clients);
     closeModal();
@@ -4765,19 +4782,31 @@
     ideasContext.innerHTML = `<strong>Segmentos com maior potencial:</strong> ${escapeHtml(segmentsStr)} &nbsp;·&nbsp; <strong>Público-alvo:</strong> ${escapeHtml(audienceStr)}`;
 
     const clients = loadClients();
-    const rnd = seededRandom(dateKey + '-offset');
-    const clientOffset = clients.length ? Math.floor(rnd() * clients.length) : 0;
+    const norm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const toks = t => new Set(norm(t).split(/[^a-z0-9]+/).filter(w => w.length >= 4).map(w => w.slice(0, 5)));
+    const eventToks = toks(segmentsStr + ' ' + occasion + ' ' + audienceStr);
+    const score = c => { let n = 0; toks([c.nicho, c.produtos, c.publico].join(' ')).forEach(w => { if (eventToks.has(w)) n++; }); return n; };
+    const ranked = clients.map((c, i) => ({ c, sc: score(c), i })).sort((a, b) => (b.sc - a.sc) || (a.i - b.i)).map(x => x.c);
+    const semNicho = clients.filter(c => !c.nicho).length;
+    if (semNicho) {
+      ideasContext.innerHTML += `<br><em>${semNicho} cliente(s) sem nicho cadastrado — preencha em Clientes (ícone de editar) para ideias personalizadas.</em>`;
+    }
     const ideas = seededShuffle(IDEA_POOL, dateKey).slice(0, 30);
 
     ideasTbody.innerHTML = '';
     ideas.forEach((idea, idx) => {
-      const client = clients.length ? clients[(clientOffset + idx) % clients.length] : null;
+      const client = ranked.length ? ranked[idx % ranked.length] : null;
+      const nichoTxt = client && client.nicho ? client.nicho : segmentsStr;
+      const publicoTxt = client && client.publico ? client.publico : audienceStr;
+      let desc = idea.make(occasion, nichoTxt, publicoTxt);
+      if (client && client.produtos) desc += ` Foco da comunicação: ${client.produtos}.`;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${idx + 1}</td>
         <td>
           <div class="idea-title">${escapeHtml(idea.title)}</div>
-          <div class="idea-desc">${escapeHtml(idea.make(occasion, segmentsStr, audienceStr))}</div>
+          <div class="idea-desc">${escapeHtml(desc)}</div>
+          ${client && client.nicho ? `<span class="idea-nicho-tag">Nicho: ${escapeHtml(client.nicho)}</span>` : ''}
         </td>
         <td><span class="channel-tag ${idea.channel}">${CHANNEL_LABELS[idea.channel]}</span></td>
         <td>${client
@@ -7072,5 +7101,263 @@
 })();
 
 </script>
+<script>
+/* ===== Prospectar — Ideias para a Teovox + Campanha da Semana (módulo aditivo) ===== */
+(function(){
+  var host = document.getElementById('ideias-teovox');
+  if(!host) return;
+
+  function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function rnd(n){ return Math.floor(Math.random()*n); }
+  function pick(arr){ return arr[rnd(arr.length)]; }
+  function pad(n){ return (n<10?'0':'')+n; }
+
+  /* ---------- Serviços Teovox ---------- */
+  var S = {
+    logo:'Criação de logo', inpi:'Registro de marca (INPI)', marca:'Criação de marca estratégica',
+    ident:'Identidade visual', papel:'Papelaria completa', plot:'Plotagem de veículos', fach:'Fachadas e comunicação visual',
+    site:'Site profissional', lp:'Landing page', loja:'E-commerce', vendas:'Página de vendas',
+    dom:'Registro de domínio', email:'E-mails personalizados', gmb:'Google Empresas', nuvem:'Organização de arquivos na nuvem', patri:'Patrimônio digital',
+    organ:'Funil orgânico', pago:'Funil com tráfego pago', redes:'Gestão de redes sociais', seo:'SEO e tráfego orgânico',
+    info:'Infoprodutos e lançamentos', perp:'Funis de venda automatizados', diag:'Diagnóstico estratégico', mentoria:'Consultoria e mentoria', posic:'Posicionamento online'
+  };
+
+  /* ---------- Ideias por dia da semana ---------- */
+  var W = {
+    seg: [
+      { id:'w-seg-1', tag:'Início de semana', title:'Segunda de prospecção ativa', body:'Segunda-feira é quando o dono de negócio planeja a semana. Abra a sua com 10 mensagens de diagnóstico gratuito para empresas locais.', servico:S.diag, passo:'Liste 10 negócios sem site ou sem Google Empresas e envie o mini-diagnóstico.', msg:'Olá, [nome]! Comecei a semana analisando a presença digital de negócios da nossa região e fiz um mini-diagnóstico da [empresa]. Posso te enviar, sem compromisso?' },
+      { id:'w-seg-2', tag:'Início de semana', title:'Reative propostas paradas', body:'Propostas enviadas e sem resposta há mais de 5 dias merecem um follow-up de segunda: é o dia em que as decisões da semana são tomadas.', servico:'Qualquer serviço em aberto', passo:'Abra o Follow-up/Funil e chame as 3 propostas mais antigas.', msg:'Oi, [nome], tudo bem? Estou organizando minha agenda desta semana e queria saber se ainda faz sentido avançarmos com a proposta de [serviço]. Posso ajustar algo para facilitar?' },
+      { id:'w-seg-3', tag:'Início de semana', title:'Post "3 erros de marca"', body:'Publique um carrossel curto com 3 erros que fazem o cliente perder dinheiro (marca sem registro, logo amador, nada de site). Conteúdo educativo gera autoridade e leads.', servico:S.posic, passo:'Monte o carrossel e termine com "chame no direct para um diagnóstico".', msg:'3 erros de marca que fazem você perder clientes sem perceber: 1) marca sem registro; 2) logo que não comunica; 3) nenhuma presença própria na internet. Quer saber como está a sua? Me chame.' },
+      { id:'w-seg-4', tag:'Início de semana', title:'Bastidores de criação', body:'Mostre nos stories o processo de criação de um logo ou site (rascunho, paleta, testes). Mostra método e justifica o preço.', servico:S.logo, passo:'Grave 3 stories do processo e fixe nos destaques.', msg:'Hoje começou a criação da identidade de mais um cliente. Quer ver como a gente transforma uma ideia em marca? Acompanhe os stories.' }
+    ],
+    meio: [
+      { id:'w-meio-1', tag:'Meio de semana', title:'Terça/Quarta de autoridade: INPI', body:'Poucos empreendedores sabem que marca sem registro pode ser copiada. Um post ou reels sobre isso gera conversa e abre porta para o serviço.', servico:S.inpi, passo:'Grave um reels de 30s: "Sua marca é só sua se estiver no INPI".', msg:'Você sabia que, sem registro no INPI, qualquer um pode registrar a sua marca antes de você? Posso fazer uma busca gratuita de viabilidade da [marca].' },
+      { id:'w-meio-2', tag:'Meio de semana', title:'Prova social em destaque', body:'Publique um antes e depois (logo, site ou fachada) com depoimento do cliente. Prova social é o gatilho mais forte para fechar.', servico:S.ident, passo:'Escolha o melhor caso e transforme em post com resultado.', msg:'Veja a transformação da [cliente]: da marca improvisada a uma identidade profissional. Quer um resultado assim para o seu negócio?' },
+      { id:'w-meio-3', tag:'Meio de semana', title:'Quinta de follow-up', body:'Quinta é o último dia útil bom para fechar antes do fim de semana. Retome leads mornos com uma pergunta simples e uma oferta de prazo.', servico:'Serviço do lead', passo:'Chame os leads da coluna Follow-up com uma oferta que vence sexta.', msg:'Oi, [nome]! Consegui manter a condição que combinamos até sexta. Quer que eu reserve sua vaga na agenda de produção?' },
+      { id:'w-meio-4', tag:'Meio de semana', title:'Mini-aula ao vivo', body:'Uma live curta (20 min) "Como aparecer no Google" capta leads quentes de pequenos negócios e posiciona a Teovox como especialista.', servico:S.gmb, passo:'Marque a live, divulgue nos stories e colete inscritos por WhatsApp.', msg:'Hoje às 19h faço uma aula gratuita: como aparecer no Google quando procuram o seu serviço. Quer o link para entrar?' }
+    ],
+    sex: [
+      { id:'w-sex-1', tag:'Fim de semana', title:'Sexta de propostas', body:'Envie propostas na sexta: o cliente lê com calma no fim de semana e responde na segunda mais decidido.', servico:'Qualquer serviço', passo:'Revise as propostas pendentes e envie até as 16h.', msg:'Oi, [nome]! Como combinamos, segue a proposta para você analisar com calma no fim de semana. Na segunda conversamos?' },
+      { id:'w-sex-2', tag:'Fim de semana', title:'Oferta relâmpago de fim de semana', body:'Uma oferta válida só até domingo cria urgência real. Ex.: diagnóstico + consultoria de 30 min com bônus para quem responder hoje.', servico:S.mentoria, passo:'Defina a oferta, poste nos stories e envie para a lista de transmissão.', msg:'Só até domingo: sessão estratégica de 30 min para destravar a presença digital do seu negócio, com bônus de checklist de marca. Quer garantir?' },
+      { id:'w-sex-3', tag:'Fim de semana', title:'Conteúdo de sábado: "Você aparece no Google?"', body:'Sábado tem tempo livre e o empreendedor navega pelas redes. Um post provocativo sobre ser encontrado no Google converte bem.', servico:S.seo, passo:'Poste um print de busca local mostrando quem aparece (e quem não).', msg:'Procure o seu serviço no Google agora. O seu negócio aparece? Se não, está perdendo clientes todos os dias. Posso te mostrar como mudar isso.' },
+      { id:'w-sex-4', tag:'Fim de semana', title:'Balanço da semana + convite', body:'Poste um resumo do que a Teovox entregou na semana (logos, sites, registros) e convide para a agenda da semana que vem.', servico:'Portfólio geral', passo:'Reúna 3 entregas, faça um carrossel e abra vagas.', msg:'Esta semana entregamos 3 projetos que vão colocar marcas no ar. Tenho 2 vagas na agenda da próxima semana. Quer a sua?' }
+    ],
+    fds: [
+      { id:'w-fds-1', tag:'Fim de semana', title:'Domingo: planejamento da semana', body:'Domingo à noite é quando o empreendedor pensa na semana. Um conteúdo de planejamento ("5 passos para organizar sua marca") tem alto alcance.', servico:S.diag, passo:'Agende um post para 19h com um checklist para salvar.', msg:'Antes de começar a semana: seu negócio tem logo, site, Google Empresas e e-mail profissional? Se faltou algum, me chame e eu mostro por onde começar.' },
+      { id:'w-fds-2', tag:'Fim de semana', title:'Pesquisa de leads para segunda', body:'Aproveite o sábado/domingo para garimpar 15 negócios locais com presença fraca e deixar o pitch pronto para segunda.', servico:S.diag, passo:'Monte uma lista no Prospectar com nome, problema e abordagem.', msg:'(uso interno) Lista de 15 prospectos com a falha identificada e a oferta sugerida para cada um.' }
+    ]
+  };
+
+  /* ---------- Oportunidades do dia / ações digitais ---------- */
+  var O = [
+    { id:'o-1', tag:'Oportunidade do dia', title:'Negócios invisíveis no Google', body:'Pesquise "[serviço] + sua cidade" e anote quem não aparece no mapa ou tem perfil abandonado. Cada um é um lead para Google Empresas e SEO.', servico:S.gmb, passo:'Faça 3 buscas locais e anote 5 negócios sem perfil otimizado.', msg:'Oi, [nome]! Procurei [serviço] em [cidade] e vi que a [empresa] aparece pouco no Google. Posso te mostrar como melhorar isso em poucos dias?' },
+    { id:'o-2', tag:'Oportunidade do dia', title:'Marcas sem registro', body:'Muitas empresas locais usam o nome há anos sem registro no INPI. Encontre 5 e ofereça a busca de viabilidade como porta de entrada.', servico:S.inpi, passo:'Escolha 5 marcas conhecidas da região e consulte no INPI.', msg:'Olá, [nome]! Vi que a marca [marca] ainda não aparece com registro no INPI. Posso fazer uma busca gratuita de viabilidade para proteger o nome?' },
+    { id:'o-3', tag:'Oportunidade do dia', title:'Empresas com e-mail @gmail', body:'Quem usa @gmail/@hotmail em empresa passa pouca credibilidade. É um serviço simples, barato e que abre porta para site e domínio.', servico:S.email, passo:'Procure 10 empresas que divulgam e-mail gratuito e abordagem direta.', msg:'Oi, [nome]! Notei que a [empresa] usa e-mail gratuito. Com um e-mail com seu domínio (contato@suaempresa.com.br) a confiança do cliente muda. Posso te explicar?' },
+    { id:'o-4', tag:'Oportunidade do dia', title:'CNPJs recém-abertos', body:'Empresas novas precisam de tudo: logo, registro, domínio, site e redes. Aborde quem acabou de abrir com o pacote "Abrir Empresa".', servico:S.patri, passo:'Busque empresas abertas no último mês na sua cidade e envie a oferta de pacote.', msg:'Parabéns pela abertura da [empresa]! Tenho um pacote para sair com tudo pronto: logo, domínio, e-mail, Google Empresas e site. Posso apresentar?' },
+    { id:'o-5', tag:'Oportunidade do dia', title:'Fachadas e veículos sem padrão', body:'Ao circular pela cidade, repare em fachadas e veículos sem identidade. É prospecção offline com altíssima conversão em plotagem e comunicação visual.', servico:S.fach, passo:'Fotografe 3 casos, monte um mock-up rápido e envie como proposta visual.', msg:'Passei em frente à [empresa] e fiz um mock-up de como poderia ficar a fachada com a identidade visual completa. Quer ver?' },
+    { id:'o-6', tag:'Oportunidade do dia', title:'Instagram sem estratégia', body:'Perfis com bio confusa, sem link e sem linha editorial são lead certo para gestão de redes e posicionamento.', servico:S.redes, passo:'Separe 5 perfis locais, anote 3 melhorias de cada e envie por direct.', msg:'Oi, [nome]! Dei uma olhada no perfil da [empresa] e vi 3 ajustes rápidos que podem gerar mais clientes. Posso te enviar?' },
+    { id:'o-7', tag:'Oportunidade do dia', title:'Anúncios dos concorrentes', body:'Abra a Biblioteca de Anúncios da Meta e veja quem anuncia no seu nicho-alvo. Quem anuncia mal tem verba e precisa de funil com rastreamento.', servico:S.pago, passo:'Liste 5 anunciantes locais e analise a página de destino de cada um.', msg:'Oi, [nome]! Vi que a [empresa] investe em anúncios, mas a página de destino pode estar travando as vendas. Posso te mostrar o que ajustar?' },
+    { id:'o-8', tag:'Oportunidade do dia', title:'Sites lentos ou sem cadeado', body:'Teste sites locais no PageSpeed e veja os que carregam devagar ou sem HTTPS. É um argumento técnico fácil de vender.', servico:S.site, passo:'Teste 5 sites e envie o relatório resumido ao dono.', msg:'Olá, [nome]! Testei o site da [empresa] e ele carrega devagar no celular, o que faz perder visitantes. Posso enviar o relatório e a solução?' }
+  ];
+  var A = [
+    { id:'a-1', tag:'Ação digital', title:'Checklist "Sua marca está protegida?"', body:'Crie uma isca digital de 1 página (logo, INPI, domínio, e-mail, Google Empresas) e divulgue como material gratuito para captar leads.', servico:S.patri, passo:'Monte o checklist no Canva e crie um link de WhatsApp para entregar.', msg:'Baixe grátis o checklist "Sua marca está protegida?" e descubra o que falta no seu negócio. Me chame com a palavra CHECKLIST.' },
+    { id:'a-2', tag:'Ação digital', title:'Série de Reels: 1 erro de marca por dia', body:'Uma série curta de 5 reels, um erro por dia, cria recorrência e posiciona a Teovox como autoridade em marca e comunicação.', servico:S.posic, passo:'Grave 5 vídeos de 30s na mesma tarde e agende.', msg:'Erro de marca nº1: usar o nome sem registrar. Acompanhe a série e evite os outros 4.' },
+    { id:'a-3', tag:'Ação digital', title:'Enquete nos stories', body:'Pergunte "Você já registrou sua marca?" ou "Seu site vende por você?". Quem responde "não" é lead qualificado para conversa.', servico:S.diag, passo:'Poste a enquete e chame no direct quem votar "não".', msg:'Vi que você votou "não" na enquete. Posso te mostrar em 10 minutos como resolver isso?' },
+    { id:'a-4', tag:'Ação digital', title:'Antes e depois de logo', body:'Mostre a evolução de um logo (antigo → novo) em um carrossel ou reels. É visual, viraliza fácil e vende identidade.', servico:S.logo, passo:'Peça autorização a um cliente e publique com o resultado.', msg:'Antes e depois: veja como uma marca ganhou presença com uma nova identidade. Quer ver a sua com outro olhar?' },
+    { id:'a-5', tag:'Ação digital', title:'Vídeo-diagnóstico para 5 prospects', body:'Grave um vídeo de 2 minutos analisando o Instagram ou site de cada prospecto e envie por WhatsApp. Abordagem personalizada tem muito mais resposta.', servico:S.diag, passo:'Grave 5 vídeos de tela com 3 pontos de melhoria cada.', msg:'Oi, [nome]! Gravei um vídeo rápido analisando a presença digital da [empresa]. Posso te enviar?' },
+    { id:'a-6', tag:'Ação digital', title:'Parceria com contadores e advogados', body:'Contadores abrem CNPJs e advogados cuidam de contratos: ambos indicam marca, registro e site. Proponha comissão por indicação.', servico:S.inpi, passo:'Faça lista de 10 escritórios e mande proposta de parceria.', msg:'Olá, [nome]! Trabalho com marca, registro no INPI e sites. Muitos clientes seus precisam disso ao abrir empresa. Podemos montar uma parceria de indicação?' },
+    { id:'a-7', tag:'Ação digital', title:'Lista de transmissão "Dicas de marca"', body:'Crie uma lista no WhatsApp com 1 dica semanal. Mantém a Teovox na cabeça do cliente até a hora de contratar.', servico:S.organ, passo:'Monte a lista e convide seus contatos e clientes antigos.', msg:'Criei uma lista gratuita com 1 dica por semana sobre marca e vendas online. Quer participar?' },
+    { id:'a-8', tag:'Ação digital', title:'Pacote "Abrir Empresa"', body:'Empacote logo + INPI + domínio + e-mail + Google Empresas + site simples em uma oferta única. Pacote facilita a venda e aumenta o ticket.', servico:S.patri, passo:'Defina o que entra, o prazo e divulgue como oferta limitada.', msg:'Pacote Abrir Empresa: logo, registro da marca, domínio, e-mail profissional, Google Empresas e site. Tudo pronto para você começar com credibilidade.' },
+    { id:'a-9', tag:'Ação digital', title:'Case em PDF de 1 página', body:'Transforme seu melhor projeto em um case com problema, solução e resultado para enviar aos prospects.', servico:S.ident, passo:'Escolha o projeto e finalize o PDF em 1 hora.', msg:'Veja como ajudamos a [cliente] a crescer com uma nova identidade e presença digital. Posso fazer algo parecido por você.' },
+    { id:'a-10', tag:'Ação digital', title:'Funil orgânico com WhatsApp', body:'Conteúdo educativo → palavra-chave no direct → resposta automática com material → conversa de venda. Estruture esse fluxo para a própria Teovox.', servico:S.organ, passo:'Defina a palavra-chave, a resposta e a oferta final.', msg:'Comente QUERO e receba gratuitamente um guia para colocar sua marca no mercado do jeito certo.' }
+  ];
+
+  /* ---------- Datas e ganchos de venda ---------- */
+  function nth(year, mi, wd, n){ var f=new Date(year,mi,1); var off=(wd-f.getDay()+7)%7; return new Date(year,mi,1+off+(n-1)*7); }
+  function easter(y){ var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1; return new Date(y,mo-1,da); }
+  function prof(m,d,nome,pub,servico){ return { m:m,d:d,nome:nome,pub:pub,servico:servico,gancho:'Profissionais liberais valorizam ser lembrados na sua data. Ofereça '+servico.toLowerCase()+' para '+pub+' e use o dia como motivo de contato.' }; }
+  function datasDoAno(y){
+    var pascoa=easter(y), carn=new Date(pascoa); carn.setDate(pascoa.getDate()-47);
+    var mae=nth(y,4,0,2), pai=nth(y,7,0,2), tg=nth(y,10,4,4), bf=new Date(tg); bf.setDate(tg.getDate()+1);
+    function mv(dt,nome,pub,servico,gancho){ return { m:dt.getMonth()+1, d:dt.getDate(), nome:nome, pub:pub, servico:servico, gancho:gancho }; }
+    return [
+      { m:1,d:1,nome:'Ano Novo',pub:'empreendedores planejando o ano',servico:S.diag,gancho:'O começo do ano é a época em que donos de negócio revisam marca, site e metas. Venda diagnóstico + plano de ação anual.' },
+      mv(carn,'Carnaval','negócios com sazonalidade',S.pago,'Comércio, eventos e turismo faturam no Carnaval. Ofereça campanha com tráfego pago e landing page para a data.'),
+      { m:3,d:8,nome:'Dia Internacional da Mulher',pub:'empreendedoras',servico:S.inpi,gancho:'Muitas empreendedoras têm marca forte e sem registro. Ofereça proteção da marca e identidade visual com condição especial.' },
+      mv(pascoa,'Páscoa','chocolatarias e comércio',S.loja,'Quem vende para a Páscoa precisa de loja virtual e anúncios com antecedência. Venda e-commerce e campanha sazonal.'),
+      { m:5,d:17,nome:'Dia Mundial da Internet',pub:'empresas sem presença online',servico:S.site,gancho:'Data perfeita para falar de domínio, site e e-mail profissional: "ocupe seu espaço na internet".' },
+      mv(mae,'Dia das Mães','varejo e e-commerce',S.pago,'Segunda maior data do varejo. Ofereça funil com tráfego pago e página de vendas para o varejo local.'),
+      { m:6,d:12,nome:'Dia dos Namorados',pub:'lojas, restaurantes e joalherias',servico:S.lp,gancho:'Landing page de oferta + anúncios convertem muito nessa data. Procure negócios que ainda não têm campanha.' },
+      mv(pai,'Dia dos Pais','varejo masculino e gastronomia',S.pago,'Ofereça campanha completa de redes + tráfego para lojas e restaurantes que ainda não se prepararam.'),
+      { m:9,d:15,nome:'Dia do Cliente',pub:'empresas com base de clientes',servico:S.organ,gancho:'Venda estratégia de relacionamento: e-mail marketing, lista de transmissão e funil de recompra.' },
+      { m:10,d:5,nome:'Dia da Micro e Pequena Empresa',pub:'MEIs e pequenos negócios',servico:S.patri,gancho:'Data ideal para o pacote "Abrir/Profissionalizar Empresa": logo, INPI, domínio, e-mail e Google Empresas.' },
+      { m:10,d:12,nome:'Dia das Crianças',pub:'brinquedos, moda infantil e lanchonetes',servico:S.pago,gancho:'Campanhas de Dia das Crianças pedem criativos e anúncios rápidos. Ofereça kit de posts + tráfego pago.' },
+      { m:10,d:15,nome:'Dia do Professor',pub:'escolas, cursos e professores',servico:S.info,gancho:'Professores e escolas podem monetizar conhecimento: ofereça infoproduto, página de vendas e área de membros.' },
+      { m:10,d:31,nome:'Halloween',pub:'festas, doces e fantasias',servico:S.redes,gancho:'Conteúdo temático gera engajamento. Venda pacote de posts e reels para negócios criativos.' },
+      { m:11,d:11,nome:'Dia dos Solteiros (11/11)',pub:'e-commerces',servico:S.loja,gancho:'Pré-Black Friday: venda estrutura de e-commerce e remarketing antes da maior data do ano.' },
+      mv(bf,'Black Friday','e-commerces e varejo',S.perp,'Quem quer vender na Black Friday precisa começar 30 dias antes. Ofereça funil, loja e tráfego pago.'),
+      { m:12,d:25,nome:'Natal',pub:'varejo e serviços',servico:S.pago,gancho:'Campanha natalina de varejo e serviços. Ofereça peças, anúncios e página de oferta com contagem regressiva.' },
+      { m:12,d:31,nome:'Virada do Ano',pub:'empresas planejando o próximo ciclo',servico:S.mentoria,gancho:'Venda consultoria de planejamento do próximo ano: marca, site e funil de vendas.' },
+      prof(3,23,'Dia do Corretor de Imóveis','corretores e imobiliárias',S.site),
+      prof(4,25,'Dia do Contador','contadores e escritórios',S.logo),
+      prof(5,12,'Dia do Enfermeiro','clínicas e enfermeiros autônomos',S.gmb),
+      prof(8,11,'Dia do Advogado','advogados e escritórios',S.site),
+      prof(8,27,'Dia do Psicólogo','psicólogos e clínicas',S.gmb),
+      prof(8,31,'Dia do Nutricionista','nutricionistas e clínicas',S.redes),
+      prof(10,13,'Dia do Fisioterapeuta','fisioterapeutas e clínicas',S.gmb),
+      prof(10,18,'Dia do Médico','médicos e clínicas',S.site),
+      prof(10,25,'Dia do Dentista','dentistas e clínicas odontológicas',S.site)
+    ];
+  }
+  function proximasDatas(hoje, janela){
+    var base=new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate()), out=[];
+    [base.getFullYear(), base.getFullYear()+1].forEach(function(y){
+      datasDoAno(y).forEach(function(x){
+        var dt=new Date(y,x.m-1,x.d), diff=Math.round((dt-base)/86400000);
+        if(diff>=0 && diff<=janela) out.push({ x:x, dt:dt, diff:diff });
+      });
+    });
+    out.sort(function(a,b){return a.diff-b.diff;});
+    return out;
+  }
+  function ideiaDeData(p){
+    var x=p.x, quando = p.diff===0?'é hoje':(p.diff===1?'é amanhã':'em '+p.diff+' dias');
+    return {
+      id:'d-'+x.m+'-'+x.d, tag:'Data comemorativa', title:x.nome+' — '+quando,
+      body:x.gancho, servico:x.servico,
+      passo:'Mande mensagem para '+x.pub+' oferecendo '+x.servico.toLowerCase()+' para a data, com prazo de entrega antes de '+pad(x.d)+'/'+pad(x.m)+'.',
+      msg:'Olá, [nome]! Com o '+x.nome+' chegando, preparei uma proposta de '+x.servico.toLowerCase()+' para a [empresa] aproveitar a data. Posso te mostrar?'
+    };
+  }
+
+  /* ---------- Campanhas da Semana ---------- */
+  var C = [
+    { nome:'Semana Marca Protegida', servico:S.inpi, gancho:'Marca sem registro pode ser copiada. Uma semana inteira falando de proteção e oferecendo busca de viabilidade gratuita.', publico:'Negócios com nome consolidado e sem registro no INPI', oferta:'Busca de viabilidade gratuita + condição especial no registro', acoes:['Segunda: post "Sua marca é só sua?" com o risco de não registrar','Terça: reels explicando o que é o INPI em 30 segundos','Quarta: enquete nos stories — "Você já registrou sua marca?"','Quinta: mensagens para 10 empresas locais sem registro','Sexta: oferta relâmpago com busca de viabilidade gratuita'], post:'Sua marca é só sua se estiver registrada. Esta semana, busca de viabilidade gratuita para 10 negócios. Comente QUERO.', msg:'Olá, [nome]! Esta semana estou fazendo buscas de viabilidade gratuitas no INPI para negócios da região. Quer que eu faça a da [marca]?' },
+    { nome:'Semana do Logo Novo', servico:S.logo, gancho:'Logo amador derruba a percepção de valor. Semana de renovação visual com oferta de redesign.', publico:'Negócios com logo antigo, feito no celular ou sem padrão', oferta:'Análise gratuita do logo atual + desconto no redesign', acoes:['Segunda: post "Seu logo diz o que seu negócio faz?"','Terça: antes e depois de um logo em carrossel','Quarta: stories do processo criativo','Quinta: análise gratuita para 5 logos enviados por direct','Sexta: oferta de redesign com vagas limitadas'], post:'Seu logo está trabalhando a favor ou contra você? Envie por direct e receba uma análise gratuita.', msg:'Oi, [nome]! Dei uma olhada no logo da [empresa] e tenho 3 sugestões rápidas para ele comunicar mais valor. Posso enviar?' },
+    { nome:'Semana Site no Ar', servico:S.site, gancho:'Quem não tem site perde buscas e credibilidade. Semana dedicada a levar negócios para a internet.', publico:'Negócios que dependem só de Instagram/WhatsApp', oferta:'Diagnóstico gratuito + bônus de domínio e e-mail no primeiro ano', acoes:['Segunda: post "Seu negócio existe na internet?"','Terça: comparativo Instagram × site próprio','Quarta: mostre um site entregue (case)','Quinta: contato direto com 10 negócios sem site','Sexta: oferta com domínio e e-mail inclusos'], post:'Instagram não é seu. Site sim. Esta semana, domínio e e-mail profissional de bônus em sites novos.', msg:'Olá, [nome]! Notei que a [empresa] ainda não tem site. Temos uma condição especial esta semana que inclui domínio e e-mail profissional. Posso explicar?' },
+    { nome:'Semana Achado no Google', servico:S.gmb, gancho:'Aparecer no mapa traz clientes prontos para comprar. Perfil otimizado é rápido de vender e de entregar.', publico:'Comércios e prestadores de serviço locais', oferta:'Cadastro e otimização do Google Empresas com prazo curto', acoes:['Segunda: post com print de busca local e quem aparece','Terça: reels "Como aparecer no Google Maps"','Quarta: lista de 10 negócios sem perfil','Quinta: envie mini-diagnóstico para cada um','Sexta: oferta de cadastro + otimização'], post:'Quando procuram o seu serviço no Google, você aparece? Esta semana, diagnóstico gratuito do seu perfil.', msg:'Oi, [nome]! Procurei [serviço] em [cidade] e a [empresa] não aparece como poderia. Posso te mostrar o diagnóstico?' },
+    { nome:'Semana E-mail Profissional', servico:S.email, gancho:'Trocar @gmail por e-mail com domínio eleva a confiança e abre porta para site e domínio.', publico:'Pequenas empresas que usam e-mail gratuito', oferta:'Configuração de e-mails com domínio próprio em 24h', acoes:['Segunda: post "Seu e-mail passa confiança?"','Terça: comparativo gmail × contato@empresa','Quarta: abordagem a 10 empresas com e-mail gratuito','Quinta: depoimento de cliente','Sexta: oferta de configuração rápida'], post:'contato@suaempresa.com.br passa mais confiança que suaempresa@gmail.com. Configuração em 24h.', msg:'Olá, [nome]! Posso configurar e-mails com o domínio da [empresa] em até 24h. Quer ver como fica?' },
+    { nome:'Semana Identidade Completa', servico:S.ident, gancho:'Marca forte aparece em tudo: papelaria, redes, fachada e veículo. Venda a identidade como sistema.', publico:'Negócios que querem se apresentar de forma profissional', oferta:'Manual da marca + papelaria básica com condição especial', acoes:['Segunda: post "Sua marca tem padrão?"','Terça: carrossel com exemplo de manual da marca','Quarta: mostre papelaria completa em mock-up','Quinta: contato com 10 prospectos','Sexta: oferta com vagas limitadas'], post:'Marca profissional é consistência: logo, cores, papelaria, redes. Vamos montar a sua?', msg:'Oi, [nome]! Montei uma proposta de identidade visual completa para a [empresa], com manual da marca e papelaria. Posso apresentar?' },
+    { nome:'Semana Rua Visível', servico:S.fach, gancho:'Fachada e veículos plotados são mídia 24h. Semana de prospecção offline + digital.', publico:'Lojas, clínicas, oficinas e empresas com frota', oferta:'Mock-up gratuito da fachada ou do veículo', acoes:['Segunda: fotografe 5 fachadas/veículos sem padrão','Terça: monte mock-ups rápidos','Quarta: envie o mock-up por WhatsApp ao dono','Quinta: poste antes e depois de uma fachada','Sexta: ofereça projeto com prazo de instalação'], post:'Seu veículo e sua fachada são a maior mídia do seu negócio. Mock-up gratuito esta semana.', msg:'Oi, [nome]! Passei pela [empresa] e fiz um mock-up de como poderia ficar a fachada com uma identidade visual forte. Quer ver?' },
+    { nome:'Semana Loja no Ar', servico:S.loja, gancho:'Quem vende no WhatsApp sem loja perde escala. Semana de e-commerce para quem quer vender 24h.', publico:'Lojistas e produtores que vendem por direct', oferta:'Loja virtual pronta com pagamento e frete configurados', acoes:['Segunda: post "Sua loja fecha às 18h?"','Terça: comparativo catálogo × loja virtual','Quarta: mostre uma loja entregue','Quinta: abordagem a 10 vendedores de direct','Sexta: oferta de loja completa'], post:'Sua loja pode vender enquanto você dorme. Esta semana, condição especial para loja virtual completa.', msg:'Olá, [nome]! Vi que a [empresa] vende pelo Instagram. Posso mostrar como seria uma loja virtual própria?' },
+    { nome:'Semana Página que Vende', servico:S.vendas, gancho:'Landing page e página de vendas bem feitas dobram conversão. Ideal para quem anuncia ou lança produto.', publico:'Anunciantes, infoprodutores e prestadores de serviço', oferta:'Landing page com copy e design em prazo reduzido', acoes:['Segunda: post "Seu anúncio leva para onde?"','Terça: antes e depois de uma landing page','Quarta: dicas de copy para vender mais','Quinta: contato com 10 anunciantes locais','Sexta: oferta de landing page'], post:'Anúncio bom + página ruim = dinheiro perdido. Veja como uma landing page muda o resultado.', msg:'Oi, [nome]! Vi seus anúncios e acredito que uma página de vendas melhor pode aumentar bastante sua conversão. Posso mostrar?' },
+    { nome:'Semana Vendas Todo Dia', servico:S.perp, gancho:'Funil perpétuo vende todos os dias sem depender de lançamento. Semana de captação para funis automatizados.', publico:'Especialistas, mentores e negócios com ticket médio/alto', oferta:'Desenho do funil perpétuo + consultoria de implantação', acoes:['Segunda: post "Você vende só quando posta?"','Terça: explique funil perpétuo com desenho simples','Quarta: case de funil que funciona','Quinta: diagnóstico para 5 especialistas','Sexta: proposta de funil automatizado'], post:'Venda todos os dias, não só em lançamentos. Veja como funciona um funil automatizado.', msg:'Olá, [nome]! Posso mostrar como transformar a sua audiência em vendas diárias com um funil automatizado?' },
+    { nome:'Semana Tráfego com Rastro', servico:S.pago, gancho:'Anúncio sem rastreamento é aposta. Semana para vender tráfego pago com mensuração real.', publico:'Empresas que anunciam por impulso ou querem começar', oferta:'Auditoria gratuita das campanhas + plano de mídia', acoes:['Segunda: post "Quanto você ganha por real investido?"','Terça: mostre um dashboard de resultados','Quarta: abordagem a 10 anunciantes','Quinta: auditoria gratuita para 3 contas','Sexta: proposta de gestão mensal'], post:'Anúncio sem métrica é gasto, não investimento. Auditoria gratuita esta semana.', msg:'Oi, [nome]! Posso auditar gratuitamente suas campanhas e mostrar onde está o desperdício. Topa?' },
+    { nome:'Semana Redes que Vendem', servico:S.redes, gancho:'Perfil sem linha editorial não converte. Semana para vender gestão de redes e conteúdo estratégico.', publico:'Negócios com perfis parados ou sem estratégia', oferta:'Análise do perfil + calendário editorial de teste', acoes:['Segunda: post "Seu perfil vende ou só posta?"','Terça: carrossel sobre linha editorial','Quarta: análise gratuita de 5 perfis','Quinta: envie o calendário teste','Sexta: proposta mensal'], post:'Seu Instagram precisa de estratégia, não só de posts. Análise gratuita esta semana.', msg:'Olá, [nome]! Analisei o perfil da [empresa] e tenho um calendário de 7 dias para testar. Posso enviar?' },
+    { nome:'Semana Lance Seu Curso', servico:S.info, gancho:'Especialistas têm conhecimento e não sabem monetizar. Semana para vender estruturação de infoproduto.', publico:'Profissionais liberais, professores e criadores', oferta:'Diagnóstico da ideia + oferta irresistível', acoes:['Segunda: post "Você já ensina? Então pode vender".','Terça: explique as etapas de um infoproduto','Quarta: mostre uma área de membros','Quinta: contato com 10 especialistas','Sexta: oferta de diagnóstico da ideia'], post:'Seu conhecimento vale dinheiro. Diagnóstico gratuito da sua ideia de curso esta semana.', msg:'Oi, [nome]! Você tem potencial para um curso ou mentoria. Posso te mostrar como estruturar e vender?' },
+    { nome:'Semana Pacote Abrir Empresa', servico:S.patri, gancho:'Pacote completo para novos negócios: logo, registro, domínio, e-mail, Google Empresas e site.', publico:'Novos empreendedores e MEIs', oferta:'Pacote com condição única por tempo limitado', acoes:['Segunda: post "Vai abrir empresa? Comece certo"','Terça: mostre o que entra no pacote','Quarta: abordagem a contadores parceiros','Quinta: contato com CNPJs novos','Sexta: oferta com vagas limitadas'], post:'Abrir empresa é só o começo. Logo, INPI, domínio, e-mail e site num único pacote.', msg:'Parabéns pela abertura! Montei um pacote para sua empresa começar com marca, domínio e site profissionais. Posso apresentar?' },
+    { nome:'Semana Diagnóstico Grátis', servico:S.diag, gancho:'Diagnóstico estratégico é a melhor porta de entrada para consultoria e projetos maiores.', publico:'Qualquer negócio com presença digital fraca', oferta:'Diagnóstico estratégico gratuito (vagas limitadas)', acoes:['Segunda: anuncie vagas de diagnóstico','Terça: mostre o modelo de relatório','Quarta: envie convite para 10 prospects','Quinta: realize os diagnósticos','Sexta: apresente plano de ação e proposta'], post:'10 vagas para diagnóstico estratégico gratuito esta semana. Comente DIAGNÓSTICO.', msg:'Olá, [nome]! Estou abrindo 10 vagas de diagnóstico estratégico gratuito esta semana. Quer garantir a da [empresa]?' },
+    { nome:'Semana Casa em Ordem', servico:S.nuvem, gancho:'Arquivos, logins e versões da marca espalhados geram caos. Organização na nuvem é fácil de vender para quem já tem identidade.', publico:'Empresas com marca, mas arquivos e acessos bagunçados', oferta:'Organização de pastas, manual e versões da marca na nuvem', acoes:['Segunda: post "Onde está o logo em alta?"','Terça: mostre estrutura organizada de pastas','Quarta: dicas de segurança de acessos','Quinta: abordagem a clientes antigos','Sexta: oferta de organização'], post:'Logo, manual, versões e acessos num só lugar, organizados. Casa em ordem esta semana.', msg:'Oi, [nome]! Posso organizar todos os arquivos e acessos da marca da [empresa] na nuvem, de forma segura. Quer conhecer?' }
+  ];
+
+  /* ---------- Estado e render ---------- */
+  var LAST_KEY='ideiasTeovoxLast';
+  function lerLast(){ try{ return JSON.parse(localStorage.getItem(LAST_KEY))||[]; }catch(e){ return []; } }
+  function gravarLast(ids){ try{ localStorage.setItem(LAST_KEY, JSON.stringify(ids)); }catch(e){} }
+
+  function pickAvoid(pool, avoid){
+    var livres = pool.filter(function(x){ return avoid.indexOf(x.id)<0; });
+    return pick(livres.length?livres:pool);
+  }
+  function gerarIdeias(){
+    var hoje=new Date(), dow=hoje.getDay(), last=lerLast(), usados=[];
+    var weekPool = dow===1?W.seg : dow===5?W.sex : (dow===0||dow===6)?W.fds : W.meio;
+    var i1 = pickAvoid(weekPool, last); usados.push(i1.id);
+    var datas = proximasDatas(hoje, 21), i2;
+    if(datas.length){
+      var cand = datas.slice(0,3).map(ideiaDeData).filter(function(x){return usados.indexOf(x.id)<0;});
+      i2 = pickAvoid(cand.length?cand:datas.slice(0,3).map(ideiaDeData), last);
+    } else { i2 = pickAvoid(O, last.concat(usados)); }
+    usados.push(i2.id);
+    var pool3 = O.concat(A).filter(function(x){ return usados.indexOf(x.id)<0 && x.tag!==i2.tag; });
+    var i3 = pickAvoid(pool3, last);
+    gravarLast([i1.id,i2.id,i3.id]);
+    return [i1,i2,i3];
+  }
+
+  function semanaIndex(d){ var ini=new Date(d.getFullYear(),d.getMonth(),d.getDate()); var seg=new Date(ini); seg.setDate(ini.getDate()-((ini.getDay()+6)%7)); return Math.floor((seg.getTime()/86400000)/7); }
+  var campOffset=0;
+  function campanhaAtual(){ var d=new Date(), n=C.length; return C[((semanaIndex(d)+campOffset)%n+n)%n]; }
+  function intervaloSemana(){ var d=new Date(), seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7)), dom=new Date(seg); dom.setDate(seg.getDate()+6); return pad(seg.getDate())+'/'+pad(seg.getMonth()+1)+' a '+pad(dom.getDate())+'/'+pad(dom.getMonth()+1); }
+
+  function copiar(texto, btn){
+    var ok=function(){ var t=btn.getAttribute('data-l')||btn.textContent; btn.setAttribute('data-l',t); btn.textContent='Copiado ✓'; setTimeout(function(){ btn.textContent=t; },1400); };
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(texto).then(ok,function(){ fb(); }); return; } }catch(e){}
+    fb();
+    function fb(){ try{ var ta=document.createElement('textarea'); ta.value=texto; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); }catch(e){} }
+  }
+
+  var TAGCOR={'Data comemorativa':'#b45309','Início de semana':'#1d4ed8','Meio de semana':'#0f766e','Fim de semana':'#7c3aed','Oportunidade do dia':'#be123c','Ação digital':'#0369a1'};
+  var ideias=[], camp=null;
+
+  function render(){
+    var h='';
+    h+='<div class="idt-block">';
+    h+='<div class="idt-head"><div><div class="idt-title">Ideias para a Teovox</div><div class="idt-sub">3 sugestões para vender os seus serviços hoje — atualizam a cada recarga</div></div>';
+    h+='<button type="button" class="btn-secondary idt-btn" id="idt-novas">Novas ideias</button></div>';
+    h+='<div class="idt-grid">';
+    ideias.forEach(function(it,i){
+      h+='<div class="idt-card"><span class="idt-tag" style="background:'+(TAGCOR[it.tag]||'#334155')+'">'+esc(it.tag)+'</span>';
+      h+='<h3>'+esc(it.title)+'</h3><p>'+esc(it.body)+'</p>';
+      h+='<div class="idt-serv"><b>Serviço:</b> '+esc(it.servico)+'</div>';
+      h+='<div class="idt-passo"><b>Primeiro passo:</b> '+esc(it.passo)+'</div>';
+      h+='<button type="button" class="btn-secondary idt-copy" data-i="'+i+'">Copiar mensagem</button></div>';
+    });
+    h+='</div></div>';
+    h+='<div class="idt-camp">';
+    h+='<div class="idt-camp-top"><span class="idt-camp-chip">Campanha da Semana · '+esc(intervaloSemana())+'</span>';
+    h+='<button type="button" class="idt-camp-alt" id="idt-outra">Outra campanha</button></div>';
+    h+='<h2>'+esc(camp.nome)+'</h2>';
+    h+='<div class="idt-camp-serv">Serviço em foco: <b>'+esc(camp.servico)+'</b></div>';
+    h+='<p class="idt-camp-gancho">'+esc(camp.gancho)+'</p>';
+    h+='<div class="idt-camp-cols"><div><div class="idt-k">Público ideal</div><div>'+esc(camp.publico)+'</div><div class="idt-k" style="margin-top:10px">Oferta sugerida</div><div>'+esc(camp.oferta)+'</div></div>';
+    h+='<div><div class="idt-k">Plano da semana</div><ul>'+camp.acoes.map(function(a){return '<li>'+esc(a)+'</li>';}).join('')+'</ul></div></div>';
+    h+='<div class="idt-camp-btns"><button type="button" class="idt-camp-btn" data-k="post">Copiar texto do post</button><button type="button" class="idt-camp-btn" data-k="msg">Copiar mensagem de abordagem</button></div>';
+    h+='</div>';
+    host.innerHTML=h;
+
+    host.querySelectorAll('.idt-copy').forEach(function(b){ b.addEventListener('click',function(){ copiar(ideias[+b.getAttribute('data-i')].msg,b); }); });
+    host.querySelectorAll('.idt-camp-btn').forEach(function(b){ b.addEventListener('click',function(){ copiar(camp[b.getAttribute('data-k')],b); }); });
+    document.getElementById('idt-novas').addEventListener('click',function(){ ideias=gerarIdeias(); render(); });
+    document.getElementById('idt-outra').addEventListener('click',function(){ campOffset++; camp=campanhaAtual(); render(); });
+  }
+
+  var css=document.createElement('style');
+  css.textContent=
+  '#ideias-teovox{margin-bottom:18px}'+
+  '#ideias-teovox .idt-block{background:var(--card-bg,#fff);border:1px solid rgba(15,23,42,.1);border-radius:14px;padding:18px 20px;margin-bottom:14px}'+
+  '#ideias-teovox .idt-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}'+
+  '#ideias-teovox .idt-title{font-weight:700;font-size:17px;color:var(--lead-900,#0b1f3a)}'+
+  '#ideias-teovox .idt-sub{font-size:12.5px;opacity:.7;margin-top:2px}'+
+  '#ideias-teovox .idt-btn{margin-left:auto}'+
+  '#ideias-teovox .idt-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}'+
+  '#ideias-teovox .idt-card{border:1px solid rgba(15,23,42,.1);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:rgba(15,23,42,.025)}'+
+  '#ideias-teovox .idt-card h3{margin:0;font-size:15px;line-height:1.3;color:var(--lead-900,#0b1f3a)}'+
+  '#ideias-teovox .idt-card p{margin:0;font-size:13.5px;line-height:1.5}'+
+  '#ideias-teovox .idt-tag{align-self:flex-start;color:#fff;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px}'+
+  '#ideias-teovox .idt-serv,#ideias-teovox .idt-passo{font-size:12.5px;line-height:1.45}'+
+  '#ideias-teovox .idt-copy{margin-top:auto;align-self:flex-start;font-size:12.5px}'+
+  '#ideias-teovox .idt-camp{background:linear-gradient(135deg,#0b1f3a,#174070 70%,#2169b8);color:#fff;border-radius:14px;padding:20px 22px}'+
+  '#ideias-teovox .idt-camp-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}'+
+  '#ideias-teovox .idt-camp-chip{background:rgba(255,255,255,.16);font-size:11.5px;font-weight:600;padding:3px 11px;border-radius:999px}'+
+  '#ideias-teovox .idt-camp-alt{margin-left:auto;background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:5px 11px;font-size:12px;cursor:pointer}'+
+  '#ideias-teovox .idt-camp-alt:hover{background:rgba(255,255,255,.12)}'+
+  '#ideias-teovox .idt-camp h2{margin:10px 0 2px;font-size:26px;letter-spacing:-.02em;color:#fff}'+
+  '#ideias-teovox .idt-camp-serv{font-size:13px;opacity:.85}'+
+  '#ideias-teovox .idt-camp-gancho{margin:10px 0 14px;font-size:14.5px;line-height:1.55;border-left:3px solid #6aaae4;padding-left:12px}'+
+  '#ideias-teovox .idt-camp-cols{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;font-size:13.5px;line-height:1.5}'+
+  '#ideias-teovox .idt-k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:3px}'+
+  '#ideias-teovox .idt-camp ul{margin:0;padding-left:18px}'+
+  '#ideias-teovox .idt-camp li{margin-bottom:4px}'+
+  '#ideias-teovox .idt-camp-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}'+
+  '#ideias-teovox .idt-camp-btn{background:#fff;color:#0b1f3a;border:none;border-radius:8px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer}'+
+  '#ideias-teovox .idt-camp-btn:hover{background:#d6e8f9}'+
+  '@media (max-width:900px){#ideias-teovox .idt-grid,#ideias-teovox .idt-camp-cols{grid-template-columns:1fr}#ideias-teovox .idt-btn{margin-left:0;width:100%}}';
+  document.head.appendChild(css);
+
+  ideias=gerarIdeias(); camp=campanhaAtual(); render();
+})();
+</script>
+
 </body>
 </html>
