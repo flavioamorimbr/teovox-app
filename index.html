@@ -7288,13 +7288,13 @@
   }
 
   var TAGCOR={'Data comemorativa':'#b45309','Início de semana':'#1d4ed8','Meio de semana':'#0f766e','Fim de semana':'#7c3aed','Oportunidade do dia':'#be123c','Ação digital':'#0369a1'};
-  var ideias=[], camp=null;
+  var ideias=[], camp=null, ihist=[], ipos=0, chist=[0], cpos=0;
 
   function render(){
     var h='';
     h+='<div class="idt-block">';
     h+='<div class="idt-head"><div><div class="idt-title">Ideias para a Teovox</div><div class="idt-sub">3 sugestões para vender os seus serviços hoje — atualizam a cada recarga</div></div>';
-    h+='<button type="button" class="btn-secondary idt-btn" id="idt-novas">Novas ideias</button></div>';
+    h+='<div class="idt-actions"><button type="button" class="btn-secondary idt-btn" id="idt-voltar-i"'+(ipos>0?'':' disabled')+' title="Voltar para as ideias anteriores">‹ Voltar</button>'+(ipos<ihist.length-1?'<button type="button" class="btn-secondary idt-btn" id="idt-avancar-i" title="Ir para as ideias mais recentes">Avançar ›</button>':'')+'<button type="button" class="btn-secondary idt-btn" id="idt-novas">Novas ideias</button></div></div>';
     h+='<div class="idt-grid">';
     ideias.forEach(function(it,i){
       h+='<div class="idt-card"><span class="idt-tag" style="background:'+(TAGCOR[it.tag]||'#334155')+'">'+esc(it.tag)+'</span>';
@@ -7306,7 +7306,7 @@
     h+='</div></div>';
     h+='<div class="idt-camp">';
     h+='<div class="idt-camp-top"><span class="idt-camp-chip">Campanha da Semana · '+esc(intervaloSemana())+'</span>';
-    h+='<button type="button" class="idt-camp-alt" id="idt-outra">Outra campanha</button></div>';
+    h+='<div class="idt-actions"><button type="button" class="idt-camp-alt" id="idt-voltar-c"'+(cpos>0?'':' disabled')+' title="Voltar para a campanha anterior">‹ Voltar</button>'+(cpos<chist.length-1?'<button type="button" class="idt-camp-alt" id="idt-avancar-c" title="Ir para a campanha mais recente">Avançar ›</button>':'')+'<button type="button" class="idt-camp-alt" id="idt-outra">Outra campanha</button></div></div>';
     h+='<h2>'+esc(camp.nome)+'</h2>';
     h+='<div class="idt-camp-serv">Serviço em foco: <b>'+esc(camp.servico)+'</b></div>';
     h+='<p class="idt-camp-gancho">'+esc(camp.gancho)+'</p>';
@@ -7319,8 +7319,12 @@
     host.querySelectorAll('.idt-copy').forEach(function(b){ b.addEventListener('click',function(){ copiar(ideias[+b.getAttribute('data-i')].msg,b); }); });
     host.querySelectorAll('.idt-camp-btn').forEach(function(b){ b.addEventListener('click',function(){ copiar(camp[b.getAttribute('data-k')],b); }); });
     document.getElementById('idt-criar-post').addEventListener('click',abrirPost);
-    document.getElementById('idt-novas').addEventListener('click',function(){ ideias=gerarIdeias(); render(); });
-    document.getElementById('idt-outra').addEventListener('click',function(){ campOffset++; camp=campanhaAtual(); render(); });
+    document.getElementById('idt-novas').addEventListener('click',function(){ ideias=gerarIdeias(); ihist=ihist.slice(0,ipos+1); ihist.push(ideias); ipos=ihist.length-1; render(); });
+    document.getElementById('idt-voltar-i').addEventListener('click',function(){ if(ipos>0){ ipos--; ideias=ihist[ipos]; render(); } });
+    var avi=document.getElementById('idt-avancar-i'); if(avi) avi.addEventListener('click',function(){ if(ipos<ihist.length-1){ ipos++; ideias=ihist[ipos]; render(); } });
+    document.getElementById('idt-outra').addEventListener('click',function(){ campOffset++; chist=chist.slice(0,cpos+1); chist.push(campOffset); cpos=chist.length-1; camp=campanhaAtual(); render(); });
+    document.getElementById('idt-voltar-c').addEventListener('click',function(){ if(cpos>0){ cpos--; campOffset=chist[cpos]; camp=campanhaAtual(); render(); } });
+    var avc=document.getElementById('idt-avancar-c'); if(avc) avc.addEventListener('click',function(){ if(cpos<chist.length-1){ cpos++; campOffset=chist[cpos]; camp=campanhaAtual(); render(); } });
   }
 
   /* ---------- Criar post (PNG/JPEG 1080x1350) ---------- */
@@ -7532,7 +7536,8 @@
   '#ideias-teovox .idt-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}'+
   '#ideias-teovox .idt-title{font-weight:700;font-size:17px;color:var(--lead-900,#0b1f3a)}'+
   '#ideias-teovox .idt-sub{font-size:12.5px;opacity:.7;margin-top:2px}'+
-  '#ideias-teovox .idt-btn{margin-left:auto}'+
+  '#ideias-teovox .idt-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}'+
+  '#ideias-teovox button[disabled]{opacity:.4;cursor:not-allowed}'+
   '#ideias-teovox .idt-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}'+
   '#ideias-teovox .idt-card{border:1px solid rgba(15,23,42,.1);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:rgba(15,23,42,.025)}'+
   '#ideias-teovox .idt-card h3{margin:0;font-size:15px;line-height:1.3;color:var(--lead-900,#0b1f3a)}'+
@@ -7543,7 +7548,7 @@
   '#ideias-teovox .idt-camp{background:linear-gradient(135deg,#0b1f3a,#174070 70%,#2169b8);color:#fff;border-radius:14px;padding:20px 22px}'+
   '#ideias-teovox .idt-camp-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}'+
   '#ideias-teovox .idt-camp-chip{background:rgba(255,255,255,.16);font-size:11.5px;font-weight:600;padding:3px 11px;border-radius:999px}'+
-  '#ideias-teovox .idt-camp-alt{margin-left:auto;background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:5px 11px;font-size:12px;cursor:pointer}'+
+  '#ideias-teovox .idt-camp-alt{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:5px 11px;font-size:12px;cursor:pointer}'+
   '#ideias-teovox .idt-camp-alt:hover{background:rgba(255,255,255,.12)}'+
   '#ideias-teovox .idt-camp h2{margin:10px 0 2px;font-size:26px;letter-spacing:-.02em;color:#fff}'+
   '#ideias-teovox .idt-camp-serv{font-size:13px;opacity:.85}'+
@@ -7566,10 +7571,10 @@
   '#idt-post-ov label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:#475569}#idt-post-ov input,#idt-post-ov textarea{font:inherit;font-weight:400;font-size:14px;color:#0b1f3a;border:1px solid #cbd5e1;border-radius:8px;padding:8px 10px;resize:vertical;background:#fff}'+
   '#idt-post-ov .idt-post-row{display:flex;gap:8px;flex-wrap:wrap}#idt-post-ov .idt-post-row .idt-post-b{flex:1}#idt-post-ov .idt-design-lab{font-weight:600;color:#2169b8}'+
   '@media (max-width:700px){#idt-post-ov .idt-post-box{flex-direction:column}#idt-post-ov .idt-post-prev{flex:none;width:100%}}'+
-  '@media (max-width:900px){#ideias-teovox .idt-grid,#ideias-teovox .idt-camp-cols{grid-template-columns:1fr}#ideias-teovox .idt-btn{margin-left:0;width:100%}}';
+  '@media (max-width:900px){#ideias-teovox .idt-grid,#ideias-teovox .idt-camp-cols{grid-template-columns:1fr}#ideias-teovox .idt-actions{margin-left:0;width:100%}}';
   document.head.appendChild(css);
 
-  ideias=gerarIdeias(); camp=campanhaAtual(); render();
+  ideias=gerarIdeias(); ihist=[ideias]; ipos=0; camp=campanhaAtual(); render();
 })();
 </script>
 
