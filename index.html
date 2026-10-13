@@ -5243,7 +5243,7 @@
 (function(){
   var SUPABASE_URL='https://ainyemjuwkbzhwyuqfqj.supabase.co';
   var SUPABASE_ANON_KEY='sb_publishable_A37OjzjIDahMEhixccb3lg_I5YM_-0u';
-  var sb=null, sbUser=null;
+  var sb=null, sbUser=null, syncErro=false, authChecked=false, lastSnapAt=0, posDone=null;
 
   function syncable(k){
     // sincroniza tudo do app, inclusive as imagens ilustrativas (teovox_hero_bg_*) e o perfil.
@@ -5277,8 +5277,8 @@
     var keys=Object.keys(pending); if(!keys.length) return;
     var rows=keys.map(function(k){ return {user_id:sbUser.id, chave:k, valor:parseVal(pending[k])}; });
     pending={};
-    try{ var r=await sb.from('app_state').upsert(rows,{onConflict:'user_id,chave'}); if(r.error)throw r.error; status('sincronizado'); }
-    catch(e){ status('erro ao sincronizar'); }
+    try{ var r=await sb.from('app_state_kv').upsert(rows,{onConflict:'user_id,chave'}); if(r.error)throw r.error; syncErro=false; status('sincronizado'); snapshotSePreciso(); }
+    catch(e){ syncErro=true; status('erro ao sincronizar'); }
   }
 
   function status(t){ var e=document.getElementById('tvx-cloud-status'); if(e)e.textContent=t; }
@@ -5292,19 +5292,23 @@
     else { out.style.display=''; inn.style.display='none'; status('desconectado'); }
   }
 
-  async function pushAll(){
+  async function pushAll(silent){
     if(!sbUser) return;
     var rows=[];
     for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(syncable(k)){ rows.push({user_id:sbUser.id, chave:k, valor:parseVal(localStorage.getItem(k))}); } }
-    if(!rows.length){ msg2('Nada para enviar.'); return; }
-    try{ var r=await sb.from('app_state').upsert(rows,{onConflict:'user_id,chave'}); if(r.error)throw r.error; msg2(rows.length+' item(ns) enviados para a nuvem.'); }
-    catch(e){ msg2('Falha ao enviar. A tabela "app_state" já foi criada no Supabase?'); }
+    if(!rows.length){ if(!silent) msg2('Nada para enviar.'); return; }
+    try{ var r=await sb.from('app_state_kv').upsert(rows,{onConflict:'user_id,chave'}); if(r.error)throw r.error; syncErro=false; msg2(rows.length+' item(ns) enviados para a nuvem.'); }
+    catch(e){ syncErro=true; msg2('Falha ao enviar para a nuvem. Tente novamente.'); }
   }
   async function pullAll(){
     if(!sbUser) return;
     if(!confirm('Baixar os dados da nuvem e substituir os deste navegador? Recomendado só ao usar um novo dispositivo.')) return;
+    return restaurarNuvem();
+  }
+  async function restaurarNuvem(){
+    if(!sbUser) return;
     try{
-      var r=await sb.from('app_state').select('chave,valor'); if(r.error)throw r.error;
+      var r=await sb.from('app_state_kv').select('chave,valor'); if(r.error)throw r.error;
       (r.data||[]).forEach(function(row){ _set(row.chave, typeof row.valor==='string'?row.valor:JSON.stringify(row.valor)); });
       location.reload();
     }catch(e){ msg2('Falha ao baixar. A tabela "app_state" já foi criada no Supabase?'); }
@@ -5356,7 +5360,7 @@
     var ok=0, fail=0, falhas=[];
     for(var j=0;j<items.length;j++){
       var row={user_id:sbUser.id, chave:items[j][0], valor:parseVal(items[j][1])};
-      try{ var r=await sb.from('app_state').upsert(row,{onConflict:'user_id,chave'}); if(r.error)throw r.error; ok++; }
+      try{ var r=await sb.from('app_state_kv').upsert(row,{onConflict:'user_id,chave'}); if(r.error)throw r.error; ok++; }
       catch(e){ fail++; falhas.push(items[j][0]+' — '+((e&&e.message)||'erro')); }
       report('Encontradas '+items.length+' chave(s):\n'+lista+'\n\nEnviando… '+(j+1)+'/'+items.length+'  ('+ok+' ok, '+fail+' falha)');
     }
@@ -5366,12 +5370,110 @@
     report('Encontradas '+items.length+' chave(s):\n'+lista+'\n\n'+fim);
   }
 
+  // ---- backup automático: restauração, cópia diária e aviso na tela ----
+  function hojeStr(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+  function contaChavesLocais(){ var n=0; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(syncable(k) && k.indexOf('teovox_hero_bg_')!==0) n++; } return n; }
+  function coletaSnapshot(){
+    var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(syncable(k) && k.indexOf('teovox_hero_bg_')!==0){ o[k]=parseVal(localStorage.getItem(k)); } }
+    return o;
+  }
+  async function snapshotHoje(){
+    if(!sb||!sbUser) return;
+    var dados=coletaSnapshot(); if(!Object.keys(dados).length) return;
+    try{
+      var r=await sb.from('app_backups').upsert({user_id:sbUser.id, dia:hojeStr(), dados:dados, criado_em:new Date().toISOString()},{onConflict:'user_id,dia'});
+      if(r.error) throw r.error;
+      lastSnapAt=Date.now();
+      var c=new Date(); c.setDate(c.getDate()-14); var corte=c.getFullYear()+'-'+('0'+(c.getMonth()+1)).slice(-2)+'-'+('0'+c.getDate()).slice(-2);
+      await sb.from('app_backups').delete().eq('user_id',sbUser.id).lt('dia',corte);
+      listarBackups();
+    }catch(e){ syncErro=true; }
+  }
+  function snapshotSePreciso(){ if(Date.now()-lastSnapAt>30*60*1000) snapshotHoje(); }
+
+  async function listarBackups(){
+    var box=document.getElementById('tvx-backup-box'); if(!box||!sb||!sbUser) return;
+    try{
+      var r=await sb.from('app_backups').select('dia,criado_em').order('dia',{ascending:false}).limit(14);
+      var sel=document.getElementById('tvx-backup-sel'); if(!sel) return;
+      sel.innerHTML='';
+      (r.data||[]).forEach(function(b){ var o=document.createElement('option'); o.value=b.dia; var p=String(b.dia).split('-'); o.textContent=p[2]+'/'+p[1]+'/'+p[0]; sel.appendChild(o); });
+      document.getElementById('tvx-backup-info').textContent=(r.data&&r.data.length)?('Cópias diárias guardadas: '+r.data.length+' (as últimas 14 ficam salvas).'):'Nenhuma cópia diária ainda — a primeira é criada automaticamente.';
+    }catch(e){}
+  }
+  function montaCaixaBackup(){
+    var inn=document.getElementById('tvx-cloud-logged-in'); if(!inn||document.getElementById('tvx-backup-box')) return;
+    var d=document.createElement('div'); d.id='tvx-backup-box'; d.style.cssText='margin-top:14px;padding:12px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;';
+    d.innerHTML='<div style="font-size:13px;font-weight:700;color:#0b1f3a;margin-bottom:4px;">Backup automático na nuvem</div>'+
+      '<div id="tvx-backup-info" style="font-size:12.5px;color:#475569;margin-bottom:8px;"></div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="tvx-backup-sel" style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;"></select>'+
+      '<button type="button" class="btn-secondary" id="tvx-backup-now">Fazer backup agora</button>'+
+      '<button type="button" class="btn-secondary" id="tvx-backup-restore">Restaurar a cópia selecionada</button></div>';
+    var ref=document.getElementById('tvx-cloud-msg2'); ref.parentNode.insertBefore(d,ref.nextSibling);
+    document.getElementById('tvx-backup-now').onclick=async function(){ await pushAll(); await snapshotHoje(); msg2('Backup feito agora.'); };
+    document.getElementById('tvx-backup-restore').onclick=async function(){
+      var dia=document.getElementById('tvx-backup-sel').value; if(!dia) return;
+      if(!confirm('Restaurar a cópia de '+dia.split('-').reverse().join('/')+'? Os dados deste navegador serão substituídos pelos dessa data.')) return;
+      try{
+        var r=await sb.from('app_backups').select('dados').eq('dia',dia).single(); if(r.error)throw r.error;
+        var dados=r.data.dados||{}; Object.keys(dados).forEach(function(k){ if(syncable(k)) _set(k, typeof dados[k]==='string'?dados[k]:JSON.stringify(dados[k])); });
+        location.reload();
+      }catch(e){ msg2('Não foi possível restaurar essa cópia.'); }
+    };
+  }
+
+  async function posLogin(){
+    if(!sbUser||posDone===sbUser.id) return; posDone=sbUser.id;
+    montaCaixaBackup();
+    try{
+      var r=await sb.from('app_state_kv').select('chave').limit(2000);
+      if(r.error) throw r.error;
+      var nuvem=(r.data||[]).length, locais=contaChavesLocais();
+      var jaRestaurou=false; try{ jaRestaurou=sessionStorage.getItem('tvxRestaurou')==='1'; }catch(e){}
+      if(nuvem>0 && locais<=3 && !jaRestaurou){
+        try{ sessionStorage.setItem('tvxRestaurou','1'); }catch(e){}
+        if(confirm('Encontramos um backup seu na nuvem e este navegador está praticamente vazio.\n\nRestaurar seus dados agora?')){ await restaurarNuvem(); return; }
+      }
+      if(locais>0) await pushAll(true);
+      await snapshotHoje();
+      listarBackups();
+    }catch(e){ syncErro=true; }
+  }
+
+  function avisoSoneca(){ try{ return Number(localStorage.getItem('tvxAvisoAte')||0)>Date.now(); }catch(e){ return false; } }
+  function criaAviso(){
+    var a=document.getElementById('tvx-aviso'); if(a) return a;
+    a=document.createElement('div'); a.id='tvx-aviso';
+    a.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9000;max-width:min(640px,calc(100vw - 24px));width:max-content;background:#fff7ed;border:1px solid #c2410c;color:#7c2d12;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.22);display:none;font:500 13.5px/1.45 Inter,system-ui,sans-serif;';
+    a.innerHTML='<div id="tvx-aviso-txt" style="margin-bottom:10px;"></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button type="button" id="tvx-aviso-go" style="background:#c2410c;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;">Ativar backup na nuvem</button><button type="button" id="tvx-aviso-later" style="background:transparent;color:#7c2d12;border:1px solid #c2410c;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;">Lembrar depois</button></div>';
+    document.body.appendChild(a);
+    document.getElementById('tvx-aviso-go').onclick=function(){
+      location.hash='#/perfil';
+      setTimeout(function(){ var c=document.getElementById('tvx-cloud-card'); if(c){ c.scrollIntoView({behavior:'smooth',block:'center'}); var e=document.getElementById('tvx-cloud-email'); if(e&&e.offsetParent) e.focus(); } },350);
+    };
+    document.getElementById('tvx-aviso-later').onclick=function(){ try{ localStorage.setItem('tvxAvisoAte', String(Date.now()+4*3600*1000)); }catch(e){} a.style.display='none'; };
+    return a;
+  }
+  function atualizarAviso(){
+    var a=criaAviso();
+    var logado=document.body.classList.contains('pre-auth')===false;
+    var deveMostrar = logado && authChecked && !avisoSoneca() && (!sbUser || syncErro);
+    if(!deveMostrar){ a.style.display='none'; return; }
+    document.getElementById('tvx-aviso-txt').innerHTML = !sbUser
+      ? '<b>⚠ Seus dados estão só neste navegador.</b> Se você limpar o cache ou os cookies, tudo será apagado. Entre na sua conta da nuvem para ativar o backup automático.'
+      : '<b>⚠ Falha ao sincronizar com a nuvem.</b> Suas alterações mais recentes podem não estar protegidas. Verifique a conexão e a conta.';
+    document.getElementById('tvx-aviso-go').textContent = !sbUser ? 'Ativar backup na nuvem' : 'Ver conta na nuvem';
+    a.style.display='block';
+  }
+  setInterval(atualizarAviso,3000);
+
   function start(){
+
     wire();
-    if(!(window.supabase && window.supabase.createClient)){ status('Supabase indisponível'); return; }
+    if(!(window.supabase && window.supabase.createClient)){ status('Supabase indisponível'); authChecked=true; atualizarAviso(); return; }
     try{ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); }catch(e){ status('erro no Supabase'); return; }
-    sb.auth.getSession().then(function(res){ sbUser=(res.data&&res.data.session)?res.data.session.user:null; render(); });
-    sb.auth.onAuthStateChange(function(_e,session){ sbUser=session?session.user:null; render(); });
+    sb.auth.getSession().then(function(res){ sbUser=(res.data&&res.data.session)?res.data.session.user:null; authChecked=true; render(); posLogin(); atualizarAviso(); });
+    sb.auth.onAuthStateChange(function(_e,session){ sbUser=session?session.user:null; render(); if(sbUser) posLogin(); else posDone=null; atualizarAviso(); });
   }
   if(document.readyState!=='loading') setTimeout(start,0);
   else document.addEventListener('DOMContentLoaded',start);
