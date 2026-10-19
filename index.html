@@ -2882,6 +2882,13 @@
         alert('Arquivo inválido. Selecione um arquivo de backup gerado pelo próprio sistema.');
         return;
       }
+      if (data && data.ls && typeof data.ls === 'object' && !Array.isArray(data.ls)) {
+        if (!confirm('Restaurar o backup automático de ' + (data.exportedAt || 'data desconhecida') + '? Isso substitui os dados atuais.')) return;
+        Object.keys(data.ls).forEach(k => { if (k.indexOf('teovox_') === 0 && k !== 'teovox_credentials' && k !== 'teovox_auth') localStorage.setItem(k, data.ls[k]); });
+        alert('Backup restaurado com sucesso!');
+        location.reload();
+        return;
+      }
       if (!data || !Array.isArray(data.clients)) {
         alert('Arquivo inválido. Selecione um arquivo de backup gerado pelo próprio sistema.');
         return;
@@ -8231,6 +8238,97 @@
   }
   if(document.readyState!=='loading') setTimeout(start,0); else document.addEventListener('DOMContentLoaded',start);
   window.TVX_RADAR={ gerarAchados:gerarAchados, atualizaAchados:atualizaAchados, relatorioExterno:relatorioExterno, relatorioInterno:relatorioInterno, pontuacao:pontuacao, novaAnalise:novaAnalise };
+})();
+</script>
+
+<script>
+/* ===== Backup automático no computador (módulo aditivo) ===== */
+(function(){
+  var INFO='tvxLocalBkInfo', DB='tvxLocalBk', ST='h';
+  function $(id){ return document.getElementById(id); }
+  function pad(n){ return (n<10?'0':'')+n; }
+  function info(){ try{ return Object.assign({ intervaloH:2, manter:30, ultimo:0, hash:'', ativo:false, pasta:'' }, JSON.parse(localStorage.getItem(INFO))||{}); }catch(e){ return { intervaloH:2, manter:30, ultimo:0, hash:'', ativo:false, pasta:'' }; } }
+  function setInfo(o){ try{ localStorage.setItem(INFO, JSON.stringify(o)); }catch(e){} }
+  function suportado(){ return typeof window.showDirectoryPicker==='function'; }
+  function idb(){ return new Promise(function(ok,no){ var r=indexedDB.open(DB,1); r.onupgradeneeded=function(){ r.result.createObjectStore(ST); }; r.onsuccess=function(){ ok(r.result); }; r.onerror=function(){ no(r.error); }; }); }
+  function idbGet(){ return idb().then(function(d){ return new Promise(function(ok,no){ var q=d.transaction(ST).objectStore(ST).get('dir'); q.onsuccess=function(){ ok(q.result||null); }; q.onerror=function(){ no(q.error); }; }); }); }
+  function idbSet(v){ return idb().then(function(d){ return new Promise(function(ok,no){ var t=d.transaction(ST,'readwrite'); if(v) t.objectStore(ST).put(v,'dir'); else t.objectStore(ST).delete('dir'); t.oncomplete=function(){ ok(); }; t.onerror=function(){ no(t.error); }; }); }); }
+  function snapshot(){
+    var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.indexOf('teovox_')===0&&k!=='teovox_credentials'&&k!=='teovox_auth'&&k.indexOf('teovox_hero_bg_')!==0){ o[k]=localStorage.getItem(k); } }
+    return o;
+  }
+  function hash(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return String(h>>>0)+':'+s.length; }
+  function nomeArq(){ var d=new Date(); return 'teovox-backup-auto_'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'_'+pad(d.getHours())+'-'+pad(d.getMinutes())+'.json'; }
+  async function permissao(h,pedir){
+    if(!h.queryPermission) return true;
+    var o={mode:'readwrite'};
+    if((await h.queryPermission(o))==='granted') return true;
+    if(pedir && (await h.requestPermission(o))==='granted') return true;
+    return false;
+  }
+  async function gravar(h,manual){
+    var dados=snapshot(); var n=Object.keys(dados).length;
+    if(!n) return 'vazio';
+    var corpo=JSON.stringify({ version:2, tipo:'auto', exportedAt:new Date().toISOString(), ls:dados });
+    var inf=info(), hs=hash(JSON.stringify(dados));
+    if(!manual && hs===inf.hash){ inf.ultimo=Date.now(); setInfo(inf); return 'igual'; }
+    var fh=await h.getFileHandle(nomeArq(),{create:true}); var w=await fh.createWritable(); await w.write(corpo); await w.close();
+    inf.ultimo=Date.now(); inf.hash=hs; inf.itens=n; setInfo(inf);
+    var nomes=[]; for await (var e of h.values()){ if(e.kind==='file' && /^teovox-backup-auto_.*\.json$/.test(e.name)) nomes.push(e.name); }
+    nomes.sort(); while(nomes.length>inf.manter){ try{ await h.removeEntry(nomes.shift()); }catch(x){ break; } }
+    return 'ok';
+  }
+  function fmt(ts){ if(!ts) return 'nunca'; var d=new Date(ts); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+  var msg=function(t,cls){ var e=$('tvx-lbk-msg'); if(e){ e.textContent=t; e.style.color=cls==='err'?'#b45309':(cls==='ok'?'#0f766e':'#555'); } };
+
+  function render(){
+    var c=$('tvx-lbk-card'); if(!c) return; var inf=info();
+    var h='<div class="profile-info-header"><h2>Backup automático no computador</h2><span style="font-size:12px;color:#888;font-weight:500;">'+(inf.ativo?'ativo':'desativado')+'</span></div>';
+    if(!suportado()){ c.innerHTML=h+'<p style="font-size:13px;color:#555;margin:6px 0;">Este recurso funciona no Google Chrome ou Microsoft Edge no computador. Neste navegador, use “Exportar backup” no menu.</p>'; return; }
+    h+='<p style="font-size:13px;color:#555;margin:6px 0 12px;">Escolha uma pasta do seu computador (ou do Google Drive para computador). Enquanto o painel estiver aberto no navegador, uma cópia é salva automaticamente nessa pasta no intervalo escolhido, se houve alteração.</p>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">'+
+      '<label style="font-size:13px;color:#475569;">Intervalo <select id="tvx-lbk-int" style="padding:7px 9px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;">'+[1,2,4,6,12,24].map(function(v){return '<option value="'+v+'"'+(v===inf.intervaloH?' selected':'')+'>a cada '+v+' h</option>';}).join('')+'</select></label>'+
+      '<label style="font-size:13px;color:#475569;">Manter <select id="tvx-lbk-man" style="padding:7px 9px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;">'+[10,30,60,120].map(function(v){return '<option value="'+v+'"'+(v===inf.manter?' selected':'')+'>'+v+' cópias</option>';}).join('')+'</select></label></div>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn-secondary" id="tvx-lbk-pasta">'+(inf.ativo?'Trocar pasta':'Escolher pasta e ativar')+'</button>'+
+      (inf.ativo?'<button type="button" class="btn-secondary" id="tvx-lbk-agora">Fazer backup agora</button><button type="button" class="btn-secondary" id="tvx-lbk-reat">Reativar permissão</button><button type="button" class="btn-secondary" id="tvx-lbk-off">Desativar</button>':'')+'</div>';
+    h+='<p id="tvx-lbk-msg" style="font-size:12.5px;margin:10px 0 0;color:#555;">'+(inf.ativo?('Pasta: '+(inf.pasta||'(escolhida)')+' · último backup: '+fmt(inf.ultimo)):'Nenhuma pasta escolhida.')+'</p>';
+    h+='<p style="font-size:12px;color:#64748b;margin:6px 0 0;">O backup roda só com o painel aberto. Ao reabrir o navegador, o Chrome pode pedir permissão novamente: clique em “Reativar permissão”. Para restaurar, use “Importar backup” no menu e escolha o arquivo.</p>';
+    c.innerHTML=h; liga();
+  }
+  function liga(){
+    var inf=info();
+    var si=$('tvx-lbk-int'); if(si) si.onchange=function(){ var i=info(); i.intervaloH=+si.value; setInfo(i); };
+    var sm=$('tvx-lbk-man'); if(sm) sm.onchange=function(){ var i=info(); i.manter=+sm.value; setInfo(i); };
+    $('tvx-lbk-pasta').onclick=async function(){
+      try{
+        var h=await window.showDirectoryPicker({ id:'teovox-backup', mode:'readwrite' });
+        if(!(await permissao(h,true))){ msg('Permissão negada para a pasta.','err'); return; }
+        await idbSet(h); var i=info(); i.ativo=true; i.pasta=h.name||''; i.hash=''; setInfo(i);
+        var r=await gravar(h,true); render(); msg('Backup salvo na pasta “'+(h.name||'')+'”. Próximos: a cada '+i.intervaloH+' h.','ok');
+      }catch(e){ if(e&&e.name!=='AbortError') msg('Não foi possível ativar: '+(e.message||e),'err'); }
+    };
+    var ag=$('tvx-lbk-agora'); if(ag) ag.onclick=async function(){ try{ var h=await idbGet(); if(!h) throw new Error('pasta não encontrada'); if(!(await permissao(h,true))) throw new Error('permissão negada'); await gravar(h,true); render(); msg('Backup salvo agora.','ok'); }catch(e){ msg('Falha ao salvar: '+(e.message||e),'err'); } };
+    var re=$('tvx-lbk-reat'); if(re) re.onclick=async function(){ try{ var h=await idbGet(); if(!h) throw new Error('pasta não encontrada'); if(await permissao(h,true)){ await gravar(h,false); render(); msg('Permissão reativada.','ok'); } else msg('Permissão negada.','err'); }catch(e){ msg('Falha: '+(e.message||e),'err'); } };
+    var of=$('tvx-lbk-off'); if(of) of.onclick=async function(){ if(!confirm('Desativar o backup automático no computador?')) return; await idbSet(null); var i=info(); i.ativo=false; setInfo(i); render(); };
+  }
+  async function tick(){
+    var inf=info(); if(!inf.ativo||!suportado()) return;
+    if(Date.now()-inf.ultimo < inf.intervaloH*3600*1000) return;
+    try{
+      var h=await idbGet(); if(!h) return;
+      if(!(await permissao(h,false))){ var m=$('tvx-lbk-msg'); if(m){ m.textContent='Backup pendente: clique em “Reativar permissão”.'; m.style.color='#b45309'; } aviso(); return; }
+      await gravar(h,false); var m2=$('tvx-lbk-msg'); if(m2){ m2.textContent='Último backup: '+fmt(info().ultimo); m2.style.color='#0f766e'; }
+    }catch(e){}
+  }
+  function aviso(){ /* sem pop-up: o status fica visível em Meu Perfil */ }
+  function monta(){
+    if($('tvx-lbk-card')) return true;
+    var ref=$('tvx-cloud-card'); if(!ref) return false;
+    var c=document.createElement('div'); c.className='card profile-info-card'; c.id='tvx-lbk-card'; c.style.marginTop='16px';
+    ref.insertAdjacentElement('afterend',c); render(); return true;
+  }
+  function start(){ var n=0; var t=setInterval(function(){ if(monta()||++n>40) clearInterval(t); },500); setInterval(tick,60000); setTimeout(tick,4000); }
+  if(document.readyState!=='loading') start(); else document.addEventListener('DOMContentLoaded',start);
 })();
 </script>
 
