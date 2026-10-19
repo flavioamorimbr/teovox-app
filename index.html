@@ -7726,7 +7726,9 @@
     var ev=function(r,u){ return { rotulo:r, url:safeUrl(u) }; };
     if(S){
       var st=S.site;
-      if(!st){
+      if(!st && S.descoberta && !S.descoberta.escolhido){
+        add({ id:'site-nao-identificado', area:'site', tipo:'nao_confirmado', titulo:'Identificação do website', observacao:'Não foi possível confirmar o website oficial da empresa nas fontes públicas consultadas a partir do nome informado.', evidencia:ev('Busca pública pelo nome da empresa','https://www.google.com/search?q='+encodeURIComponent(((a.empresa||'')+' '+(a.cidade||'')).trim()+' site oficial')), recomendacao:'Recomenda-se confirmar o endereço do website da empresa e repetir a análise.', confianca:'baixa' });
+      } else if(!st){
         add({ id:'site-acesso', area:'site', tipo:'nao_confirmado', titulo:'Acesso ao website', observacao:'Não foi possível acessar o website informado no momento da análise'+((S.erros&&S.erros[0])?' ('+S.erros[0].replace(/^Site:\s*/,'')+')':'')+'.', evidencia:ev('Endereço informado',siteUrl), recomendacao:'Recomenda-se confirmar o endereço do website e repetir a consulta.', confianca:'baixa' });
       } else {
         var seg=(st.tempoMs/1000).toFixed(1).replace('.',',');
@@ -7827,43 +7829,80 @@
       if(a.redes.instagram && !sl2.instagram) falt.push('Instagram');
       if(a.redes.facebook && !sl2.facebook) falt.push('Facebook');
       if(a.redes.linkedin && !sl2.linkedin) falt.push('LinkedIn');
-      if(falt.length) add({ id:'redes-nao-vinculadas', area:'redes', titulo:'Perfis informados e website', observacao:'Foram informados perfis ('+falt.join(', ')+') que não aparecem como link na página inicial do website.', evidencia:ev('Perfil informado',a.redes.instagram||a.redes.facebook||a.redes.linkedin), oportunidade:'A conexão entre o website e os perfis oficiais facilita a localização dos canais da empresa.', recomendacao:'Recomenda-se avaliar a inclusão desses perfis no cabeçalho ou rodapé do site.', beneficio:'Poderá contribuir para a consistência das informações institucionais entre os canais.', prioridade:'baixa', justificativa:'Ajuste simples.', horizonte:'curto', cat:['canais','identidade'], servico:'Gestão de redes sociais', peso:3 });
+      if(falt.length) add({ id:'redes-nao-vinculadas', area:'redes', titulo:'Perfis em redes sociais e website', observacao:'Foram identificados perfis ('+falt.join(', ')+') que não aparecem como link na página inicial do website.', evidencia:ev('Perfil informado',a.redes.instagram||a.redes.facebook||a.redes.linkedin), oportunidade:'A conexão entre o website e os perfis oficiais facilita a localização dos canais da empresa.', recomendacao:'Recomenda-se avaliar a inclusão desses perfis no cabeçalho ou rodapé do site.', beneficio:'Poderá contribuir para a consistência das informações institucionais entre os canais.', prioridade:'baixa', justificativa:'Ajuste simples.', horizonte:'curto', cat:['canais','identidade'], servico:'Gestão de redes sociais', peso:3 });
     }
-    /* Google Perfil da Empresa (manual) */
-    var g=M.google||{}, buscaG='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((a.empresa||'')+' '+(a.cidade||''));
-    if(g.status==='encontrado'){
-      add({ id:'google-ok', area:'local', tipo:'positivo', titulo:'Perfil da Empresa no Google', observacao:'Foi localizado Perfil da Empresa no Google'+(g.nota?(' com nota '+g.nota):'')+(g.avaliacoes?(' e '+g.avaliacoes+' avaliações'):'')+'.', evidencia:ev('Busca no Google Maps',buscaG), cat:['localizacao'] });
-      if(g.info==='parcial'||g.info==='nao'){
-        add({ id:'google-info', area:'local', titulo:'Completude do Perfil da Empresa', observacao:'Foram observadas informações '+(g.info==='nao'?'ausentes':'incompletas')+' no Perfil da Empresa no Google'+(g.obs?(': '+g.obs):'.')+(/[.!?]$/.test(g.obs||'')?'':''), evidencia:ev('Busca no Google Maps',buscaG), oportunidade:'Informações completas e consistentes (endereço, horário, telefone, categorias) facilitam a localização da empresa.', recomendacao:'Recomenda-se revisar e completar as informações comerciais do perfil.', beneficio:'Poderá facilitar a localização das informações comerciais.', prioridade:'media', justificativa:'Informações cadastrais são a base da visibilidade local.', horizonte:'curto', cat:['localizacao'], servico:'Google Empresas', peso:7 });
+    if(S){
+      var G=S.google||{}, buscaG='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(((a.empresa||'')+' '+(a.cidade||'')).trim());
+      if(G.status==='ok' && G.lugar){
+        var lg=G.lugar;
+        add({ id:'google-ok', area:'local', tipo:'positivo', titulo:'Perfil da Empresa no Google', observacao:'Foi localizado Perfil da Empresa no Google'+(lg.nota?(' com nota '+String(lg.nota).replace('.',',')):'')+(lg.avaliacoes?(' e '+lg.avaliacoes+' avaliações'):'')+'.', evidencia:ev('Perfil no Google Maps',lg.url||buscaG), cat:['localizacao'] });
+        var falt=[]; if(!lg.telefone) falt.push('telefone'); if(!lg.site) falt.push('endereço do site'); if(!lg.horario) falt.push('horário de funcionamento'); if(!lg.endereco) falt.push('endereço');
+        if(falt.length){
+          add({ id:'google-info', area:'local', titulo:'Completude do Perfil da Empresa', observacao:'No Perfil da Empresa, não foram identificadas as seguintes informações: '+falt.join(', ')+'.', evidencia:ev('Perfil no Google Maps',lg.url||buscaG), oportunidade:'Informações completas e consistentes facilitam a localização e o contato com a empresa.', recomendacao:'Recomenda-se revisar e completar as informações comerciais do perfil.', beneficio:'Poderá facilitar a localização das informações comerciais.', prioridade:'media', justificativa:'Informações cadastrais são a base da visibilidade local.', horizonte:'curto', cat:['localizacao'], servico:'Google Empresas', peso:7 });
+        }
+        if(lg.fotos<3){
+          add({ id:'google-fotos', area:'local', titulo:'Fotografias do Perfil da Empresa', observacao:'O perfil apresenta '+(lg.fotos?'poucas':'nenhuma')+' fotografia(s) disponíveis publicamente na data da consulta.', evidencia:ev('Perfil no Google Maps',lg.url||buscaG), oportunidade:'Fotografias atualizadas ajudam o público a conhecer o espaço e os serviços.', recomendacao:'Recomenda-se avaliar a inclusão de fotos da fachada, do ambiente e dos serviços.', beneficio:'Poderá fortalecer a confiança de quem pesquisa a empresa.', prioridade:'baixa', justificativa:'Ação simples e contínua.', horizonte:'curto', cat:['localizacao','confianca'], servico:'Google Empresas', peso:4, confianca:'media' });
+        }
+        if(lg.avaliacoes<20){
+          add({ id:'google-avaliacoes', area:'local', titulo:'Avaliações no Google', observacao:'O perfil apresenta '+lg.avaliacoes+' avaliações na data da consulta.', evidencia:ev('Perfil no Google Maps',lg.url||buscaG), oportunidade:'Avaliações de clientes contribuem para a confiança de quem pesquisa a empresa.', recomendacao:'Recomenda-se avaliar um processo simples para incentivar clientes satisfeitos a avaliar a empresa.', beneficio:'Poderá fortalecer a confiança na comunicação digital.', prioridade:'baixa', justificativa:'Resultado construído gradualmente.', horizonte:'medio', cat:['confianca','localizacao'], servico:'Google Empresas', peso:4 });
+        }
+      } else if(G.status==='nao_encontrado'){
+        add({ id:'google-nao', area:'local', titulo:'Perfil da Empresa no Google', observacao:'Na busca realizada, não foi localizado Perfil da Empresa no Google associado ao nome informado'+(a.cidade?' em '+a.cidade:'')+'.', evidencia:ev('Busca no Google Maps',buscaG), oportunidade:'O Perfil da Empresa é uma das principais formas de ser encontrado em buscas locais.', recomendacao:'Recomenda-se verificar se o perfil existe (pode haver variação de nome) e, se necessário, avaliar o cadastro e a verificação da empresa.', beneficio:'Poderá facilitar a localização da empresa e de suas informações comerciais.', prioridade:'media', justificativa:'A ausência pode decorrer de variação de nome ou localidade; deve ser confirmada.', horizonte:'curto', cat:['localizacao'], servico:'Google Empresas', peso:9, confianca:'media' });
+      } else {
+        add({ id:'google-nc', area:'local', tipo:'nao_confirmado', titulo:'Perfil da Empresa no Google', observacao:'Não foi possível confirmar este aspecto nas fontes públicas consultadas.', evidencia:ev('Busca no Google Maps',buscaG), cat:['localizacao'], confianca:'baixa' });
       }
-      if(g.fotos==='poucas'){
-        add({ id:'google-fotos', area:'local', titulo:'Fotografias do Perfil da Empresa', observacao:'O Perfil da Empresa apresenta poucas fotografias na data da consulta.', evidencia:ev('Busca no Google Maps',buscaG), oportunidade:'Fotografias atualizadas ajudam o público a conhecer o espaço e os serviços.', recomendacao:'Recomenda-se avaliar a inclusão de fotos da fachada, do ambiente e dos serviços.', beneficio:'Poderá fortalecer a confiança de quem pesquisa a empresa.', prioridade:'baixa', justificativa:'Ação simples e contínua.', horizonte:'curto', cat:['localizacao','confianca'], servico:'Google Empresas', peso:4 });
+      /* redes: perfis e seguidores */
+      var RN={instagram:'Instagram',facebook:'Facebook',linkedin:'LinkedIn'};
+      (S.redes||[]).forEach(function(r){
+        var nm=RN[r.rede]||r.rede, us=r.usuario?('@'+r.usuario):'';
+        if(r.existe===false){ add({ id:'rede-'+r.rede+'-nc', area:'redes', tipo:'nao_confirmado', titulo:'Perfil no '+nm, observacao:'O endereço do perfil no '+nm+' ('+r.url+') não foi localizado na consulta.', evidencia:ev('Perfil no '+nm,r.url), cat:['canais'], confianca:'baixa' }); return; }
+        if(r.seguidores!=null){
+          add({ id:'rede-'+r.rede+'-ok', area:'redes', tipo:'positivo', titulo:'Perfil no '+nm, observacao:'Foi identificado perfil no '+nm+(us?' ('+us+')':'')+' com '+r.seguidores.toLocaleString('pt-BR')+' seguidores na data da consulta.', evidencia:ev('Perfil no '+nm,r.url), cat:['canais'] });
+          if(r.seguidores<500){
+            add({ id:'rede-'+r.rede+'-alcance', area:'redes', titulo:'Alcance do perfil no '+nm, observacao:'O perfil'+(us?' '+us:'')+' apresenta '+r.seguidores.toLocaleString('pt-BR')+' seguidores na data da consulta.', evidencia:ev('Perfil no '+nm,r.url), oportunidade:'Há espaço para ampliar o alcance e o relacionamento com o público por meio de uma rotina de conteúdo.', recomendacao:'Recomenda-se avaliar um planejamento de conteúdo e de divulgação do perfil nos demais canais da empresa.', beneficio:'Poderá contribuir para o melhor aproveitamento dos canais digitais existentes.', prioridade:'baixa', justificativa:'O número de seguidores é um indicador isolado e não mede, por si, a qualidade do relacionamento.', horizonte:'medio', cat:['canais'], servico:'Gestão de redes sociais', peso:4, confianca:'media' });
+          }
+        } else if(r.rede==='linkedin'){
+          add({ id:'rede-linkedin-ok', area:'redes', tipo:'positivo', titulo:'Perfil no LinkedIn', observacao:'Foi identificado link para página no LinkedIn ('+r.origem+').', evidencia:ev('Página no LinkedIn',r.url), cat:['canais'] });
+        } else {
+          add({ id:'rede-'+r.rede+'-nc', area:'redes', tipo:'nao_confirmado', titulo:'Perfil no '+nm, observacao:'Foi identificado perfil no '+nm+(us?' ('+us+')':'')+', mas não foi possível confirmar o número de seguidores nas fontes públicas consultadas.', evidencia:ev('Perfil no '+nm,r.url), cat:['canais'], confianca:'baixa' });
+        }
+      });
+      if(!(S.redes||[]).length){
+        add({ id:'redes-nao-localizadas', area:'redes', tipo:'nao_confirmado', titulo:'Perfis em redes sociais', observacao:'Não foram localizados perfis de Instagram, Facebook ou LinkedIn nas fontes públicas consultadas.', evidencia:ev('Busca pública pelo nome da empresa','https://www.google.com/search?q='+encodeURIComponent(((a.empresa||'')+' '+(a.cidade||'')).trim()+' instagram')), recomendacao:'Recomenda-se confirmar quais perfis oficiais a empresa mantém.', cat:['canais'], confianca:'baixa', servico:'Gestão de redes sociais' });
       }
-      if(g.avaliacoes!=='' && Number(g.avaliacoes)<20){
-        add({ id:'google-avaliacoes', area:'local', titulo:'Avaliações no Google', observacao:'O perfil apresenta '+g.avaliacoes+' avaliações na data da consulta.', evidencia:ev('Busca no Google Maps',buscaG), oportunidade:'Avaliações de clientes contribuem para a confiança de quem pesquisa a empresa.', recomendacao:'Recomenda-se avaliar um processo simples para incentivar clientes satisfeitos a avaliar a empresa.', beneficio:'Poderá fortalecer a confiança na comunicação digital.', prioridade:'baixa', justificativa:'Resultado construído gradualmente.', horizonte:'medio', cat:['confianca','localizacao'], servico:'Google Empresas', peso:4 });
+      /* domínios (empresa sem site identificado) */
+      var doms=S.dominios||[], regs=doms.filter(function(d){return d.registrado===true;}), nregs=doms.filter(function(d){return d.registrado===false;});
+      if(!S.site && doms.length){
+        if(regs.length){
+          add({ id:'dominio-candidato', area:'site', tipo:'nao_confirmado', titulo:'Domínio com o nome da empresa', observacao:'Foi identificado o registro de '+regs.map(function(d){return d.dominio;}).join(', ')+'; não foi possível confirmar a titularidade nem o uso do domínio.', evidencia:ev('Consulta pública de registro (RDAP)',regs[0].fonte), cat:['confianca'], confianca:'baixa' });
+        } else if(nregs.length===doms.length){
+          add({ id:'dominio-livre', area:'site', titulo:'Domínio próprio da empresa', observacao:'Nos testes realizados ('+doms.map(function(d){return d.dominio;}).join(', ')+'), não foi identificado domínio registrado com o nome da empresa.', evidencia:ev('Consulta pública de registro (RDAP)',nregs[0]&&('https://registro.br/tecnologia/ferramentas/whois/?search='+encodeURIComponent(nregs[0].dominio))), oportunidade:'Um domínio próprio é a base para site, e-mails profissionais e presença organizada em buscas.', recomendacao:'Recomenda-se avaliar o registro de um domínio com o nome da empresa e a criação de e-mails personalizados.', beneficio:'Poderá reforçar a confiança e a organização dos canais de contato.', prioridade:'media', justificativa:'A empresa pode usar um domínio com grafia diferente, não testada nesta consulta.', horizonte:'curto', cat:['confianca','contatos'], servico:'Patrimônio digital (registro de domínio)', peso:9, confianca:'media' });
+        }
       }
-    } else if(g.status==='nao_encontrado'){
-      add({ id:'google-nao', area:'local', titulo:'Perfil da Empresa no Google', observacao:'Nas buscas realizadas, não foi localizado Perfil da Empresa no Google associado ao nome informado'+(a.cidade?' em '+a.cidade:'')+'.', evidencia:ev('Busca no Google Maps',buscaG), oportunidade:'O Perfil da Empresa é uma das principais formas de ser encontrado em buscas locais.', recomendacao:'Recomenda-se verificar se o perfil existe e, se necessário, avaliar o cadastro e a verificação da empresa.', beneficio:'Poderá facilitar a localização da empresa e de suas informações comerciais.', prioridade:'media', justificativa:'A ausência do perfil pode não ter sido detectada por variações de nome; deve ser confirmada.', horizonte:'curto', cat:['localizacao'], servico:'Google Empresas', peso:9, confianca:'media' });
-    } else if(g.status==='nao_verificado' && S){
-      add({ id:'google-nc', area:'local', tipo:'nao_confirmado', titulo:'Perfil da Empresa no Google', observacao:'Este aspecto não foi verificado nas fontes consultadas.', evidencia:ev('Busca no Google Maps',buscaG), cat:['localizacao'], confianca:'baixa' });
-    }
-    /* INPI (manual) */
-    var ip=M.inpi||{};
-    var linkInpi='https://busca.inpi.gov.br/pePI/';
-    if(ip.status==='registro_encontrado'){
-      add({ id:'inpi-ok', area:'marca', tipo:'positivo', titulo:'Consulta de marca no INPI', observacao:'Na consulta realizada'+(ip.data?' em '+fmtData(ip.data):'')+', foi localizado processo de registro de marca relacionado ao nome da empresa'+(ip.processo?' (processo nº '+ip.processo+')':'')+'.', evidencia:ev('Base de marcas do INPI',linkInpi), cat:['confianca'] });
-    } else if(ip.status==='nao_localizado'){
-      add({ id:'inpi-nao', area:'marca', titulo:'Consulta de marca no INPI', observacao:'Na consulta realizada'+(ip.data?' em '+fmtData(ip.data):'')+', não foi localizado processo de registro com o nome pesquisado. A busca pública possui limitações (variações de grafia, classes e titularidade).', evidencia:ev('Base de marcas do INPI',linkInpi), oportunidade:'O registro da marca é o instrumento que assegura o direito de uso exclusivo do nome.', recomendacao:'Recomenda-se avaliar uma busca de viabilidade mais detalhada, por classe, e, se for o caso, o registro da marca.', beneficio:'Poderá reforçar a segurança jurídica sobre o uso do nome e da identidade da empresa.', prioridade:'media', justificativa:'A conclusão depende de uma busca de viabilidade por classe, ainda não realizada.', horizonte:'medio', cat:['confianca','identidade'], servico:'Registro de marca (INPI)', peso:10, confianca:'media' });
-    } else if(ip.status==='indisponivel'){
-      add({ id:'inpi-nc', area:'marca', tipo:'nao_confirmado', titulo:'Consulta de marca no INPI', observacao:'Não foi possível concluir a consulta à base do INPI no momento da análise.', evidencia:ev('Base de marcas do INPI',linkInpi), cat:['confianca'], confianca:'baixa' });
-    }
-    /* Identidade visual (manual) */
-    var id=M.identidade||{};
-    if(id.status==='consistente'){
-      add({ id:'ident-ok', area:'identidade', tipo:'positivo', titulo:'Consistência da identidade visual', observacao:'Observou-se identidade visual aparentemente consistente entre os canais públicos analisados'+(id.obs?(': '+id.obs):'.'), evidencia:ev('Canais públicos analisados',siteUrl), cat:['identidade'] });
-    } else if(id.status==='parcial'||id.status==='inconsistente'){
-      var inc=id.status==='inconsistente';
-      add({ id:'ident-oport', area:'identidade', titulo:'Consistência da identidade visual', observacao:'Entre os canais públicos analisados, observou-se '+(inc?'variação relevante':'consistência parcial')+' na identidade visual'+(id.obs?(': '+id.obs):'.'), evidencia:ev('Canais públicos analisados',siteUrl), oportunidade:'A padronização de logotipo, cores e tipografia fortalece o reconhecimento da marca.', recomendacao:'Recomenda-se avaliar a padronização visual entre website, redes sociais e materiais de comunicação, com base em um manual de marca.', beneficio:'Poderá contribuir para a consistência da identidade visual e o reconhecimento da marca.', prioridade:inc?'alta':'media', justificativa:'A identidade é a base de toda a comunicação visual da empresa; a avaliação é qualitativa.', horizonte:'medio', cat:['identidade','clareza'], servico:'Identidade visual', peso:inc?10:6, confianca:'media' });
+      /* INPI */
+      var IP=S.inpi||{}, linkInpi='https://busca.inpi.gov.br/pePI/';
+      if(IP.status==='ok'){
+        var proc=(IP.titularProvavel||[])[0];
+        if(proc){
+          add({ id:'inpi-ok', area:'marca', tipo:'positivo', titulo:'Consulta de marca no INPI', observacao:'Na base pública do INPI, foi localizado processo de marca compatível com o nome da empresa (nº '+proc.numero+(proc.situacao?', situação: '+proc.situacao:'')+'). A titularidade deve ser confirmada pelo documento oficial.', evidencia:ev('Base de marcas do INPI',linkInpi), cat:['confianca'], confianca:'media' });
+        } else if(IP.total===0){
+          add({ id:'inpi-nao', area:'marca', titulo:'Consulta de marca no INPI', observacao:'Na consulta realizada pelo nome "'+(IP.consulta||a.empresa)+'", não foi localizado processo de registro de marca na base pública do INPI. A busca possui limitações (variações de grafia, classes e titularidade).', evidencia:ev('Base de marcas do INPI',linkInpi), oportunidade:'O registro da marca é o instrumento que assegura o direito de uso exclusivo do nome.', recomendacao:'Recomenda-se avaliar uma busca de viabilidade mais detalhada, por classe, e, se for o caso, o registro da marca.', beneficio:'Poderá reforçar a segurança jurídica sobre o uso do nome e da identidade da empresa.', prioridade:'media', justificativa:'A conclusão depende de uma busca de viabilidade por classe, ainda não realizada.', horizonte:'medio', cat:['confianca','identidade'], servico:'Registro de marca (INPI)', peso:10, confianca:'media' });
+        } else {
+          add({ id:'inpi-homonimo', area:'marca', tipo:'nao_confirmado', titulo:'Consulta de marca no INPI', observacao:'Foram localizados '+IP.total+' processo(s) com nome semelhante, mas não foi possível confirmar se pertencem à empresa analisada.', evidencia:ev('Base de marcas do INPI',linkInpi), cat:['confianca'], confianca:'baixa', servico:'Registro de marca (INPI)' });
+        }
+      } else {
+        add({ id:'inpi-nc', area:'marca', tipo:'nao_confirmado', titulo:'Consulta de marca no INPI', observacao:'Não foi possível concluir a consulta à base pública do INPI na data da análise.', evidencia:ev('Base de marcas do INPI',linkInpi), cat:['confianca'], confianca:'baixa' });
+      }
+      /* identidade visual: sinais públicos do site */
+      var stI=S.site;
+      if(stI && stI.status<400){
+        var faltaI=[]; if(!stI.favicon) faltaI.push('ícone do site (favicon)'); if(!stI.ogImage) faltaI.push('imagem de compartilhamento (exibida em redes e aplicativos de mensagem)');
+        if(faltaI.length){
+          add({ id:'ident-sinais', area:'identidade', titulo:'Elementos de identidade no website', observacao:'Na página inicial, não foram identificados: '+faltaI.join(' e ')+'.', evidencia:ev('Código público da página inicial',stI.urlFinal), oportunidade:'Esses elementos reforçam o reconhecimento da marca em abas do navegador e em links compartilhados.', recomendacao:'Recomenda-se avaliar a inclusão desses elementos, aplicando o logotipo e as cores da marca.', beneficio:'Poderá contribuir para a consistência da identidade visual e o reconhecimento da marca.', prioridade:'baixa', justificativa:'Ajuste simples, de baixo esforço. A avaliação cobre apenas elementos técnicos, não a qualidade do design.', horizonte:'curto', cat:['identidade'], servico:'Identidade visual', peso:4, confianca:'media' });
+        } else {
+          add({ id:'ident-ok', area:'identidade', tipo:'positivo', titulo:'Elementos de identidade no website', observacao:'A página inicial apresenta ícone do site e imagem de compartilhamento configurados.', evidencia:ev('Código público da página inicial',stI.urlFinal), cat:['identidade'] });
+        }
+      }
     }
     return L;
   }
@@ -8017,10 +8056,9 @@
     h+='<h2>5. Estratégia de abordagem</h2><p>'+esc(abordagemTexto(a))+'</p>';
     h+='<h2>6. Sugestão de mensagem comercial</h2><p class="nota">'+esc(mensagemSugerida(a))+'</p>';
     h+='<h2>7. Observações internas</h2><p>'+(a.notasInternas?esc(a.notasInternas).replace(/\n/g,'<br>'):'<span class="leve">Sem observações registradas.</span>')+'</p>';
-    var prox=['Revisar o relatório executivo e ocultar o que não deve ser compartilhado.','Confirmar manualmente os itens "não confirmados" e atualizar o diagnóstico.','Enviar o relatório executivo (PDF) ao decisor, sem proposta comercial no primeiro contato.'];
+    var prox=['Revisar o relatório executivo e ocultar o que não deve ser compartilhado.','Conferir os itens "não confirmados" nas fontes indicadas e repetir a pesquisa, se necessário.','Enviar o relatório executivo (PDF) ao decisor, sem proposta comercial no primeiro contato.'];
     if(!a.coletadoEm) prox.unshift('Executar a pesquisa automática do website.');
-    if((a.manual.inpi||{}).status==='nao_consultado') prox.push('Realizar consulta na base de marcas do INPI.');
-    if((a.manual.google||{}).status==='nao_verificado') prox.push('Verificar o Perfil da Empresa no Google.');
+    if(a.sinais&&a.sinais.google&&a.sinais.google.status==='sem_chave') prox.push('Configurar a chave do Google Places para incluir o Perfil da Empresa na pesquisa automática.');
     prox.push('Registrar o contato no Prospectar/Funil e definir data de follow-up.');
     h+='<h2>8. Próximas ações recomendadas</h2><ul>'+prox.map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul>';
     h+='<div class="fim">Documento confidencial para uso da equipe da Teovox. Não compartilhar com a empresa analisada.</div></section></body></html>';
@@ -8080,31 +8118,36 @@
     root.querySelectorAll('[data-del]').forEach(function(b){ b.addEventListener('click',function(){ if(confirm('Excluir esta análise?')){ save(load().filter(function(x){return x.id!==b.getAttribute('data-del');})); renderLista(); } }); });
   }
 
+  function painel(a){
+    var S=a.sinais; if(!S) return '<div class="card rdr-card"><h2>2. Resultados da pesquisa</h2><p class="rdr-mini">Ainda não há resultados. Clique em “Pesquisar na web”.</p></div>';
+    var rows=[];
+    function lk(u,t){ return u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(t||u)+'</a>':''; }
+    var st=S.site; rows.push(['Website', st?('<b>'+esc(st.urlFinal)+'</b> · '+(st.https?'HTTPS':'sem HTTPS')+' · '+(st.tempoMs/1000).toFixed(1)+' s'):'Não identificado']);
+    var G=S.google||{};
+    rows.push(['Google Perfil da Empresa', G.status==='ok'?('Encontrado: <b>'+esc(G.lugar.nome)+'</b> · '+(G.lugar.nota!=null?'nota '+esc(G.lugar.nota):'sem nota')+' · '+G.lugar.avaliacoes+' avaliações · '+G.lugar.fotos+' foto(s) '+lk(G.lugar.url,'abrir')):G.status==='nao_encontrado'?'Não encontrado '+lk('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((a.empresa||'')+' '+(a.cidade||'')),'conferir'):G.status==='sem_chave'?'<span class="rdr-warn">Consulta ao Google não configurada (falta a chave da API Google Places no servidor).</span>':'Indisponível nesta consulta']);
+    var rd=(S.redes||[]).map(function(r){ return esc(r.rede.charAt(0).toUpperCase()+r.rede.slice(1))+': '+lk(r.url,r.usuario?'@'+r.usuario:r.url)+(r.seguidores!=null?' · <b>'+r.seguidores.toLocaleString('pt-BR')+'</b> seguidores':' · seguidores não confirmados')+' <small>('+esc(r.origem)+')</small>'; });
+    rows.push(['Redes sociais', rd.length?rd.join('<br>'):'Nenhum perfil localizado']);
+    var d=S.dominio, doms=S.dominios||[];
+    rows.push(['Domínio', d?(esc(d.dominio)+(d.registro?' · registrado em '+esc(fmtData(d.registro)):'')+(d.expira?' · vence em '+esc(fmtData(d.expira)):'')):(doms.length?doms.map(function(x){return esc(x.dominio)+': '+(x.registrado===true?'registrado':x.registrado===false?'livre':'não confirmado');}).join('<br>'):'—')]);
+    var em=S.email; rows.push(['E-mail do domínio', em?(em.mx&&em.mx.length?'Configurado ('+esc(em.provedor||'provedor não identificado')+')':'Não identificado (sem registro MX)'):'—']);
+    var IP=S.inpi||{}; rows.push(['Marca no INPI', IP.status==='ok'?(IP.total+' processo(s) encontrado(s)'+((IP.titularProvavel||[]).length?' · compatível com a empresa: nº '+esc(IP.titularProvavel[0].numero)+' ('+esc(IP.titularProvavel[0].situacao||'situação não informada')+')':'')):'Consulta indisponível nesta pesquisa']);
+    return '<div class="card rdr-card"><h2>2. Resultados da pesquisa</h2><table class="rdr-res"><tbody>'+rows.map(function(r){return '<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>';}).join('')+'</tbody></table><p class="rdr-mini">Pesquisa realizada em '+esc(fmtData(a.coletadoEm))+'. Fontes: página pública do site, DNS, registro.br/RDAP, Google PageSpeed, Google Places, perfis públicos e base de marcas do INPI.</p></div>';
+  }
+
   function opt(v,cur,t){ return '<option value="'+v+'"'+(v===cur?' selected':'')+'>'+t+'</option>'; }
   function renderDetalhe(id){
     var l=load(), a=l.find(function(x){return x.id===id;}); if(!a){ renderLista(); return; }
-    atualId=id; var M=a.manual, g=M.google, ip=M.inpi, idn=M.identidade;
+    atualId=id;
     var cloud=window.tvxCloud&&window.tvxCloud.user&&window.tvxCloud.user();
     var h='<div class="topbar"><div><h1>'+esc(a.empresa||'Nova análise')+'</h1><p><a href="javascript:void(0)" id="rdr-voltar">&larr; Voltar à lista</a></p></div><div class="rdr-top-btns"><button class="btn-secondary" id="rdr-gera-int">Gerar relatório interno</button><button class="btn-primary" id="rdr-gera-ext">Gerar relatório para a empresa</button></div></div>';
     h+='<div class="card rdr-card"><h2>1. Dados da empresa</h2><div class="rdr-grid">'+
-      '<label>Empresa<input id="f-empresa" value="'+esc(a.empresa)+'"></label><label>Cidade<input id="f-cidade" value="'+esc(a.cidade)+'"></label>'+
-      '<label>Website<input id="f-site" value="'+esc(a.site)+'" placeholder="www.empresa.com.br"></label><label>Instagram (opcional)<input id="f-ig" value="'+esc(a.redes.instagram)+'" placeholder="https://instagram.com/..."></label>'+
+      '<label>Empresa (obrigatório)<input id="f-empresa" value="'+esc(a.empresa)+'" placeholder="Nome da empresa"></label><label>Cidade (opcional)<input id="f-cidade" value="'+esc(a.cidade)+'"></label>'+
+      '<label>Website (opcional)<input id="f-site" value="'+esc(a.site)+'" placeholder="Deixe em branco para localizar pelo nome"></label><label>Instagram (opcional)<input id="f-ig" value="'+esc(a.redes.instagram)+'" placeholder="https://instagram.com/..."></label>'+
       '<label>Facebook (opcional)<input id="f-fb" value="'+esc(a.redes.facebook)+'"></label><label>LinkedIn (opcional)<input id="f-li" value="'+esc(a.redes.linkedin)+'"></label></div>'+
-      '<div class="rdr-acoes"><button class="btn-primary" id="rdr-pesq">Pesquisar na web</button><span id="rdr-pesq-st" class="rdr-mini">'+esc(nomeStatus(a))+'</span></div>'+
-      '<p class="rdr-mini">A pesquisa lê apenas informações públicas: página inicial do site, e-mail do domínio (DNS), registro do domínio e desempenho no Google PageSpeed. Perfil no Google, INPI e identidade visual são conferidos por você abaixo.'+(cloud?'':' <b>Para pesquisar, entre antes na conta da nuvem (Minha Conta → Perfil).</b>')+'</p></div>';
-    h+='<div class="card rdr-card"><h2>2. Verificações manuais</h2><div class="rdr-grid">'+
-      '<div class="rdr-blk"><h4>Perfil da Empresa no Google</h4><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((a.empresa||'')+' '+(a.cidade||''))+'" target="_blank" rel="noopener">Abrir busca no Google Maps</a>'+
-        '<label>Situação<select id="g-status">'+opt('nao_verificado',g.status,'Não verificado')+opt('encontrado',g.status,'Perfil encontrado')+opt('nao_encontrado',g.status,'Perfil não encontrado')+'</select></label>'+
-        '<label>Nota<input id="g-nota" value="'+esc(g.nota)+'" placeholder="Ex.: 4,6"></label><label>Nº de avaliações<input id="g-aval" value="'+esc(g.avaliacoes)+'" type="number" min="0"></label>'+
-        '<label>Informações (endereço, horário, telefone)<select id="g-info">'+opt('',g.info,'—')+opt('sim',g.info,'Completas')+opt('parcial',g.info,'Incompletas')+opt('nao',g.info,'Ausentes')+'</select></label>'+
-        '<label>Fotografias<select id="g-fotos">'+opt('',g.fotos,'—')+opt('adequadas',g.fotos,'Adequadas')+opt('poucas',g.fotos,'Poucas')+'</select></label><label>Observação<input id="g-obs" value="'+esc(g.obs)+'"></label></div>'+
-      '<div class="rdr-blk"><h4>Marca no INPI</h4><a href="https://busca.inpi.gov.br/pePI/" target="_blank" rel="noopener">Abrir busca do INPI</a>'+
-        '<label>Resultado da consulta<select id="i-status">'+opt('nao_consultado',ip.status,'Não consultado')+opt('registro_encontrado',ip.status,'Processo/registro localizado')+opt('nao_localizado',ip.status,'Nenhum processo localizado')+opt('indisponivel',ip.status,'Consulta indisponível')+'</select></label>'+
-        '<label>Nº do processo (opcional)<input id="i-proc" value="'+esc(ip.processo)+'"></label><label>Data da consulta<input type="date" id="i-data" value="'+esc(ip.data)+'"></label></div>'+
-      '<div class="rdr-blk"><h4>Identidade visual</h4>'+
-        '<label>Consistência entre os canais<select id="d-status">'+opt('nao_avaliado',idn.status,'Não avaliado')+opt('consistente',idn.status,'Consistente')+opt('parcial',idn.status,'Parcialmente consistente')+opt('inconsistente',idn.status,'Inconsistente')+'</select></label>'+
-        '<label>Observação<textarea id="d-obs" rows="3">'+esc(idn.obs)+'</textarea></label></div></div></div>';
-    h+='<div class="card rdr-card"><h2>3. Achados ('+(a.achados||[]).length+')</h2><p class="rdr-mini">Os achados são gerados a partir dos dados coletados e preenchidos acima. Você pode editar os textos, ajustar a prioridade e escolher o que entra no relatório para a empresa.</p><div id="rdr-achados">';
+      '<div class="rdr-acoes"><button class="btn-primary" id="rdr-pesq">Pesquisar na web</button><span id="rdr-pesq-st" class="rdr-mini">'+esc(nomeStatus(a))+(a.siteAuto&&a.site?' · site localizado automaticamente: confira se é o correto':'')+(a.sinais&&a.sinais.descoberta&&!a.sinais.descoberta.escolhido?' · site não identificado — informe o endereço':'')+'</span></div>'+
+      '<p class="rdr-mini">Basta o nome da empresa: o Radar procura o site e os perfis públicos sozinho (cidade e site ajudam a acertar). Se o site encontrado não for o correto, corrija o campo Website e pesquise de novo. A pesquisa lê apenas informações públicas: página inicial do site, e-mail do domínio (DNS), registro do domínio e desempenho no Google PageSpeed. Também consulta o Perfil da Empresa no Google, os perfis públicos em redes sociais (com seguidores), a disponibilidade de domínio e a base de marcas do INPI. Itens que não puderem ser confirmados aparecem como “não confirmados”.'+(cloud?'':' <b>Para pesquisar, entre antes na conta da nuvem (Minha Conta → Perfil).</b>')+'</p></div>';
+    h+=painel(a);
+    h+='<div class="card rdr-card"><h2>3. Achados ('+(a.achados||[]).length+')</h2><p class="rdr-mini">Os achados são gerados automaticamente a partir dos dados coletados. Você pode editar os textos, ajustar a prioridade e escolher o que entra no relatório para a empresa.</p><div id="rdr-achados">';
     (a.achados||[]).forEach(function(x,i){
       var tipoT=x.tipo==='positivo'?'Aspecto positivo':(x.tipo==='nao_confirmado'?'Não confirmado':'Oportunidade');
       h+='<details class="rdr-ach"><summary><span class="rdr-tag '+x.tipo+'">'+tipoT+'</span> <b>'+esc(x.titulo)+'</b> <small>'+esc(AREAS[x.area]||'')+'</small>'+(x.tipo==='oportunidade'?' <span class="rdr-tag p-'+esc(x.prioridade)+'">'+esc(PRI[x.prioridade]||'')+'</span>':'')+'</summary><div class="rdr-ach-b">'+
@@ -8122,10 +8165,7 @@
     var regen=function(){ atualizaAchados(a); salvar(); var ae=document.activeElement, aid=ae&&ae.id, sy=window.scrollY; renderDetalhe(a.id); if(aid){ var ne=el(aid); if(ne&&ne.focus){ try{ ne.focus({preventScroll:true}); }catch(e){ ne.focus(); } } } window.scrollTo(0,sy); };
     el('rdr-voltar').onclick=renderLista;
     var campo=function(id,fn,regenera){ var e=el(id); if(!e) return; e.addEventListener('change',function(){ fn(e.value); salvar(); if(regenera) regen(); }); };
-    campo('f-empresa',function(v){a.empresa=v;}); campo('f-cidade',function(v){a.cidade=v;},true); campo('f-site',function(v){a.site=v;}); campo('f-ig',function(v){a.redes.instagram=v;},true); campo('f-fb',function(v){a.redes.facebook=v;},true); campo('f-li',function(v){a.redes.linkedin=v;},true);
-    campo('g-status',function(v){g.status=v;},true); campo('g-nota',function(v){g.nota=v;},true); campo('g-aval',function(v){g.avaliacoes=v;},true); campo('g-info',function(v){g.info=v;},true); campo('g-fotos',function(v){g.fotos=v;},true); campo('g-obs',function(v){g.obs=v;},true);
-    campo('i-status',function(v){ip.status=v;},true); campo('i-proc',function(v){ip.processo=v;},true); campo('i-data',function(v){ip.data=v;},true);
-    campo('d-status',function(v){idn.status=v;},true); campo('d-obs',function(v){idn.obs=v;},true);
+    campo('f-empresa',function(v){a.empresa=v;}); campo('f-cidade',function(v){a.cidade=v;},true); campo('f-site',function(v){a.site=v;a.siteAuto=false;}); campo('f-ig',function(v){a.redes.instagram=v;},true); campo('f-fb',function(v){a.redes.facebook=v;},true); campo('f-li',function(v){a.redes.linkedin=v;},true);
     campo('f-notas',function(v){a.notasInternas=v;}); campo('f-abord',function(v){a.abordagem=v;});
     root.querySelectorAll('#rdr-achados [data-f]').forEach(function(e){ e.addEventListener('change',function(){ var x=a.achados[+e.getAttribute('data-i')], f=e.getAttribute('data-f'); if(!x) return; x[f]=(f==='incluirExterno')?e.checked:e.value; if(f!=='incluirExterno') x.editado=true; salvar(); if(f==='prioridade') renderDetalhe(a.id); }); });
     root.querySelectorAll('[data-rm]').forEach(function(b){ b.addEventListener('click',function(){ var i=+b.getAttribute('data-rm'), x=a.achados[i]; if(!x||!confirm('Remover este achado?')) return; a.removidos=a.removidos||[]; a.removidos.push(x.id); a.achados.splice(i,1); salvar(); renderDetalhe(a.id); }); });
@@ -8136,13 +8176,16 @@
 
   function pesquisar(a){
     var st=el('rdr-pesq-st'); var C=window.tvxCloud;
-    if(!a.site){ st.textContent='Informe o endereço do website.'; return; }
+    if(!(a.empresa||'').trim()){ st.textContent='Informe o nome da empresa para pesquisar.'; return; }
     if(!C||!C.user||!C.user()||!C.sb()){ st.textContent='Entre na conta da nuvem (Minha Conta → Perfil) para pesquisar.'; return; }
     var btn=el('rdr-pesq'); btn.disabled=true; st.textContent='Pesquisando… pode levar até 1 minuto.';
-    C.sb().functions.invoke('teo-radar',{ body:{ url:normSite(a.site), nome:a.empresa, cidade:a.cidade } }).then(function(r){
+    C.sb().functions.invoke('teo-radar',{ body:{ url:a.site?normSite(a.site):'', nome:a.empresa, cidade:a.cidade } }).then(function(r){
       btn.disabled=false;
       if(r.error || !r.data || r.data.ok===false){ st.textContent='Não foi possível concluir a pesquisa'+((r.data&&r.data.erro)?': '+r.data.erro:'.'); return; }
-      a.sinais=r.data; a.coletadoEm=r.data.coletadoEm; if(!a.config.dataAnalise) a.config.dataAnalise=hojeISO();
+      a.sinais=r.data; a.coletadoEm=r.data.coletadoEm;
+      var dsc=r.data.descoberta;
+      if(dsc){ if(dsc.escolhido && !a.site){ a.site=(r.data.site&&r.data.site.urlFinal)||dsc.escolhido; a.siteAuto=true; }
+        var rd=dsc.redes||{}; ['instagram','facebook','linkedin'].forEach(function(k){ if(rd[k] && !a.redes[k]){ a.redes[k]=rd[k]; } }); } if(!a.config.dataAnalise) a.config.dataAnalise=hojeISO();
       atualizaAchados(a);
       var l=load(), i=l.findIndex(function(x){return x.id===a.id;}); if(i>=0){ l[i]=a; save(l); }
       renderDetalhe(a.id);
@@ -8165,6 +8208,7 @@
     '#view-radar .rdr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}#view-radar .rdr-grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}'+
     '#view-radar .rdr-blk{border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#f8fafc}#view-radar .rdr-blk h4{margin:0 0 4px;font-size:14px;color:#0b1f3a}'+
     '#view-radar .rdr-acoes{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:6px 0}#view-radar .rdr-mini{font-size:12.5px;color:#64748b;margin:4px 0}'+
+    '#view-radar table.rdr-res th{width:190px;text-align:left;vertical-align:top;font-size:12.5px;color:#475569;padding:8px 10px;background:#f8fafc}#view-radar table.rdr-res td{padding:8px 10px;font-size:13.5px;border-bottom:1px solid #f1f5f9}#view-radar .rdr-warn{color:#b45309}'+
     '#view-radar .rdr-top-btns{display:flex;gap:8px;flex-wrap:wrap}'+
     '#view-radar details.rdr-ach{border:1px solid #e2e8f0;border-radius:10px;margin-bottom:8px;background:#fff}#view-radar details.rdr-ach summary{padding:10px 12px;cursor:pointer;font-size:13.5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}#view-radar .rdr-ach-b{padding:4px 12px 12px;border-top:1px solid #f1f5f9}'+
     '#view-radar .rdr-ach-f{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:6px}#view-radar .rdr-ach-f .rdr-chk{margin:0}#view-radar .rdr-chk{flex-direction:row;align-items:center;gap:6px;font-weight:500}'+
